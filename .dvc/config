@@ -1,0 +1,4 @@
+[core]
+    remote = spt-google-drive
+['remote "spt-google-drive"']
+    url = gdrive://1vnrY2F-UZvl7PH0vdxsIfAEEx41u9f_L/dvcstore

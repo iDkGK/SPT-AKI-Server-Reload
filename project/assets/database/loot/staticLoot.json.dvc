@@ -1,0 +1,4 @@
+outs:
+- md5: b4f0a77a1e2f236ef655a1708ff72d75
+  size: 853426
+  path: staticLoot.json

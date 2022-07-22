@@ -1,0 +1,169 @@
+{
+    "name": "aki-server",
+	"version": "2.3.1",
+    "main": "src/ide/ReleaseEntry.js",
+    "author": "SPT-AKI",
+    "contributors": [
+        "Merijn Hendriks (Senko-san, InNoHurryToCode)",
+        "Ginja",
+        "Terkoiz",
+        "Reider123",
+        "Erehkigal",
+        "PoloYolo",
+        "Craink",
+        "Emperor06"
+    ],
+    "license": "NCSA",
+    "repository": "https://dev.sp-tarkov.com/SPT-AKI/Server",
+    "description": "Modding framework for Escape From Tarkov",
+    "scripts": {
+        "lint": "eslint --fix \"./src/**/*.js\"",
+        "lint:verify": "eslint \"./src/**/*.js\"",
+        "test:debug": "node --trace-warnings src/ide/TestEntry.js",
+        "test:release": "node --trace-warnings src/ide/ReleaseEntry.js",
+        "gen:types": "npx babel src --out-dir obj",
+        "gen:bundle-release": "npx browserify --debug --node obj/ide/ReleaseEntry.js > obj/bundle.js",
+        "gen:bundle-debug": "npx browserify --debug --node obj/ide/DebugEntry.js > obj/bundle.js",
+        "gen:exe": "node src/ide/Compiler.js",
+        "build:release": "npm run gen:types && npm run gen:bundle-release && npm run gen:exe",
+        "build:debug": "npm run gen:types && npm run gen:bundle-debug && npm run gen:exe"
+    },
+    "dependencies": {
+        "atomically": "^1.7.0",
+        "json-fixer": "1.6.10",
+        "os-locale": "^5.0.0",
+        "proper-lockfile": "^4.1.2",
+        "ws": "^7.4.6",
+        "source-map-support": "^0.5.0"
+    },
+    "devDependencies": {
+        "@babel/cli": "^7.13.16",
+        "@babel/core": "7.14.2",
+        "@babel/eslint-parser": "^7.14.2",
+        "@babel/plugin-transform-runtime": "^7.16.0",
+        "@babel/plugin-proposal-class-properties": "^7.13.0",
+        "@babel/plugin-proposal-private-methods": "^7.13.0",
+        "@babel/preset-env": "^7.14.2",
+        "babel-plugin-source-map-support": "^2.1.0",
+        "browserify": "^17.0.0",
+        "bufferutil": "^4.0.3",
+        "core-js": "^3.20.0",
+        "eslint": "^7.26.0",
+        "nexe": "^4.0.0-beta.19",
+        "rcedit": "^3.0.0",
+        "utf-8-validate": "^5.0.5"
+    },
+    "babel": {
+        "presets": [
+            [
+                "@babel/env",
+                {
+                    "targets": {
+                        "node": "14.15.3"
+                    },
+                    "useBuiltIns": "usage",
+                    "corejs": "3.20.0"
+                }
+            ]
+        ],
+        "plugins": [
+            [
+                "@babel/plugin-proposal-class-properties",
+                {
+                    "loose": true
+                }
+            ],
+            [
+                "@babel/plugin-proposal-private-methods",
+                {
+                    "loose": true
+                }
+            ],
+            [
+                "@babel/plugin-proposal-private-property-in-object",
+                {
+                    "loose": true
+                }
+            ],
+            "@babel/plugin-transform-runtime",
+            "source-map-support"
+        ],
+        "ignore": [
+            "*/node_modules",
+            "*/obj",
+            "*/user"
+        ],
+        "sourceMaps": "inline"
+    },
+    "eslintConfig": {
+        "parser": "@babel/eslint-parser",
+        "extends": "eslint:recommended",
+        "rules": {
+            "indent": [
+                "error",
+                4,
+                {
+                    "SwitchCase": 1
+                }
+            ],
+            "quotes": [
+                "error",
+                "double"
+            ],
+            "semi": [
+                "error",
+                "always"
+            ],
+            "no-undef": "off",
+            "no-unused-vars": "off",
+            "brace-style": [
+                "error",
+                "allman",
+                {
+                    "allowSingleLine": false
+                }
+            ],
+            "no-prototype-builtins": "error",
+            "no-constant-condition": "error",
+            "no-trailing-spaces": "error",
+            "keyword-spacing": "error",
+            "space-infix-ops": "error",
+            "space-in-parens": "error",
+            "eqeqeq": "error",
+            "comma-spacing": "error",
+            "padding-line-between-statements": [
+                "error",
+                {
+                    "blankLine": "always",
+                    "prev": "*",
+                    "next": "block-like"
+                },
+                {
+                    "blankLine": "any",
+                    "prev": "const",
+                    "next": "block-like"
+                },
+                {
+                    "blankLine": "any",
+                    "prev": "let",
+                    "next": "block-like"
+                },
+                {
+                    "blankLine": "any",
+                    "prev": "var",
+                    "next": "block-like"
+                },
+                {
+                    "blankLine": "any",
+                    "prev": "expression",
+                    "next": "block-like"
+                }
+            ],
+            "object-curly-spacing": [
+                "error",
+                "always"
+            ],
+            "prefer-const": "error"
+        }
+    }
+}

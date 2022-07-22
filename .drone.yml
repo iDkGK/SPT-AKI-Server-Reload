@@ -1,0 +1,18 @@
+kind: pipeline
+type: docker
+name: Verify Code
+
+clone:
+  depth: 2
+
+steps:
+- name: Run ESLint
+  image: node:14
+  commands:
+  - cd ./project
+  - npm install
+  - npm run lint:verify
+  
+trigger:
+  event:
+  - pull_request

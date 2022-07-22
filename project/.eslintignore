@@ -1,0 +1,9 @@
+# Exclude these folders from linting
+node_modules
+src/ide
+out/
+
+# Exclude these filetypes from linting
+*.json
+*.txt
+*.exe
