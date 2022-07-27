@@ -1,6 +1,4 @@
-"use strict";
-
-module.exports = {
+{
     "MIAOnRaidEnd": true,
     "raidMenuSettings": {
         "aiAmount": "AsOnline",
@@ -13,7 +11,12 @@ module.exports = {
         "loot": true,
         "durability": true
     },
-    "carExtracts": ["Dorms V-Ex", "PP Exfil", "V-Ex_light", "South V-Ex"],
+    "carExtracts": [
+        "Dorms V-Ex",
+        "PP Exfil",
+        "V-Ex_light",
+        "South V-Ex"
+    ],
     "carExtractBaseStandingGain": 0.25,
     "scavExtractGain": 0.01
-};
+}

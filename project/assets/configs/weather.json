@@ -1,6 +1,4 @@
-"use strict";
-
-module.exports = {
+{
     "acceleration": 7,
     "weather": {
         "clouds": {
@@ -13,7 +11,7 @@ module.exports = {
         },
         "windDirection": {
             "min": 0,
-            "max": 3
+            "max": 6
         },
         "windGustiness": {
             "min": 0,
@@ -24,20 +22,20 @@ module.exports = {
             "max": 4
         },
         "rainIntensity": {
-            "min": 0.1,
+            "min": 0,
             "max": 1
         },
         "fog": {
-            "min": 0.001,
+            "min": 0,
             "max": 0.03
         },
         "temp": {
             "min": 0,
-            "max": 16
+            "max": 24
         },
         "pressure": {
             "min": 760,
             "max": 764
         }
     }
-};
+}

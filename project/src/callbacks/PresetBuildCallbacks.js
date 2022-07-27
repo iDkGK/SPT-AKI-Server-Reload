@@ -6,7 +6,9 @@ class PresetBuildCallbacks
 {
     static getHandbookUserlist(url, info, sessionID)
     {
-        return HttpResponse.getBody(PresetBuildController.getUserBuilds(sessionID));
+        return HttpResponse.getBody(
+            PresetBuildController.getUserBuilds(sessionID)
+        );
     }
 
     static saveBuild(pmcData, body, sessionID)

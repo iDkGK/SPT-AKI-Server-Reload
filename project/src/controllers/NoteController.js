@@ -6,20 +6,20 @@ class NoteController
 {
     static addNote(pmcData, body, sessionID)
     {
-        pmcData.Notes.Notes.push({
-            "Time": body.note.Time,
-            "Text": body.note.Text
-        });
+        const newNote = {
+            Time: body.note.Time,
+            Text: body.note.Text,
+        };
+        pmcData.Notes.Notes.push(newNote);
 
         return ItemEventRouter.getOutput(sessionID);
     }
 
     static editNote(pmcData, body, sessionID)
     {
-        pmcData.Notes.Notes[body.index] = {
-            "Time": body.note.Time,
-            "Text": body.note.Text
-        };
+        const noteToEdit = pmcData.Notes.Notes[body.index];
+        noteToEdit.Time = body.note.Time;
+        noteToEdit.Text = body.note.Text;
 
         return ItemEventRouter.getOutput(sessionID);
     }

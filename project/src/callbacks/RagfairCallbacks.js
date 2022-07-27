@@ -11,7 +11,9 @@ class RagfairCallbacks
 
     static search(url, info, sessionID)
     {
-        return HttpResponse.getBody(RagfairController.getOffers(sessionID, info));
+        return HttpResponse.getBody(
+            RagfairController.getOffers(sessionID, info)
+        );
     }
 
     static getMarketPrice(url, info, sessionID)

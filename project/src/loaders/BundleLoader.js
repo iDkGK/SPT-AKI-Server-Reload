@@ -8,7 +8,12 @@ class BundleInfo
     {
         this.key = bundle.key;
         this.path = `${HttpServer.getBackendUrl()}/files/bundle/${bundle.key}`;
-        this.filepath = bundle.path || `${process.cwd()}/${modpath}bundles/${bundle.key}`.replace(/\\/g, "/");
+        this.filepath =
+            bundle.path ||
+            `${process.cwd()}/${modpath}bundles/${bundle.key}`.replace(
+                /\\/g,
+                "/"
+            );
         this.dependencyKeys = bundle.dependencyKeys || [];
     }
 }
@@ -44,7 +49,9 @@ class BundleLoader
 
     static addBundles(modpath)
     {
-        const manifest = JsonUtil.deserialize(VFS.readFile(`${modpath}bundles.json`)).manifest;
+        const manifest = JsonUtil.deserialize(
+            VFS.readFile(`${modpath}bundles.json`)
+        ).manifest;
 
         for (const bundle of manifest)
         {

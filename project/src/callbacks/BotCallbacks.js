@@ -16,7 +16,9 @@ class BotCallbacks
         const splittedUrl = url.split("/");
         const type = splittedUrl[splittedUrl.length - 2].toLowerCase();
         const difficulty = splittedUrl[splittedUrl.length - 1];
-        return HttpResponse.noBody(BotController.getBotDifficulty(type, difficulty));
+        return HttpResponse.noBody(
+            BotController.getBotDifficulty(type, difficulty)
+        );
     }
 
     static generateBots(url, info, sessionID)

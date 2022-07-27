@@ -1,12 +1,16 @@
 "use strict";
 
-const { itemIsChristmasRelated } = require("../helpers/GameEventHelper.js");
-
 require("../Lib.js");
 
 class LocationGenerator
 {
-    static generateContainerLoot(containerIn, staticForced, staticLootDist, staticAmmoDist, locationName)
+    static generateContainerLoot(
+        containerIn,
+        staticForced,
+        staticLootDist,
+        staticAmmoDist,
+        locationName
+    )
     {
         const container = JsonUtil.clone(containerIn);
         const containerTypeId = container.Items[0]._tpl;
@@ -17,58 +21,93 @@ class LocationGenerator
         const containerTemplate = ItemHelper.getItem(containerTypeId)[1];
         const height = containerTemplate._props.Grids[0]._props.cellsV;
         const width = containerTemplate._props.Grids[0]._props.cellsH;
-        let container2D = Array(height).fill(0).map(() => Array(width).fill(0));
+        let container2D = Array(height)
+            .fill(0)
+            .map(() => Array(width).fill(0));
 
         const itemCountArray = new RandomUtil.ProbabilityObjectArray();
-        for (const icd of staticLootDist[containerTypeId].itemcountDistribution)
+        for (const icd of staticLootDist[containerTypeId]
+            .itemcountDistribution)
         {
             itemCountArray.push(
-                new RandomUtil.ProbabilityObject(icd.count, icd.relativeProbability)
+                new RandomUtil.ProbabilityObject(
+                    icd.count,
+                    icd.relativeProbability
+                )
             );
         }
-        const numberItems = Math.round(LocationGenerator.getStaticLootMultiplerForLocation(locationName) * itemCountArray.draw()[0]);
+        const numberItems = Math.round(
+            LocationGenerator.getStaticLootMultiplerForLocation(locationName) *
+                itemCountArray.draw()[0]
+        );
 
         const itemDistribution = new RandomUtil.ProbabilityObjectArray();
         for (const icd of staticLootDist[containerTypeId].itemDistribution)
         {
             itemDistribution.push(
-                new RandomUtil.ProbabilityObject(icd.tpl, icd.relativeProbability)
+                new RandomUtil.ProbabilityObject(
+                    icd.tpl,
+                    icd.relativeProbability
+                )
             );
         }
 
         // Forced container loot
-        const tplsForced = staticForced.filter(x => x.containerId === container.Id).map(x => x.itemTpl);
+        const tplsForced = staticForced
+            .filter(x => x.containerId === container.Id)
+            .map(x => x.itemTpl);
 
         // Draw random loot
         // money spawn more than once in container
-        const locklist = [ItemHelper.MONEY.Roubles, ItemHelper.MONEY.Dollars, ItemHelper.MONEY.Euros];
+        const locklist = [
+            ItemHelper.MONEY.Roubles,
+            ItemHelper.MONEY.Dollars,
+            ItemHelper.MONEY.Euros,
+        ];
         const tplsDraw = itemDistribution.draw(numberItems, false, locklist);
         const tpls = tplsForced.concat(tplsDraw);
         for (const tpl of tpls)
         {
-            if (!GameEventHelper.christmasEventEnabled() && GameEventHelper.itemIsChristmasRelated(tpl))
+            if (
+                !GameEventHelper.christmasEventEnabled() &&
+                GameEventHelper.itemIsChristmasRelated(tpl)
+            )
             {
                 // Skip christmas event items if they're not enabled
                 continue;
             }
 
-            const created = LocationGenerator.createItem(tpl, staticAmmoDist, parentId);
+            const created = LocationGenerator.createItem(
+                tpl,
+                staticAmmoDist,
+                parentId
+            );
             const items = created.items;
             const width = created.width;
             const height = created.height;
 
-            const result = ContainerHelper.findSlotForItem(container2D, width, height);
+            const result = ContainerHelper.findSlotForItem(
+                container2D,
+                width,
+                height
+            );
             if (!result.success)
             {
                 break;
             }
 
-            container2D = ContainerHelper.fillContainerMapWithItem(container2D, result.x, result.y, width, height, result.rotation);
+            container2D = ContainerHelper.fillContainerMapWithItem(
+                container2D,
+                result.x,
+                result.y,
+                width,
+                height,
+                result.rotation
+            );
             const rot = result.rotation ? 1 : 0;
 
             items[0].slotId = "main";
-            items[0].location = { "x": result.x, "y": result.y, "r": rot };
-
+            items[0].location = { x: result.x, y: result.y, r: rot };
 
             for (const item of items)
             {
@@ -105,17 +144,21 @@ class LocationGenerator
         //draw from random distribution
         const numSpawnpoints = Math.round(
             LocationGenerator.getLooseLootMultiplerForLocation(locationName) *
-            RandomUtil.randn(
-                dynamicLootDist.spawnpointCount.mean,
-                dynamicLootDist.spawnpointCount.std
-            )
+                RandomUtil.randn(
+                    dynamicLootDist.spawnpointCount.mean,
+                    dynamicLootDist.spawnpointCount.std
+                )
         );
 
         const spawnpointArray = new RandomUtil.ProbabilityObjectArray();
         for (const si of dynamicDist)
         {
             spawnpointArray.push(
-                new RandomUtil.ProbabilityObject(si.template.Id, si.probability, si)
+                new RandomUtil.ProbabilityObject(
+                    si.template.Id,
+                    si.probability,
+                    si
+                )
             );
         }
 
@@ -126,11 +169,15 @@ class LocationGenerator
         }
 
         // filter out duplicate locationIds
-        spawnpoints = [...new Map(spawnpoints.map(x => [x.locationId, x])).values()];
-        const numDupes = numSpawnpoints - spawnpoints.length;
-        if (numDupes > 0)
+        spawnpoints = [
+            ...new Map(spawnpoints.map(x => [x.locationId, x])).values(),
+        ];
+        const numberTooManyRequested = numSpawnpoints - spawnpoints.length;
+        if (numberTooManyRequested > 0)
         {
-            Logger.info(`${numDupes} spawnpoints with duplicate location were removed.`);
+            Logger.info(
+                `${numSpawnpoints} spawnpoints were requested while ${spawnpoints.length} are available for this map.`
+            );
         }
 
         for (const spi of spawnpoints)
@@ -139,7 +186,10 @@ class LocationGenerator
             for (const itemDist of spi.itemDistribution)
             {
                 itemArray.push(
-                    new RandomUtil.ProbabilityObject(itemDist.tpl, itemDist.relativeProbability)
+                    new RandomUtil.ProbabilityObject(
+                        itemDist.tpl,
+                        itemDist.relativeProbability
+                    )
                 );
             }
 
@@ -167,9 +217,13 @@ class LocationGenerator
 
         let items = [
             {
-                "_id": ObjectId.generate(),
-                "_tpl": tpl,
-            }
+                _id: ObjectId.generate(),
+                _tpl: tpl,
+                parentId: undefined,
+                slotId: undefined,
+                location: undefined,
+                upd: undefined,
+            },
         ];
 
         // container item has container's id as parentId
@@ -182,20 +236,28 @@ class LocationGenerator
         let height = itemTemplate._props.Height;
         if (ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Weapon))
         {
-            let children;
-            const presets = JsonUtil.clone(PresetController.getPresets(tpl));
-            const defaultPreset = presets.find(x => x._encyclopedia);
+            let children = [];
+            const defaultPreset = JsonUtil.clone(
+                PresetHelper.getDefaultPreset(tpl)
+            );
             if (defaultPreset)
             {
                 try
                 {
-                    children = RagfairServer.getPresetItems(defaultPreset);
+                    children = RagfairServer.reparentPresets(
+                        defaultPreset._items[0],
+                        defaultPreset._items
+                    );
                 }
                 catch (error)
                 {
-                    // this item already broke it once without being reproducible tpl = "5839a40f24597726f856b511";
+                    // this item already broke it once without being reproducible tpl = "5839a40f24597726f856b511"; AKS-74UB Default
+                    // 5ea03f7400685063ec28bfa8 // ppsh default
+                    // 5ba26383d4351e00334c93d9 //mp7_devgru
                     Logger.warning(`PresetItems could not be found for ${tpl}`);
-                    Logger.warning(`defaultPreset: ${defaultPreset}`);
+                    Logger.warning(
+                        `defaultPreset: ${defaultPreset._id} ${defaultPreset._name}`
+                    );
                     Logger.warning(`parentId: ${parentId}`);
                     throw error;
                 }
@@ -215,7 +277,9 @@ class LocationGenerator
                 const weapTemplate = ItemHelper.getItem(rootItem._tpl)[1];
                 // we can't use weaponTemplate's "_props.ammoCaliber" directly since there's a weapon ("weapon_zmz_pp-9_9x18pmm")
                 // with non-existing ammoCaliber: Caliber9x18PMM -> We get the Caliber from the weapons' default ammo
-                const defAmmoTemplate = ItemHelper.getItem(weapTemplate._props.defAmmo)[1];
+                const defAmmoTemplate = ItemHelper.getItem(
+                    weapTemplate._props.defAmmo
+                )[1];
                 const magTemplate = ItemHelper.getItem(mag._tpl)[1];
                 items.push(
                     LocationGenerator.createRandomMagCartridges(
@@ -232,47 +296,73 @@ class LocationGenerator
             height = size.height;
         }
 
-        if (ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Money) || ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Ammo))
+        if (
+            ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Money) ||
+            ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Ammo)
+        )
         {
-            const stackCount = RandomUtil.getInt(itemTemplate._props.StackMinRandom, itemTemplate._props.StackMaxRandom);
-            items[0].upd = { "StackObjectsCount": stackCount };
+            const stackCount = RandomUtil.getInt(
+                itemTemplate._props.StackMinRandom,
+                itemTemplate._props.StackMaxRandom
+            );
+            items[0].upd = { StackObjectsCount: stackCount };
         }
-        else if (ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.AmmoBox))
+        else if (
+            ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.AmmoBox)
+        )
         {
-            const tpl = itemTemplate._props.StackSlots[0]._props.filters[0].Filter[0];
-            items.push(LocationGenerator.createCartidges(items[0]._id, tpl, itemTemplate._props.StackMaxRandom));
+            const tpl =
+                itemTemplate._props.StackSlots[0]._props.filters[0].Filter[0];
+            items.push(
+                LocationGenerator.createCartidges(
+                    items[0]._id,
+                    tpl,
+                    itemTemplate._props.StackMaxRandom
+                )
+            );
         }
-        else if (ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Magazine))
+        else if (
+            ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Magazine)
+        )
         {
-            items.push(LocationGenerator.createRandomMagCartridges(itemTemplate, items[0]._id, staticAmmoDist));
+            items.push(
+                LocationGenerator.createRandomMagCartridges(
+                    itemTemplate,
+                    items[0]._id,
+                    staticAmmoDist
+                )
+            );
         }
 
         return {
-            "items": items,
-            "width": width,
-            "height": height
+            items: items,
+            width: width,
+            height: height,
         };
-
     }
 
     static getRandomCompatibleCaliberTemplateId(item)
     {
-        return item._props.Cartridges[0]._props.filters[0].Filter[Math.floor(Math.random() * item._props.Cartridges[0]._props.filters[0].Filter.length)];
-    }
-
-    static getCaliber(magTemplate)
-    {
-        const ammoTpls = magTemplate._props.Cartridges[0]._props.filters[0].Filter;
-        const calibers = [
-            ...new Set(
-                ammoTpls.filter(
-                    x => ItemHelper.getItem(x)[0]
-                ).map(
-                    x => ItemHelper.getItem(x)[1]._props.Caliber
-                )
+        return item._props.Cartridges[0]._props.filters[0].Filter[
+            Math.floor(
+                Math.random() *
+                    item._props.Cartridges[0]._props.filters[0].Filter.length
             )
         ];
-        return RandomUtil.DrawRandomFromList(calibers);
+    }
+
+    static getRandomValidCaliber(magTemplate)
+    {
+        const ammoTpls =
+            magTemplate._props.Cartridges[0]._props.filters[0].Filter;
+        const calibers = [
+            ...new Set(
+                ammoTpls
+                    .filter(x => ItemHelper.getItem(x)[0])
+                    .map(x => ItemHelper.getItem(x)[1]._props.Caliber)
+            ),
+        ];
+        return RandomUtil.drawRandomFromList(calibers)[0];
     }
 
     static drawAmmoTpl(caliber, staticAmmoDist)
@@ -281,36 +371,45 @@ class LocationGenerator
         for (const icd of staticAmmoDist[caliber])
         {
             ammoArray.push(
-                new RandomUtil.ProbabilityObject(icd.tpl, icd.relativeProbability)
+                new RandomUtil.ProbabilityObject(
+                    icd.tpl,
+                    icd.relativeProbability
+                )
             );
         }
         return ammoArray.draw(1)[0];
     }
 
-    static createRandomMagCartridges(magTemplate, parentId, staticAmmoDist, caliber = undefined)
+    static createRandomMagCartridges(
+        magTemplate,
+        parentId,
+        staticAmmoDist,
+        caliber = undefined
+    )
     {
         if (!caliber)
         {
-            caliber = LocationGenerator.getCaliber(magTemplate);
+            caliber = LocationGenerator.getRandomValidCaliber(magTemplate);
         }
         const ammoTpl = LocationGenerator.drawAmmoTpl(caliber, staticAmmoDist);
         const maxCount = magTemplate._props.Cartridges[0]._max_count;
-        const stackCount = RandomUtil.getInt(Math.round(0.25 * maxCount), maxCount);
+        const stackCount = RandomUtil.getInt(
+            Math.round(0.25 * maxCount),
+            maxCount
+        );
         return LocationGenerator.createCartidges(parentId, ammoTpl, stackCount);
     }
 
     static createCartidges(parentId, ammoTpl, stackCount)
     {
         return {
-            "_id": ObjectId.generate(),
-            "_tpl": ammoTpl,
-            "parentId": parentId,
-            "slotId": "cartridges",
-            "upd": { "StackObjectsCount": stackCount }
+            _id: ObjectId.generate(),
+            _tpl: ammoTpl,
+            parentId: parentId,
+            slotId: "cartridges",
+            upd: { StackObjectsCount: stackCount },
         };
     }
 }
-
-
 
 module.exports = LocationGenerator;

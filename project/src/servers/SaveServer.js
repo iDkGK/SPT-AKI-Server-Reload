@@ -4,7 +4,7 @@ require("../Lib.js");
 
 class SaveServer
 {
-    static filepath = "user/profiles/";
+    static profileFilepath = "user/profiles/";
     static profiles = {};
     static onLoad = require("../bindings/SaveLoad");
     static onSave = {};
@@ -13,12 +13,12 @@ class SaveServer
     static load()
     {
         // get files to load
-        if (!VFS.exists(SaveServer.filepath))
+        if (!VFS.exists(SaveServer.profileFilepath))
         {
-            VFS.createDir(SaveServer.filepath);
+            VFS.createDir(SaveServer.profileFilepath);
         }
 
-        const files = VFS.getFiles(SaveServer.filepath).filter((item) =>
+        const files = VFS.getFiles(SaveServer.profileFilepath).filter(item =>
         {
             return VFS.getFileExtension(item) === "json";
         });
@@ -42,47 +42,114 @@ class SaveServer
         }
     }
 
+    static getProfile(sessionId)
+    {
+        if (!sessionId)
+        {
+            throw new Error("session id provided was empty");
+        }
+
+        if (SaveServer.profiles === null)
+        {
+            throw new Error("no profiles found in saveServer");
+        }
+
+        if (SaveServer.profiles[sessionId] === null)
+        {
+            throw new Error(`no profile found for sessionId: ${sessionId}`);
+        }
+
+        return SaveServer.profiles[sessionId];
+    }
+
+    static getProfiles()
+    {
+        return SaveServer.profiles;
+    }
+
+    static deleteProfileById(sessionID)
+    {
+        if (SaveServer.profiles[sessionID] !== null)
+        {
+            delete SaveServer.profiles[sessionID];
+            return true;
+        }
+        return false;
+    }
+
+    static createProfile(profileInfo)
+    {
+        if (SaveServer.profiles[profileInfo.id] !== null)
+        {
+            throw new console.error(
+                `profile already exists for sessionId: ${profileInfo.id}`
+            );
+        }
+
+        SaveServer.profiles[profileInfo.id] = {
+            info: profileInfo,
+        };
+    }
+
+    /*
+        Add profile to internal profiles array
+    */
+    static addProfile(profileDetails)
+    {
+        SaveServer.profiles[profileDetails.info.id] = profileDetails;
+    }
+
     static loadProfile(sessionID)
     {
-        const file = `${SaveServer.filepath}${sessionID}.json`;
+        const filePath = `${SaveServer.profileFilepath}${sessionID}.json`;
 
-        if (VFS.exists(file))
+        if (VFS.exists(filePath))
         {
-            // load profile
-            SaveServer.profiles[sessionID] = JsonUtil.deserialize(VFS.readFile(file));
+            // file found, store in profiles[]
+            SaveServer.profiles[sessionID] = JsonUtil.deserialize(
+                VFS.readFile(filePath)
+            );
         }
 
         // run callbacks
         for (const callback in SaveServer.onLoad)
         {
-            SaveServer.profiles[sessionID] = SaveServer.onLoad[callback](sessionID);
+            SaveServer.profiles[sessionID] =
+                SaveServer.onLoad[callback](sessionID);
         }
     }
 
     static saveProfile(sessionID)
     {
-        const file = `${SaveServer.filepath}${sessionID}.json`;
+        const filePath = `${SaveServer.profileFilepath}${sessionID}.json`;
 
         // run callbacks
         for (const callback in SaveServer.onSave)
         {
-            SaveServer.profiles[sessionID] = SaveServer.onSave[callback](sessionID);
+            SaveServer.profiles[sessionID] =
+                SaveServer.onSave[callback](sessionID);
         }
 
-        const JsonProfile = JsonUtil.serialize(SaveServer.profiles[sessionID], true);
+        const JsonProfile = JsonUtil.serialize(
+            SaveServer.profiles[sessionID],
+            true
+        );
         const fmd5 = HashUtil.generateMd5ForData(JsonProfile);
-        if (typeof(SaveServer.SaveMd5[sessionID]) !== "string" || SaveServer.SaveMd5[sessionID] !== fmd5)
+        if (
+            typeof SaveServer.SaveMd5[sessionID] !== "string" ||
+            SaveServer.SaveMd5[sessionID] !== fmd5
+        )
         {
             SaveServer.SaveMd5[sessionID] = String(fmd5);
             // save profile
-            VFS.writeFile(file, JsonProfile);
-            Logger.debug("Profile file updated");
+            VFS.writeFile(filePath, JsonProfile);
+            Logger.debug("Profile updated");
         }
     }
 
     static removeProfile(sessionID)
     {
-        const file = `${SaveServer.filepath}${sessionID}.json`;
+        const file = `${SaveServer.profileFilepath}${sessionID}.json`;
 
         delete SaveServer.profiles[sessionID];
 

@@ -7,97 +7,97 @@ class ItemHelper
     static get BASECLASS()
     {
         return {
-            "Weapon": "5422acb9af1c889c16000029",
-            "Armor": "5448e54d4bdc2dcc718b4568",
-            "Vest": "5448e5284bdc2dcb718b4567",
-            "Backpack": "5448e53e4bdc2d60728b4567",
-            "Visors": "5448e5724bdc2ddf718b4568",
-            "Food": "5448e8d04bdc2ddf718b4569",
-            "Drink": "5448e8d64bdc2dce718b4568",
-            "BarterItem": "5448eb774bdc2d0a728b4567",
-            "Info": "5448ecbe4bdc2d60728b4568",
-            "MedKit": "5448f39d4bdc2d0a728b4568",
-            "Drugs": "5448f3a14bdc2d27728b4569",
-            "Stimulator": "5448f3a64bdc2d60728b456a",
-            "Medical": "5448f3ac4bdc2dce718b4569",
-            "MedicalSupplies": "57864c8c245977548867e7f1",
-            "Mod": "5448fe124bdc2da5018b4567",
-            "FunctionalMod": "550aa4154bdc2dd8348b456b",
-            "Fuel": "5d650c3e815116009f6201d2",
-            "GearMod": "55802f3e4bdc2de7118b4584",
-            "Stock": "55818a594bdc2db9688b456a",
-            "Foregrip": "55818af64bdc2d5b648b4570",
-            "MasterMod": "55802f4a4bdc2ddb688b4569",
-            "Mount": "55818b224bdc2dde698b456f",
-            "Muzzle": "5448fe394bdc2d0d028b456c",
-            "Sights": "5448fe7a4bdc2d6f028b456b",
-            "Meds": "543be5664bdc2dd4348b4569",
-            "Money": "543be5dd4bdc2deb348b4569",
-            "Key": "543be5e94bdc2df1348b4568",
-            "KeyMechanical": "5c99f98d86f7745c314214b3",
-            "Keycard": "5c164d2286f774194c5e69fa",
-            "Equipment": "543be5f84bdc2dd4348b456a",
-            "ThrowWeap": "543be6564bdc2df4348b4568",
-            "FoodDrink": "543be6674bdc2df1348b4569",
-            "Pistol": "5447b5cf4bdc2d65278b4567",
-            "Smg": "5447b5e04bdc2d62278b4567",
-            "AssaultRifle": "5447b5f14bdc2d61278b4567",
-            "AssaultCarbine": "5447b5fc4bdc2d87278b4567",
-            "Shotgun": "5447b6094bdc2dc3278b4567",
-            "MarksmanRifle": "5447b6194bdc2d67278b4567",
-            "SniperRifle": "5447b6254bdc2dc3278b4568",
-            "MachineGun": "5447bed64bdc2d97278b4568",
-            "GrenadeLauncher": "5447bedf4bdc2d87278b4568",
-            "SpecialWeapon": "5447bee84bdc2dc3278b4569",
-            "SpecItem": "5447e0e74bdc2d3c308b4567",
-            "Knife": "5447e1d04bdc2dff2f8b4567",
-            "Ammo": "5485a8684bdc2da71d8b4567",
-            "AmmoBox": "543be5cb4bdc2deb348b4568",
-            "LootContainer": "566965d44bdc2d814c8b4571",
-            "MobContainer": "5448bf274bdc2dfc2f8b456a",
-            "SearchableItem": "566168634bdc2d144c8b456c",
-            "Stash": "566abbb64bdc2d144c8b457d",
-            "SortingTable": "6050cac987d3f925bf016837",
-            "LockableContainer": "5671435f4bdc2d96058b4569",
-            "SimpleContainer": "5795f317245977243854e041",
-            "Inventory": "55d720f24bdc2d88028b456d",
-            "StationaryContainer": "567583764bdc2d98058b456e",
-            "Pockets": "557596e64bdc2dc2118b4571",
-            "Armband": "5b3f15d486f77432d0509248",
-            "DogTagUsec": "59f32c3b86f77472a31742f0",
-            "DogTagBear": "59f32bb586f774757e1e8442",
-            "Jewelry": "57864a3d24597754843f8721",
-            "Electronics": "57864a66245977548f04a81f",
-            "BuildingMaterial": "57864ada245977548638de91",
-            "Tool": "57864bb7245977548b3b66c2",
-            "HouseholdGoods": "57864c322459775490116fbf",
-            "Lubricant": "57864e4c24597754843f8723",
-            "Battery": "57864ee62459775490116fc1",
-            "AssaultScope": "55818add4bdc2d5b648b456f",
-            "ReflexSight": "55818ad54bdc2ddc698b4569",
-            "TacticalCombo": "55818b164bdc2ddc698b456c",
-            "Magazine": "5448bc234bdc2d3c308b4569",
-            "LightLaser": "55818b0e4bdc2dde698b456e",
-            "FlashHider": "550aa4bf4bdc2dd6348b456b",
-            "Collimator": "55818ad54bdc2ddc698b4569",
-            "CompactCollimator": "55818acf4bdc2dde698b456b",
-            "Compensator": "550aa4af4bdc2dd4348b456e",
-            "OpticScope": "55818ae44bdc2dde698b456c",
-            "SpecialScope": "55818aeb4bdc2ddc698b456a",
-            "Other": "590c745b86f7743cc433c5f2",
-            "Silencer": "550aa4cd4bdc2dd8348b456c",
-            "PortableRangeFinder": "61605ddea09d851a0a0c1bbc",
-            "Item": "54009119af1c881c07000029",
-            "CylinderMagazine": "610720f290b75a49ff2e5e25"
+            Weapon: "5422acb9af1c889c16000029",
+            Armor: "5448e54d4bdc2dcc718b4568",
+            Vest: "5448e5284bdc2dcb718b4567",
+            Backpack: "5448e53e4bdc2d60728b4567",
+            Visors: "5448e5724bdc2ddf718b4568",
+            Food: "5448e8d04bdc2ddf718b4569",
+            Drink: "5448e8d64bdc2dce718b4568",
+            BarterItem: "5448eb774bdc2d0a728b4567",
+            Info: "5448ecbe4bdc2d60728b4568",
+            MedKit: "5448f39d4bdc2d0a728b4568",
+            Drugs: "5448f3a14bdc2d27728b4569",
+            Stimulator: "5448f3a64bdc2d60728b456a",
+            Medical: "5448f3ac4bdc2dce718b4569",
+            MedicalSupplies: "57864c8c245977548867e7f1",
+            Mod: "5448fe124bdc2da5018b4567",
+            FunctionalMod: "550aa4154bdc2dd8348b456b",
+            Fuel: "5d650c3e815116009f6201d2",
+            GearMod: "55802f3e4bdc2de7118b4584",
+            Stock: "55818a594bdc2db9688b456a",
+            Foregrip: "55818af64bdc2d5b648b4570",
+            MasterMod: "55802f4a4bdc2ddb688b4569",
+            Mount: "55818b224bdc2dde698b456f",
+            Muzzle: "5448fe394bdc2d0d028b456c",
+            Sights: "5448fe7a4bdc2d6f028b456b",
+            Meds: "543be5664bdc2dd4348b4569",
+            Money: "543be5dd4bdc2deb348b4569",
+            Key: "543be5e94bdc2df1348b4568",
+            KeyMechanical: "5c99f98d86f7745c314214b3",
+            Keycard: "5c164d2286f774194c5e69fa",
+            Equipment: "543be5f84bdc2dd4348b456a",
+            ThrowWeap: "543be6564bdc2df4348b4568",
+            FoodDrink: "543be6674bdc2df1348b4569",
+            Pistol: "5447b5cf4bdc2d65278b4567",
+            Smg: "5447b5e04bdc2d62278b4567",
+            AssaultRifle: "5447b5f14bdc2d61278b4567",
+            AssaultCarbine: "5447b5fc4bdc2d87278b4567",
+            Shotgun: "5447b6094bdc2dc3278b4567",
+            MarksmanRifle: "5447b6194bdc2d67278b4567",
+            SniperRifle: "5447b6254bdc2dc3278b4568",
+            MachineGun: "5447bed64bdc2d97278b4568",
+            GrenadeLauncher: "5447bedf4bdc2d87278b4568",
+            SpecialWeapon: "5447bee84bdc2dc3278b4569",
+            SpecItem: "5447e0e74bdc2d3c308b4567",
+            Knife: "5447e1d04bdc2dff2f8b4567",
+            Ammo: "5485a8684bdc2da71d8b4567",
+            AmmoBox: "543be5cb4bdc2deb348b4568",
+            LootContainer: "566965d44bdc2d814c8b4571",
+            MobContainer: "5448bf274bdc2dfc2f8b456a",
+            SearchableItem: "566168634bdc2d144c8b456c",
+            Stash: "566abbb64bdc2d144c8b457d",
+            SortingTable: "6050cac987d3f925bf016837",
+            LockableContainer: "5671435f4bdc2d96058b4569",
+            SimpleContainer: "5795f317245977243854e041",
+            Inventory: "55d720f24bdc2d88028b456d",
+            StationaryContainer: "567583764bdc2d98058b456e",
+            Pockets: "557596e64bdc2dc2118b4571",
+            Armband: "5b3f15d486f77432d0509248",
+            DogTagUsec: "59f32c3b86f77472a31742f0",
+            DogTagBear: "59f32bb586f774757e1e8442",
+            Jewelry: "57864a3d24597754843f8721",
+            Electronics: "57864a66245977548f04a81f",
+            BuildingMaterial: "57864ada245977548638de91",
+            Tool: "57864bb7245977548b3b66c2",
+            HouseholdGoods: "57864c322459775490116fbf",
+            Lubricant: "57864e4c24597754843f8723",
+            Battery: "57864ee62459775490116fc1",
+            AssaultScope: "55818add4bdc2d5b648b456f",
+            ReflexSight: "55818ad54bdc2ddc698b4569",
+            TacticalCombo: "55818b164bdc2ddc698b456c",
+            Magazine: "5448bc234bdc2d3c308b4569",
+            LightLaser: "55818b0e4bdc2dde698b456e",
+            FlashHider: "550aa4bf4bdc2dd6348b456b",
+            Collimator: "55818ad54bdc2ddc698b4569",
+            CompactCollimator: "55818acf4bdc2dde698b456b",
+            Compensator: "550aa4af4bdc2dd4348b456e",
+            OpticScope: "55818ae44bdc2dde698b456c",
+            SpecialScope: "55818aeb4bdc2ddc698b456a",
+            Other: "590c745b86f7743cc433c5f2",
+            Silencer: "550aa4cd4bdc2dd8348b456c",
+            PortableRangeFinder: "61605ddea09d851a0a0c1bbc",
+            Item: "54009119af1c881c07000029",
+            CylinderMagazine: "610720f290b75a49ff2e5e25",
         };
     }
 
     static get MONEY()
     {
         return {
-            "Roubles": "5449016a4bdc2d6f028b456f",
-            "Euros": "569668774bdc2da2298b4568",
-            "Dollars": "5696686a4bdc2da3298b456a"
+            Roubles: "5449016a4bdc2d6f028b456f",
+            Euros: "569668774bdc2da2298b4568",
+            Dollars: "5696686a4bdc2da3298b456a",
         };
     }
 
@@ -106,12 +106,27 @@ class ItemHelper
      * @param       {string}    tpl       the template id / tpl
      * @returns                             boolean; true for items that may be in player posession and not quest items
      */
-    static isValidItem(tpl)
+    static isValidItem(tpl, invalidBaseTypes = null)
     {
+        const defaultInvalidBaseTypes = [
+            ItemHelper.BASECLASS.LootContainer,
+            ItemHelper.BASECLASS.MobContainer,
+            ItemHelper.BASECLASS.Stash,
+            ItemHelper.BASECLASS.SortingTable,
+            ItemHelper.BASECLASS.Inventory,
+            ItemHelper.BASECLASS.StationaryContainer,
+            ItemHelper.BASECLASS.Pockets,
+        ];
+
+        if (invalidBaseTypes === null)
+        {
+            invalidBaseTypes = defaultInvalidBaseTypes;
+        }
+
         const blacklist = [
             "5cffa483d7ad1a049e54ef1c", // mag_utes_ckib_nsv_belt_127x108_100
             "6087e570b998180e9f76dc24", // weapon_hultafors_db5000 Dead Blow Hammer
-            "5d53f4b7a4b936793d58c780"  // scope_ags_npz_pag17_2,7x
+            "5d53f4b7a4b936793d58c780", // scope_ags_npz_pag17_2,7x
         ];
         const itemDetails = ItemHelper.getItem(tpl);
 
@@ -120,17 +135,12 @@ class ItemHelper
             return false;
         }
 
-        const valid =  !itemDetails[1]._props.QuestItem
-                    && itemDetails[1]._type === "Item"
-                    && !ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.LootContainer)
-                    && !ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.MobContainer)
-                    && !ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Stash)
-                    && !ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.SortingTable)
-                    && !ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Inventory)
-                    && !ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.StationaryContainer)
-                    && !ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Pockets)
-                    && ItemHelper.getItemPrice(tpl) > 0
-                    && blacklist.every(v => !ItemHelper.isOfBaseclass(tpl, v));
+        const valid =
+            !itemDetails[1]._props.QuestItem &&
+            itemDetails[1]._type === "Item" &&
+            invalidBaseTypes.every(x => !ItemHelper.isOfBaseclass(tpl, x)) &&
+            ItemHelper.getItemPrice(tpl) > 0 &&
+            blacklist.every(v => !ItemHelper.isOfBaseclass(tpl, v));
 
         return valid;
     }
@@ -149,8 +159,9 @@ class ItemHelper
             return valid; // not an item, drop out
         }
 
-        valid =  !ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Key)
-                    && !ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Armband);
+        valid =
+            !ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Key) &&
+            !ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Armband);
 
         return valid;
     }
@@ -164,9 +175,9 @@ class ItemHelper
         // check for specific baseclasses which don't make sense as reward item
         // also check if the price is greater than 0; there are some items whose price can not be found
         // those are not in the game yet (e.g. AGS grenade launcher)
-        const rewardableItems = Object.entries(DatabaseServer.tables.templates.items).filter(
-            ([ tpl, itemTemplate ]) => ItemHelper.isValidRewardItem(tpl)
-        );
+        const rewardableItems = Object.entries(
+            DatabaseServer.tables.templates.items
+        ).filter(([tpl, itemTemplate]) => ItemHelper.isValidRewardItem(tpl));
         return rewardableItems;
     }
 
@@ -179,7 +190,7 @@ class ItemHelper
      */
     static isOfBaseclass(tpl, baseclassTpl)
     {
-        return ItemHelper.doesItemOrParentsIdMatch(tpl, baseclassTpl);
+        return ItemHelper.doesItemOrParentsIdMatch(tpl, [baseclassTpl]);
     }
 
     /**
@@ -191,14 +202,14 @@ class ItemHelper
      */
     static getItemPrice(tpl)
     {
-        const handBookItem = DatabaseServer.tables.templates.handbook.Items.find(x =>
-        {
-            x.Id === tpl;
-        });
+        const handBookItem =
+            DatabaseServer.tables.templates.handbook.Items.find(
+                x => x.Id === tpl
+            );
 
         if (handBookItem)
         {
-            return handBookItem.price;
+            return handBookItem.Price;
         }
 
         const dynamicPrice = DatabaseServer.tables.templates.prices[tpl];
@@ -219,7 +230,7 @@ class ItemHelper
         if (item.upd === undefined)
         {
             item.upd = {
-                StackObjectsCount: 1
+                StackObjectsCount: 1,
             };
         }
 
@@ -280,27 +291,30 @@ class ItemHelper
             if (ammoTpl)
             {
                 const stackSlotItem = {
-                    "_id": HashUtil.generate(),
-                    "_tpl": ammoTpl,
-                    "parentId": parentId,
-                    "slotId": slotId,
-                    "location": 0,
-                    "upd": {
-                        "StackObjectsCount": count
-                    }
+                    _id: HashUtil.generate(),
+                    _sptTpl: ammoTpl,
+                    parent: parentId,
+                    slotId: slotId,
+                    location: 0,
+                    _max_count: stackSlot._max_count,
+                    upd: {
+                        StackObjectsCount: count,
+                    },
                 };
                 stackSlotItems.push(stackSlotItem);
             }
             else
             {
-                Logger.warning(`No ids found in Filter for StackSlot ${slotId} of Item ${item._id}.`);
+                Logger.warning(
+                    `No ids found in Filter for StackSlot ${slotId} of Item ${item._id}.`
+                );
             }
         }
         return stackSlotItems;
     }
 
     /* Gets item data from items.json
-    * */
+     * */
     static getItem(tpl)
     {
         // -> Gets item from <input: _tpl>
@@ -309,7 +323,7 @@ class ItemHelper
             return [true, DatabaseServer.tables.templates.items[tpl]];
         }
 
-        return [false, {}];
+        return [false, null];
     }
 
     // get normalized value (0-1) based on item condition
@@ -319,13 +333,15 @@ class ItemHelper
 
         if (item.upd)
         {
-            const medkit = (item.upd.MedKit) ? item.upd.MedKit : null;
-            const repairable = (item.upd.Repairable) ? item.upd.Repairable : null;
+            const medkit = item.upd.MedKit ? item.upd.MedKit : null;
+            const repairable = item.upd.Repairable ? item.upd.Repairable : null;
 
             if (medkit)
             {
                 // meds
-                result = medkit.HpResource / ItemHelper.getItem(item._tpl)[1]._props.MaxHpResource;
+                result =
+                    medkit.HpResource /
+                    ItemHelper.getItem(item._tpl)[1]._props.MaxHpResource;
             }
 
             if (repairable)
@@ -340,7 +356,8 @@ class ItemHelper
                 else
                 {
                     // Weapon
-                    const durability = repairable.Durability / repairable.MaxDurability;
+                    const durability =
+                        repairable.Durability / repairable.MaxDurability;
                     result = Math.sqrt(durability);
                 }
             }
@@ -363,11 +380,16 @@ class ItemHelper
         {
             if (childitem.parentId === itemID)
             {
-                list.push.apply(list, ItemHelper.findAndReturnChildrenByItems(items, childitem._id));
+                list.push(
+                    ItemHelper.findAndReturnChildrenByItems(
+                        items,
+                        childitem._id
+                    )
+                );
             }
         }
 
-        list.push(itemID);// it's required
+        list.push(itemID); // it's required
         return list;
     }
 
@@ -378,25 +400,33 @@ class ItemHelper
     {
         const list = [];
 
-        for (const childitem of items)
+        for (const childItem of items)
         {
             // Include itself.
-            if (childitem._id === itemID)
+            if (childItem._id === baseItemId)
             {
-                list.unshift(childitem);
+                list.unshift(childItem);
                 continue;
             }
 
-            if (childitem.parentId === itemID && !list.find(item => childitem._id === item._id))
+            if (
+                childItem.parentId === baseItemId &&
+                !list.find(item => childItem._id === item._id)
+            )
             {
-                list.push.apply(list, ItemHelper.findAndReturnChildrenAsItems(items, childitem._id));
+                list.push(
+                    ...ItemHelper.findAndReturnChildrenAsItems(
+                        items,
+                        childItem._id
+                    )
+                );
             }
         }
         return list;
     }
 
     /**
-     * find childs of the item in a given assort (weapons pars for example, need recursive loop function)
+     * find children of the item in a given assort (weapons parts for example, need recursive loop function)
      */
     static findAndReturnChildrenByAssort(itemIdToFind, assort)
     {
@@ -404,14 +434,31 @@ class ItemHelper
 
         for (const itemFromAssort of assort)
         {
-            if (itemFromAssort.parentId === itemIdToFind && !list.find(item => itemFromAssort._id === item._id))
+            if (
+                itemFromAssort.parentId === itemIdToFind &&
+                !list.find(item => itemFromAssort._id === item._id)
+            )
             {
                 list.push(itemFromAssort);
-                list = list.concat(ItemHelper.findAndReturnChildrenByAssort(itemFromAssort._id, assort));
+                list = list.concat(
+                    ItemHelper.findAndReturnChildrenByAssort(
+                        itemFromAssort._id,
+                        assort
+                    )
+                );
             }
         }
 
         return list;
+    }
+
+    static hasBuyRestrictions(itemToCheck)
+    {
+        if (itemToCheck.upd.BuyRestrictionCurrent !== undefined && itemToCheck.upd.BuyRestrictionMax !== undefined)
+        {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -421,7 +468,10 @@ class ItemHelper
      */
     static isDogtag(tpl)
     {
-        return tpl === ItemHelper.BASECLASS.DogTagBear || tpl === ItemHelper.BASECLASS.DogTagUsec;
+        return (
+            tpl === ItemHelper.BASECLASS.DogTagBear ||
+            tpl === ItemHelper.BASECLASS.DogTagUsec
+        );
     }
 
     static isNotSellable(tpl)
@@ -430,7 +480,7 @@ class ItemHelper
             "544901bf4bdc2ddf018b456d", //wad of rubles
             ItemHelper.MONEY.Roubles,
             ItemHelper.MONEY.Euros,
-            ItemHelper.MONEY.Dollars
+            ItemHelper.MONEY.Dollars,
         ];
 
         return items.includes(tpl);
@@ -448,7 +498,9 @@ class ItemHelper
 
     static isItemTplStackable(tpl)
     {
-        return DatabaseServer.tables.templates.items[tpl]._props.StackMaxSize > 1;
+        return (
+            DatabaseServer.tables.templates.items[tpl]._props.StackMaxSize > 1
+        );
     }
 
     /**
@@ -461,7 +513,9 @@ class ItemHelper
             return [item];
         }
 
-        const maxStack = DatabaseServer.tables.templates.items[item._tpl]._props.StackMaxSize;
+        const maxStack =
+            DatabaseServer.tables.templates.items[item._tpl]._props
+                .StackMaxSize;
         let count = item.upd.StackObjectsCount;
         const stacks = [];
 
@@ -495,15 +549,19 @@ class ItemHelper
      * @returns Array
      */
     static findBarterItems(by, pmcData, barter_itemID)
-    { // find required items to take after buying (handles multiple items)
-        const barterIDs = typeof barter_itemID === "string" ? [barter_itemID] : barter_itemID;
+    {
+        // find required items to take after buying (handles multiple items)
+        const barterIDs =
+            typeof barter_itemID === "string" ? [barter_itemID] : barter_itemID;
         let itemsArray = [];
 
         for (const barterID of barterIDs)
         {
             const filterResult = pmcData.Inventory.items.filter(item =>
             {
-                return by === "tpl" ? (item._tpl === barterID) : (item._id === barterID);
+                return by === "tpl"
+                    ? item._tpl === barterID
+                    : item._id === barterID;
             });
             itemsArray = Object.assign(itemsArray, filterResult);
         }
@@ -527,17 +585,24 @@ class ItemHelper
             {
                 // insured items shouldn't be renamed
                 // only works for pmcs.
-                if (insuredItems && insuredItems.find(insuredItem => insuredItem.itemId === item._id))
+                if (
+                    insuredItems &&
+                    insuredItems.find(
+                        insuredItem => insuredItem.itemId === item._id
+                    )
+                )
                 {
                     continue;
                 }
 
                 // do not replace important ID's
-                if (item._id === pmcData.Inventory.equipment
-                    || item._id === pmcData.Inventory.questRaidItems
-                    || item._id === pmcData.Inventory.questStashItems
-                    || item._id === pmcData.Inventory.sortingTable
-                    || item._id === pmcData.Inventory.stash)
+                if (
+                    item._id === pmcData.Inventory.equipment ||
+                    item._id === pmcData.Inventory.questRaidItems ||
+                    item._id === pmcData.Inventory.questStashItems ||
+                    item._id === pmcData.Inventory.sortingTable ||
+                    item._id === pmcData.Inventory.stash
+                )
                 {
                     continue;
                 }
@@ -547,7 +612,10 @@ class ItemHelper
             const old_id = item._id;
             const new_id = HashUtil.generate();
 
-            string_inventory = string_inventory.replace(new RegExp(old_id, "g"), new_id);
+            string_inventory = string_inventory.replace(
+                new RegExp(old_id, "g"),
+                new_id
+            );
 
             // Also replace in quick slot if the old ID exists.
             if (fastPanel !== null)
@@ -556,7 +624,10 @@ class ItemHelper
                 {
                     if (fastPanel[itemSlot] === old_id)
                     {
-                        fastPanel[itemSlot] = fastPanel[itemSlot].replace(new RegExp(old_id, "g"), new_id);
+                        fastPanel[itemSlot] = fastPanel[itemSlot].replace(
+                            new RegExp(old_id, "g"),
+                            new_id
+                        );
                     }
                 }
             }
@@ -609,13 +680,20 @@ class ItemHelper
                     {
                         // Make sure we haven't already assigned another duplicate child of
                         // same slot and location to this parent.
-                        const childId = ItemHelper.getChildId(newParents[oldId][childIndex]);
+                        const childId = ItemHelper.getChildId(
+                            newParents[oldId][childIndex]
+                        );
 
                         if (!(childId in childrenMapping[newId]))
                         {
                             childrenMapping[newId][childId] = 1;
                             newParents[oldId][childIndex].parentId = newId;
-                            newParents[oldId].splice(childIndex, 1);
+                            // Some very fucking sketchy stuff on this childIndex
+                            // No clue wth was that childIndex supposed to be, but its not
+                            newParents[oldId].splice(
+                                Number.parseInt(childIndex),
+                                1
+                            );
                         }
                     }
                 }
@@ -633,7 +711,7 @@ class ItemHelper
      */
     static doesItemOrParentsIdMatch(tpl, tplsToCheck)
     {
-        const itemDetails = this.getItem(tpl);
+        const itemDetails = ItemHelper.getItem(tpl);
         const itemExists = itemDetails[0];
         const item = itemDetails[1];
 
@@ -662,7 +740,7 @@ class ItemHelper
         }
 
         // check items parent with same method
-        return this.doesItemOrParentsIdMatch(item._parent, tplsToCheck);
+        return ItemHelper.doesItemOrParentsIdMatch(item._parent, tplsToCheck);
     }
 
     /**
@@ -681,10 +759,11 @@ class ItemHelper
         return false;
     }
 
-
     static getItemSize(items, rootItemId)
     {
-        const rootTemplate = ItemHelper.getItem(items.filter(x => x._id === rootItemId)[0]._tpl)[1];
+        const rootTemplate = ItemHelper.getItem(
+            items.filter(x => x._id === rootItemId)[0]._tpl
+        )[1];
         const width = rootTemplate._props.Width;
         const height = rootTemplate._props.Height;
 
@@ -698,7 +777,10 @@ class ItemHelper
         let ForcedLeft = 0;
         let ForcedRight = 0;
 
-        const children = ItemHelper.findAndReturnChildrenAsItems(items, rootItemId);
+        const children = ItemHelper.findAndReturnChildrenAsItems(
+            items,
+            rootItemId
+        );
         for (const ci of children)
         {
             const itemTemplate = ItemHelper.getItem(ci._tpl)[1];
@@ -713,19 +795,29 @@ class ItemHelper
             }
             else
             {
-                SizeUp = SizeUp < itemTemplate._props.ExtraSizeUp ? itemTemplate._props.ExtraSizeUp : SizeUp;
-                SizeDown = SizeDown < itemTemplate._props.ExtraSizeDown ? itemTemplate._props.ExtraSizeDown : SizeDown;
-                SizeLeft = SizeLeft < itemTemplate._props.ExtraSizeLeft ? itemTemplate._props.ExtraSizeLeft : SizeLeft;
-                SizeRight = SizeRight < itemTemplate._props.ExtraSizeRight ? itemTemplate._props.ExtraSizeRight : SizeRight;
+                SizeUp =
+                    SizeUp < itemTemplate._props.ExtraSizeUp
+                        ? itemTemplate._props.ExtraSizeUp
+                        : SizeUp;
+                SizeDown =
+                    SizeDown < itemTemplate._props.ExtraSizeDown
+                        ? itemTemplate._props.ExtraSizeDown
+                        : SizeDown;
+                SizeLeft =
+                    SizeLeft < itemTemplate._props.ExtraSizeLeft
+                        ? itemTemplate._props.ExtraSizeLeft
+                        : SizeLeft;
+                SizeRight =
+                    SizeRight < itemTemplate._props.ExtraSizeRight
+                        ? itemTemplate._props.ExtraSizeRight
+                        : SizeRight;
             }
-
         }
 
         return {
-            "width": width + SizeLeft + SizeRight + ForcedLeft + ForcedRight,
-            "height":  height + SizeUp + SizeDown + ForcedUp + ForcedDown
+            width: width + SizeLeft + SizeRight + ForcedLeft + ForcedRight,
+            height: height + SizeUp + SizeDown + ForcedUp + ForcedDown,
         };
-
     }
 }
 

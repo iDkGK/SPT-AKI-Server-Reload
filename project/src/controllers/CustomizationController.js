@@ -4,11 +4,64 @@ require("../Lib.js");
 
 class CustomizationController
 {
+    static getAllTraderSuits(sessionID)
+    {
+        const traders = DatabaseServer.tables.traders;
+        let result = [];
+        for (const traderID in traders)
+        {
+            if (traders[traderID].base.customization_seller === true)
+            {
+                result = [
+                    ...result,
+                    ...CustomizationController.getTraderSuits(
+                        traderID,
+                        sessionID
+                    ),
+                ];
+            }
+            return result;
+        }
+    }
+
+    static getTraderSuits(traderID, sessionID)
+    {
+        const pmcData = ProfileHelper.getPmcProfile(sessionID);
+        const templates = DatabaseServer.tables.templates.customization;
+        const suits = DatabaseServer.tables.traders[traderID].suits;
+        const result = [];
+
+        // get only suites from the player's side (e.g. USEC)
+        for (const suit of suits)
+        {
+            if (suit.suiteId in templates)
+            {
+                for (
+                    let i = 0;
+                    i < templates[suit.suiteId]._props.Side.length;
+                    i++
+                )
+                {
+                    if (
+                        templates[suit.suiteId]._props.Side[i] ===
+                        pmcData.Info.Side
+                    )
+                    {
+                        result.push(suit);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
     static wearClothing(pmcData, body, sessionID)
     {
         for (let i = 0; i < body.suites.length; i++)
         {
-            const suite = DatabaseServer.tables.templates.customization[body.suites[i]];
+            const suite =
+                DatabaseServer.tables.templates.customization[body.suites[i]];
 
             // this parent reffers to Lower Node
             if (suite._parent === "5cd944d01388ce000a659df9")
@@ -27,54 +80,13 @@ class CustomizationController
         return ItemEventRouter.getOutput(sessionID);
     }
 
-    static getTraderSuits(traderID, sessionID)
-    {
-        const pmcData = ProfileController.getPmcProfile(sessionID);
-        const templates = DatabaseServer.tables.templates.customization;
-        const suits = DatabaseServer.tables.traders[traderID].suits;
-        const result = [];
-
-        // get only suites from the player's side (e.g. USEC)
-        for (const suit of suits)
-        {
-            if (suit.suiteId in templates)
-            {
-                for (let i = 0; i < templates[suit.suiteId]._props.Side.length; i++)
-                {
-                    if (templates[suit.suiteId]._props.Side[i] === pmcData.Info.Side)
-                    {
-                        result.push(suit);
-                    }
-                }
-            }
-        }
-
-        return result;
-    }
-
-    static getAllTraderSuits(sessionID)
-    {
-        const traders = DatabaseServer.tables.traders;
-        let result = [];
-
-        for (const traderID in traders)
-        {
-            if (traders[traderID].base.customization_seller === true)
-            {
-                result = [...result, ...CustomizationController.getTraderSuits(traderID, sessionID)];
-            }
-        }
-
-        return result;
-    }
-
     static buyClothing(pmcData, body, sessionID)
     {
         const output = ItemEventRouter.getOutput(sessionID);
 
         // find suit offer
         const offers = CustomizationController.getAllTraderSuits(sessionID);
-        const offer = offers.find((suit) =>
+        const offer = offers.find(suit =>
         {
             return body.offer === suit._id;
         });
@@ -86,10 +98,12 @@ class CustomizationController
         }
 
         // check if outfit already exists
-        if (SaveServer.profiles[sessionID].suits.find((suit) =>
-        {
-            return suit === body.offer;
-        }))
+        if (
+            SaveServer.getProfile(sessionID).suits.find(suit =>
+            {
+                return suit === body.offer;
+            })
+        )
         {
             return output;
         }
@@ -109,26 +123,27 @@ class CustomizationController
                 if (sellItem.del === true)
                 {
                     output.profileChanges[sessionID].items.del.push(item);
-                    pmcData.Inventory.items.splice(itemID, 1);
+                    pmcData.Inventory.items.splice(Number(itemID), 1);
                 }
 
                 if (item.upd.StackObjectsCount > sellItem.count)
                 {
-                    pmcData.Inventory.items[itemID].upd.StackObjectsCount -= sellItem.count;
+                    pmcData.Inventory.items[itemID].upd.StackObjectsCount -=
+                        sellItem.count;
                     output.profileChanges[sessionID].items.change.push({
-                        "_id": item._id,
-                        "_tpl": item._tpl,
-                        "parentId": item.parentId,
-                        "slotId": item.slotId,
-                        "location": item.location,
-                        "upd": { "StackObjectsCount": item.upd.StackObjectsCount }
+                        _id: item._id,
+                        _tpl: item._tpl,
+                        parentId: item.parentId,
+                        slotId: item.slotId,
+                        location: item.location,
+                        upd: { StackObjectsCount: item.upd.StackObjectsCount },
                     });
                 }
             }
         }
 
         // add suit
-        SaveServer.profiles[sessionID].suits.push(offer.suiteId);
+        SaveServer.getProfile(sessionID).suits.push(offer.suiteId);
         return output;
     }
 }

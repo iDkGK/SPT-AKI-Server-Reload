@@ -17,7 +17,8 @@ class BundleCallbacks
 
     static getBundles(url, info, sessionID)
     {
-        const local = (HttpConfig.ip === "127.0.0.1" || HttpConfig.ip === "localhost");
+        const local =
+            HttpConfig.ip === "127.0.0.1" || HttpConfig.ip === "localhost";
         return HttpResponse.noBody(BundleLoader.getBundles(local));
     }
 

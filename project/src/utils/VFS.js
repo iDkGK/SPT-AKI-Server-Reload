@@ -26,7 +26,9 @@ class VFS
 
     static createDir(filepath)
     {
-        fs.mkdirSync(filepath.substr(0, filepath.lastIndexOf("/")), { "recursive": true });
+        fs.mkdirSync(filepath.substr(0, filepath.lastIndexOf("/")), {
+            recursive: true,
+        });
     }
 
     static lockFileSync(filepath)
@@ -46,25 +48,35 @@ class VFS
 
     static copyDir(filepath, target, fileExtensions)
     {
-        const files = this.getFiles(filepath);
-        const dirs = this.getDirs(filepath);
+        const files = VFS.getFiles(filepath);
+        const dirs = VFS.getDirs(filepath);
 
-        if (!this.exists(target))
+        if (!VFS.exists(target))
         {
             VFS.createDir(`${target}/`);
         }
 
         for (const dir of dirs)
         {
-            VFS.copyDir(path.join(filepath, dir), path.join(target, dir), fileExtensions);
+            VFS.copyDir(
+                path.join(filepath, dir),
+                path.join(target, dir),
+                fileExtensions
+            );
         }
 
         for (const file of files)
         {
             // copy all if fileExtension is not set, copy only those with fileExtension if set
-            if (!fileExtensions || fileExtensions.includes(file.split(".").pop()))
+            if (
+                !fileExtensions ||
+                fileExtensions.includes(file.split(".").pop())
+            )
             {
-                VFS.copyFile(path.join(filepath, file), path.join(target, file));
+                VFS.copyFile(
+                    path.join(filepath, file),
+                    path.join(target, file)
+                );
             }
         }
     }
@@ -76,7 +88,7 @@ class VFS
 
     static writeFile(filepath, data = "", append = false, atomic = true)
     {
-        const options = (append) ? { "flag": "a" } : { "flag": "w" };
+        const options = append ? { flag: "a" } : { flag: "w" };
 
         if (!VFS.exists(filepath))
         {
@@ -103,7 +115,7 @@ class VFS
 
     static getFiles(filepath)
     {
-        return fs.readdirSync(filepath).filter((item) =>
+        return fs.readdirSync(filepath).filter(item =>
         {
             return fs.statSync(path.join(filepath, item)).isFile();
         });
@@ -111,7 +123,7 @@ class VFS
 
     static getDirs(filepath)
     {
-        return fs.readdirSync(filepath).filter((item) =>
+        return fs.readdirSync(filepath).filter(item =>
         {
             return fs.statSync(path.join(filepath, item)).isDirectory();
         });
@@ -157,11 +169,15 @@ class VFS
 
     static minifyAllJsonInDirRecursive(filepath)
     {
-        const files = VFS.getFiles(filepath).filter((item) => VFS.getFileExtension(item) === "json");
+        const files = VFS.getFiles(filepath).filter(
+            item => VFS.getFileExtension(item) === "json"
+        );
         for (const file of files)
         {
             const filePathAndName = path.join(filepath, file);
-            const minified = JSON.stringify(JSON.parse(VFS.readFile(filePathAndName)));
+            const minified = JSON.stringify(
+                JSON.parse(VFS.readFile(filePathAndName))
+            );
             VFS.writeFile(filePathAndName, minified);
         }
 

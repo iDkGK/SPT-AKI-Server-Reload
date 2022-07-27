@@ -18,7 +18,7 @@ class ImageRouter
         }
     }
 
-    static getImage(url, info, sessionID)
+    static getImage()
     {
         return "IMAGE";
     }

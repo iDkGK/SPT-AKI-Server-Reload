@@ -6,6 +6,7 @@ class TradeCallbacks
 {
     static processTrade(pmcData, body, sessionID)
     {
+        // body can be IProcessBuyTradeRequestData or IProcessSellTradeRequestData
         return TradeController.confirmTrading(pmcData, body, sessionID);
     }
 

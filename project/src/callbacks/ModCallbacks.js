@@ -22,7 +22,8 @@ class ModCallbacks
 
     static getBundles(url, info, sessionID)
     {
-        const local = (HttpConfig.ip === "127.0.0.1" || HttpConfig.ip === "localhost");
+        const local =
+            HttpConfig.ip === "127.0.0.1" || HttpConfig.ip === "localhost";
         return HttpResponse.noBody(ModLoader.getBundles(local));
     }
 

@@ -6,10 +6,14 @@ class DatabaseImporter
 {
     static load()
     {
-        const filepath = (globalThis.G_RELEASE_CONFIGURATION) ? "Aki_Data/Server/" : "./assets/";
+        const filepath = globalThis.G_RELEASE_CONFIGURATION
+            ? "Aki_Data/Server/"
+            : "./assets/";
 
         Logger.info("Importing database...");
-        DatabaseServer.tables = DatabaseImporter.loadRecursive(`${filepath}database/`);
+        DatabaseServer.tables = DatabaseImporter.loadRecursive(
+            `${filepath}database/`
+        );
         DatabaseImporter.loadImages(`${filepath}images/`);
     }
 
@@ -28,7 +32,10 @@ class DatabaseImporter
             {
                 const filename = VFS.stripExtension(file);
                 const filePathAndName = `${filepath}${file}`;
-                result[filename] = JsonUtil.deserializeWithCacheCheck(VFS.readFile(filePathAndName), filePathAndName);
+                result[filename] = JsonUtil.deserializeWithCacheCheck(
+                    VFS.readFile(filePathAndName),
+                    filePathAndName
+                );
             }
         }
 
@@ -60,7 +67,9 @@ class DatabaseImporter
             for (const file of files)
             {
                 const filename = VFS.stripExtension(file);
-                ImageRouter.onRoute[`${routes[i]}${filename}`] = `${filepath}${dirs[i]}/${file}`;
+                ImageRouter.onRoute[
+                    `${routes[i]}${filename}`
+                ] = `${filepath}${dirs[i]}/${file}`;
             }
         }
 

@@ -2,40 +2,34 @@
 
 require("../Lib.js");
 
+const oslocale = require("os-locale");
+
 class WatermarkLocale
 {
     static locales = {
         "en-US": {
-            "description": [
+            description: [
                 "https://discord.sp-tarkov.com",
                 "",
                 "This work is free of charge",
-                "Commercial use is prohibited"
+                "Commercial use is prohibited",
             ],
-            "warning": [
-                "",
-                "NO SUPPORT FOR THIS BUILD",
-                "USE AT YOUR OWN RISK"
-            ]
+            warning: ["", "NO SUPPORT FOR THIS BUILD", "USE AT YOUR OWN RISK"],
         },
         "zh-CN": {
-            "description": [
+            description: [
                 "https://sns.oddba.cn",
                 "",
-                "本作品完全免费，禁止用于商业用途"
+                "本作品完全免费，禁止用于商业用途",
             ],
-            "warning": [
-                "",
-                "当前版本无可用技术支持",
-                "请自行承担使用风险"
-            ]
-        }
+            warning: ["", "当前版本无可用技术支持", "请自行承担使用风险"],
+        },
     };
 
     static getLocale()
     {
-        const locale = require("os-locale").sync();
-        return (!WatermarkLocale.locales[locale]) ? "en-US" : locale;
+        const locale = oslocale.sync();
+        return !WatermarkLocale.locales[locale] ? "en-US" : locale;
     }
 
     static getDescription()
@@ -115,11 +109,11 @@ class Watermark
 
         for (let i = 0; i < longestLength; ++i)
         {
-            line += "─";
+            line += "━";
         }
 
         // get watermark to draw
-        result.push(`┌─${line}─┐`);
+        result.push(`┏━${line}━┓`);
 
         for (const text of Watermark.text)
         {
@@ -131,10 +125,10 @@ class Watermark
                 spacingText += " ";
             }
 
-            result.push(`│ ${spacingText} │`);
+            result.push(`┃ ${spacingText} ┃`);
         }
 
-        result.push(`└─${line}─┘`);
+        result.push(`┗━${line}━┛`);
 
         // draw the watermark
         for (const text of result)

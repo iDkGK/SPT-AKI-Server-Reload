@@ -23,7 +23,12 @@ class HttpRouter
             // static route found
             for (const callback in HttpRouter.onStaticRoute[url])
             {
-                output = HttpRouter.onStaticRoute[url][callback](url, info, sessionID, output);
+                output = HttpRouter.onStaticRoute[url][callback](
+                    url,
+                    info,
+                    sessionID,
+                    output
+                );
             }
         }
         else
@@ -39,7 +44,12 @@ class HttpRouter
                 // dynamic route found
                 for (const callback in HttpRouter.onDynamicRoute[route])
                 {
-                    output = HttpRouter.onDynamicRoute[route][callback](url, info, sessionID, output);
+                    output = HttpRouter.onDynamicRoute[route][callback](
+                        url,
+                        info,
+                        sessionID,
+                        output
+                    );
                 }
             }
         }

@@ -1,7 +1,5 @@
-"use strict";
-
-module.exports = {
-    "runIntervalSeconds": 60,
+{
+    "runIntervalSeconds": 45,
     "sell": {
         "fees": true,
         "chance": {
@@ -33,7 +31,7 @@ module.exports = {
     "dynamic": {
         "expiredOfferThreshold": 1500,
         "offerItemCount": {
-            "min": 7,
+            "min": 8,
             "max": 15
         },
         "price": {
@@ -42,7 +40,7 @@ module.exports = {
         },
         "endTimeSeconds": {
             "min": 180,
-            "max": 1800
+            "max": 3600
         },
         "condition": {
             "conditionChance": 0.2,
@@ -62,31 +60,32 @@ module.exports = {
             "max": 0.95
         },
         "currencies": {
-            "5449016a4bdc2d6f028b456f": 75,
-            "5696686a4bdc2da3298b456a": 23,
+            "5449016a4bdc2d6f028b456f": 78,
+            "5696686a4bdc2da3298b456a": 20,
             "569668774bdc2da2298b4568": 2
         },
         "showAsSingleStack": [
-            ItemHelper.BASECLASS.Weapon,
-            ItemHelper.BASECLASS.Armor,
-            ItemHelper.BASECLASS.SimpleContainer,
-            ItemHelper.BASECLASS.Backpack,
-            ItemHelper.BASECLASS.MobContainer, // portable container
-            ItemHelper.BASECLASS.Key,
-            ItemHelper.BASECLASS.MedKit
+            "5422acb9af1c889c16000029",
+            "5448e54d4bdc2dcc718b4568",
+            "5795f317245977243854e041",
+            "5448e53e4bdc2d60728b4567",
+            "5448bf274bdc2dfc2f8b456a",
+            "543be5e94bdc2df1348b4568",
+            "5448f39d4bdc2d0a728b4568"
         ],
         "blacklist": {
             "custom": [
-                "5cdeb229d7f00c000e7ce174", // NSV static MG
-                "5996f6d686f77467977ba6cc", // grenade shrapnel
-                "5996f6cb86f774678763a6ca", // grenade shrapnel
-                "5943d9c186f7745a13413ac9", // grenade shrapnel
-                "5996f6fc86f7745e585b4de3", // grenade shrapnel
-                "5cde8864d7f00c0010373be1", // 12.7x108mm B-32 gl static gl ammo
-                "5d2f2ab648f03550091993ca" // 12.7x108mm BZT-44M gzh static mg ammo
+                "5cdeb229d7f00c000e7ce174",
+                "5996f6d686f77467977ba6cc",
+                "5996f6cb86f774678763a6ca",
+                "5943d9c186f7745a13413ac9",
+                "5996f6fc86f7745e585b4de3",
+                "5cde8864d7f00c0010373be1",
+                "5d2f2ab648f03550091993ca"
             ],
             "enableBsgList": true,
-            "enableQuestList": true
+            "enableQuestList": true,
+            "traderItems": false
         }
     }
-};
+}

@@ -6,33 +6,35 @@ class InraidController
 {
     static onLoad(sessionID)
     {
-        const profile = SaveServer.profiles[sessionID];
+        const profile = getProfile(sessionID);
 
         if (!("inraid" in profile))
         {
             profile.inraid = {
-                "location": "none",
-                "character": "none"
+                location: "none",
+                character: "none",
             };
         }
 
         return profile;
     }
 
-    static addPlayer(sessionID, location)
+    static addPlayer(sessionID, info)
     {
-        SaveServer.profiles[sessionID].inraid.location = location;
+        SaveServer.getProfile(sessionID).inraid.location = info.locationId;
     }
 
     static removePlayer(sessionID)
     {
-        SaveServer.profiles[sessionID].inraid.location = "none";
+        SaveServer.getProfile(sessionID).inraid.location = "none";
     }
 
     static removeMapAccessKey(offraidData, sessionID)
     {
-        const locationName = SaveServer.profiles[sessionID].inraid.location.toLowerCase();
-        const mapKey = DatabaseServer.tables.locations[locationName].base.AccessKeys[0];
+        const locationName =
+            SaveServer.getProfile(sessionID).inraid.location.toLowerCase();
+        const mapKey =
+            DatabaseServer.tables.locations[locationName].base.AccessKeys[0];
 
         if (!mapKey)
         {
@@ -43,7 +45,11 @@ class InraidController
         {
             if (item._tpl === mapKey && item.slotId !== "Hideout")
             {
-                InventoryController.removeItem(offraidData.profile, item._id, sessionID);
+                InventoryHelper.removeItem(
+                    offraidData.profile,
+                    item._id,
+                    sessionID
+                );
                 break;
             }
         }
@@ -56,54 +62,89 @@ class InraidController
             return;
         }
 
-        const locationName = SaveServer.profiles[sessionID].inraid.location.toLowerCase();
+        const locationName =
+            SaveServer.getProfile(sessionID).inraid.location.toLowerCase();
 
         const map = DatabaseServer.tables.locations[locationName].base;
         const insuranceEnabled = map.Insurance;
-        let pmcData = ProfileController.getPmcProfile(sessionID);
-        let scavData = ProfileController.getScavProfile(sessionID);
+        let pmcData = ProfileHelper.getPmcProfile(sessionID);
+        let scavData = ProfileHelper.getScavProfile(sessionID);
         const isPlayerScav = offraidData.isPlayerScav;
-        const isDead = (offraidData.exit !== "survived" && offraidData.exit !== "runner");
-        const preRaidGear = (isPlayerScav) ? [] : InraidController.getPlayerGear(pmcData.Inventory.items);
+        const isDead =
+            offraidData.exit !== "survived" && offraidData.exit !== "runner";
+        const preRaidGear = isPlayerScav
+            ? []
+            : InraidController.getPlayerGear(pmcData.Inventory.items);
 
-        SaveServer.profiles[sessionID].inraid.character = (isPlayerScav) ? "scav" : "pmc";
+        SaveServer.getProfile(sessionID).inraid.character = isPlayerScav
+            ? "scav"
+            : "pmc";
 
         if (isPlayerScav)
         {
-            scavData = InraidController.setBaseStats(scavData, offraidData, sessionID);
+            scavData = InraidController.setBaseStats(
+                scavData,
+                offraidData,
+                sessionID
+            );
         }
         else
         {
-            pmcData = InraidController.setBaseStats(pmcData, offraidData, sessionID);
+            pmcData = InraidController.setBaseStats(
+                pmcData,
+                offraidData,
+                sessionID
+            );
         }
 
         // Check for exit status
         if (offraidData.exit === "survived")
         {
             // mark found items and replace item ID's if the player survived
-            offraidData.profile = InraidController.markFoundItems(pmcData, offraidData.profile, isPlayerScav);
+            offraidData.profile = InraidController.markFoundItems(
+                pmcData,
+                offraidData.profile,
+                isPlayerScav
+            );
         }
         else
         {
             // Or remove the FIR status if the player havn't survived
-            offraidData.profile = InraidController.removeFoundItems(offraidData.profile);
+            offraidData.profile =
+                InraidController.removeFoundInRaidStatusFromItems(
+                    offraidData.profile
+                );
         }
 
-        offraidData.profile.Inventory.items = ItemHelper.replaceIDs(offraidData.profile, offraidData.profile.Inventory.items, pmcData.InsuredItems, offraidData.profile.Inventory.fastPanel);
-        InraidController.addUpdToMoneyFromRaid(offraidData.profile.Inventory.items);
+        offraidData.profile.Inventory.items = ItemHelper.replaceIDs(
+            offraidData.profile,
+            offraidData.profile.Inventory.items,
+            pmcData.InsuredItems,
+            offraidData.profile.Inventory.fastPanel
+        );
+        InraidController.addUpdToMoneyFromRaid(
+            offraidData.profile.Inventory.items
+        );
 
         // set profile equipment to the raid equipment
         if (isPlayerScav)
         {
-            scavData = InraidController.setInventory(sessionID, scavData, offraidData.profile);
-            HealthController.resetVitality(sessionID);
-            ProfileController.setScavProfile(sessionID, scavData);
+            scavData = InraidController.setInventory(
+                sessionID,
+                scavData,
+                offraidData.profile
+            );
+            HealthHelper.resetVitality(sessionID);
+            ProfileHelper.setScavProfile(sessionID, scavData);
 
             // Scav karma
-            const fenceID = TraderHelper.getTraderIdByName("fence");
+            const fenceID = TraderHelper.TRADER.Fence;
             let fenceStanding = Number(pmcData.TradersInfo[fenceID].standing);
 
-            InraidController.calculateFenceStandingChangeFromKills(fenceStanding, offraidData.profile.Stats.Victims);
+            InraidController.calculateFenceStandingChangeFromKills(
+                fenceStanding,
+                offraidData.profile.Stats.Victims
+            );
 
             // successful extract with scav adds 0.01 standing
             if (offraidData.exit === "survived")
@@ -113,40 +154,67 @@ class InraidController
 
             if (!scavData.TradersInfo[fenceID])
             {
-                scavData.TradersInfo[fenceID] = JsonUtil.clone(pmcData.TradersInfo[fenceID]);
+                scavData.TradersInfo[fenceID] = JsonUtil.clone(
+                    pmcData.TradersInfo[fenceID]
+                );
             }
 
-            scavData.TradersInfo[fenceID].standing = Math.min(Math.max(fenceStanding, -7), 6);
-            pmcData.TradersInfo[fenceID].standing = scavData.TradersInfo[fenceID].standing;
-            TraderController.lvlUp(fenceID, sessionID);
-            pmcData.TradersInfo[fenceID].loyaltyLevel = Math.max(pmcData.TradersInfo[fenceID].loyaltyLevel, 1);
+            scavData.TradersInfo[fenceID].standing = Math.min(
+                Math.max(fenceStanding, -7),
+                6
+            );
+            pmcData.TradersInfo[fenceID].standing =
+                scavData.TradersInfo[fenceID].standing;
+            TraderHelper.lvlUp(fenceID, sessionID);
+            pmcData.TradersInfo[fenceID].loyaltyLevel = Math.max(
+                pmcData.TradersInfo[fenceID].loyaltyLevel,
+                1
+            );
 
             // scav died, regen scav loadout and set timer
             if (isDead)
             {
-                ProfileController.generatePlayerScav(sessionID);
+                ProfileHelper.generatePlayerScav(sessionID);
             }
 
             return;
         }
         else
         {
-            pmcData = InraidController.setInventory(sessionID, pmcData, offraidData.profile);
-            HealthController.saveVitality(pmcData, offraidData.health, sessionID);
+            pmcData = InraidController.setInventory(
+                sessionID,
+                pmcData,
+                offraidData.profile
+            );
+            HealthHelper.saveVitality(
+                pmcData,
+                offraidData.health,
+                sessionID
+            );
         }
 
         // remove inventory if player died and send insurance items
         // TODO: dump of prapor/therapist dialogues that are sent when you die in lab with insurance.
         if (insuranceEnabled)
         {
-            InsuranceController.storeLostGear(pmcData, offraidData, preRaidGear, sessionID);
+            InsuranceController.storeLostGear(
+                pmcData,
+                offraidData,
+                preRaidGear,
+                sessionID
+            );
         }
 
         if (isDead)
         {
             if (insuranceEnabled)
             {
-                InsuranceController.storeInsuredItemsForReturn(pmcData, offraidData, preRaidGear, sessionID);
+                InsuranceController.storeInsuredItemsForReturn(
+                    pmcData,
+                    offraidData,
+                    preRaidGear,
+                    sessionID
+                );
             }
 
             pmcData = InraidController.deleteInventory(pmcData, sessionID);
@@ -155,8 +223,12 @@ class InraidController
 
             for (const questItem of carriedQuestItems)
             {
-                const conditionId = QuestController.getFindItemIdForQuestItem(questItem);
-                QuestController.resetProfileQuestCondition(sessionID, conditionId);
+                const conditionId =
+                    QuestController.getFindItemIdForQuestItem(questItem);
+                QuestController.resetProfileQuestCondition(
+                    sessionID,
+                    conditionId
+                );
             }
 
             //Delete carried quests items
@@ -173,7 +245,7 @@ class InraidController
     {
         for (const item of items)
         {
-            if (PaymentController.isMoneyTpl(item._tpl))
+            if (PaymentHelper.isMoneyTpl(item._tpl))
             {
                 if (!item.upd)
                 {
@@ -193,18 +265,25 @@ class InraidController
      * @param {*} existingFenceStanding
      * @param {*} victims
      */
-    static calculateFenceStandingChangeFromKills(existingFenceStanding, victims)
+    static calculateFenceStandingChangeFromKills(
+        existingFenceStanding,
+        victims
+    )
     {
         for (const victim of victims)
         {
             let standingForKill = null;
             if (victim.Side === "Savage")
             {
-                standingForKill = DatabaseServer.tables.bots.types[victim.Role.toLowerCase()].experience.standingForKill;
+                standingForKill =
+                    DatabaseServer.tables.bots.types[victim.Role.toLowerCase()]
+                        .experience.standingForKill;
             }
             else
             {
-                standingForKill = DatabaseServer.tables.bots.types[victim.Side.toLowerCase()].experience.standingForKill;
+                standingForKill =
+                    DatabaseServer.tables.bots.types[victim.Side.toLowerCase()]
+                        .experience.standingForKill;
             }
 
             if (standingForKill)
@@ -213,7 +292,9 @@ class InraidController
             }
             else
             {
-                Logger.warning(`standing for kill not found for ${victim.Side}:${victim.Role}`);
+                Logger.warning(
+                    `standing for kill not found for ${victim.Side}:${victim.Role}`
+                );
             }
         }
     }
@@ -254,7 +335,9 @@ class InraidController
         {
             if (!isPlayerScav)
             {
-                const existsInProfile = pmcData.Inventory.items.find((itemData) => item._id === itemData._id);
+                const existsInProfile = pmcData.Inventory.items.find(
+                    itemData => item._id === itemData._id
+                );
 
                 if (existsInProfile)
                 {
@@ -273,21 +356,25 @@ class InraidController
             }
             else
             {
-                item.upd = { "SpawnedInSession": true };
+                item.upd = { SpawnedInSession: true };
             }
         }
 
         return profile;
     }
 
-    static removeFoundItems(profile)
+    static removeFoundInRaidStatusFromItems(profile)
     {
         const items = DatabaseServer.tables.templates.items;
 
         for (const offraidItem of profile.Inventory.items)
         {
             // Remove the FIR status if the player died and the item marked FIR
-            if ("upd" in offraidItem && "SpawnedInSession" in offraidItem.upd && !items[offraidItem._tpl]._props.QuestItem)
+            if (
+                "upd" in offraidItem &&
+                "SpawnedInSession" in offraidItem.upd &&
+                !items[offraidItem._tpl]._props.QuestItem
+            )
             {
                 delete offraidItem.upd.SpawnedInSession;
             }
@@ -304,12 +391,27 @@ class InraidController
         const insured = JsonUtil.clone(pmcData.InsuredItems);
 
         // remove possible equipped items from before the raid
-        InventoryController.removeItem(pmcData, pmcData.Inventory.equipment, sessionID);
-        InventoryController.removeItem(pmcData, pmcData.Inventory.questRaidItems, sessionID);
-        InventoryController.removeItem(pmcData, pmcData.Inventory.sortingTable, sessionID);
+        InventoryHelper.removeItem(
+            pmcData,
+            pmcData.Inventory.equipment,
+            sessionID
+        );
+        InventoryHelper.removeItem(
+            pmcData,
+            pmcData.Inventory.questRaidItems,
+            sessionID
+        );
+        InventoryHelper.removeItem(
+            pmcData,
+            pmcData.Inventory.sortingTable,
+            sessionID
+        );
 
         // add the new items
-        pmcData.Inventory.items = [...profile.Inventory.items, ...pmcData.Inventory.items];
+        pmcData.Inventory.items = [
+            ...profile.Inventory.items,
+            ...pmcData.Inventory.items,
+        ];
         pmcData.Inventory.fastPanel = profile.Inventory.fastPanel;
         pmcData.InsuredItems = insured;
 
@@ -323,13 +425,15 @@ class InraidController
         for (const item of pmcData.Inventory.items)
         {
             // remove normal item
-            if (item.parentId === pmcData.Inventory.equipment
-                && item.slotId !== "SecuredContainer"
-                && item.slotId !== "Scabbard"
-                && item.slotId !== "Pockets"
-                && item.slotId !== "Compass"
-                && item.slotId !== "ArmBand"
-                || item.parentId === pmcData.Inventory.questRaidItems)
+            if (
+                (item.parentId === pmcData.Inventory.equipment &&
+                    item.slotId !== "SecuredContainer" &&
+                    item.slotId !== "Scabbard" &&
+                    item.slotId !== "Pockets" &&
+                    item.slotId !== "Compass" &&
+                    item.slotId !== "ArmBand") ||
+                item.parentId === pmcData.Inventory.questRaidItems
+            )
             {
                 toDelete.push(item._id);
             }
@@ -350,7 +454,7 @@ class InraidController
         // delete items
         for (const item of toDelete)
         {
-            InventoryController.removeItem(pmcData, item, sessionID);
+            InventoryHelper.removeItem(pmcData, item, sessionID);
         }
 
         pmcData.Inventory.fastPanel = {};
@@ -378,7 +482,7 @@ class InraidController
             "pocket2",
             "pocket3",
             "pocket4",
-            "SecuredContainer"
+            "SecuredContainer",
         ];
 
         let inventoryItems = [];
@@ -411,10 +515,7 @@ class InraidController
             }
 
             // Add these new found items to our list of inventory items
-            inventoryItems = [
-                ...inventoryItems,
-                ...foundItems,
-            ];
+            inventoryItems = [...inventoryItems, ...foundItems];
 
             // Now find the children of these items
             newItems = foundItems;

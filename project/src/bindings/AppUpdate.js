@@ -9,5 +9,5 @@ module.exports = {
     "aki-ragfair-offers": RagfairCallbacks.update,
     "aki-ragfair-player": RagfairCallbacks.updatePlayer,
     "aki-traders": TraderCallbacks.update,
-    "aki-save": SaveCallbacks.update
+    "aki-save": SaveCallbacks.update,
 };

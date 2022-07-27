@@ -2,7 +2,6 @@
 
 require("./Lib.js");
 
-const watermark = require("./utils/Watermark");
 const App = require("./utils/App");
 
 class Program
@@ -16,11 +15,14 @@ class Program
         // enable exception logging
         Logger.initialize();
 
+        // load all configs
+        ConfigServer.initialize();
+
         // show watermark
-        watermark.initialize();
-        watermark.setTitle();
-        watermark.resetCursor();
-        watermark.draw();
+        Watermark.initialize();
+        Watermark.setTitle();
+        Watermark.resetCursor();
+        // Watermark.draw();
 
         // load and execute all packages
         App.load();

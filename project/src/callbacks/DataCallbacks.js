@@ -17,7 +17,9 @@ class DataCallbacks
 
     static getTemplateItems(url, info, sessionID)
     {
-        return HttpResponse.getUnclearedBody(DatabaseServer.tables.templates.items);
+        return HttpResponse.getUnclearedBody(
+            DatabaseServer.tables.templates.items
+        );
     }
 
     static getTemplateHandbook(url, info, sessionID)
@@ -27,7 +29,9 @@ class DataCallbacks
 
     static getTemplateSuits(url, info, sessionID)
     {
-        return HttpResponse.getBody(DatabaseServer.tables.templates.customization);
+        return HttpResponse.getBody(
+            DatabaseServer.tables.templates.customization
+        );
     }
 
     static getTemplateCharacter(url, info, sessionID)
@@ -67,12 +71,20 @@ class DataCallbacks
 
     static getLocalesMenu(url, info, sessionID)
     {
-        return HttpResponse.getBody(DatabaseServer.tables.locales.menu[url.replace("/client/menu/locale/", "")]);
+        return HttpResponse.getBody(
+            DatabaseServer.tables.locales.menu[
+                url.replace("/client/menu/locale/", "")
+            ]
+        );
     }
 
     static getLocalesGlobal(url, info, sessionID)
     {
-        return HttpResponse.getUnclearedBody(DatabaseServer.tables.locales.global[url.replace("/client/locale/", "")]);
+        return HttpResponse.getUnclearedBody(
+            DatabaseServer.tables.locales.global[
+                url.replace("/client/locale/", "")
+            ]
+        );
     }
 }
 

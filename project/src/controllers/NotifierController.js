@@ -11,9 +11,9 @@ class NotifierController
     /**
      * The default notification sent when waiting times out.
      */
-    static defaultMessage = {
-        "type": "ping",
-        "eventId": "ping"
+    static defaultNotification = {
+        type: "ping",
+        eventId: "ping",
     };
 
     /**
@@ -80,7 +80,7 @@ class NotifierController
      */
     static async notifyAsync(sessionID)
     {
-        return new Promise((resolve) =>
+        return new Promise(resolve =>
         {
             // keep track of our timeout
             let counter = 0;
@@ -100,11 +100,16 @@ class NotifierController
                     // have we exceeded timeout? if so reply with default ping message
                     if (counter > NotifierController.timeout)
                     {
-                        return resolve([NotifierController.defaultMessage]);
+                        return resolve([
+                            NotifierController.defaultNotification,
+                        ]);
                     }
 
                     // check again
-                    setTimeout(checkNotifications, NotifierController.pollInterval);
+                    setTimeout(
+                        checkNotifications,
+                        NotifierController.pollInterval
+                    );
 
                     // update our timeout counter
                     counter += NotifierController.pollInterval;
@@ -129,10 +134,10 @@ class NotifierController
     static createNewMessageNotification(dialogueMessage)
     {
         return {
-            "type": "new_message",
-            "eventId": dialogueMessage._id,
-            "dialogId": dialogueMessage.uid,
-            "message": dialogueMessage
+            type: "new_message",
+            eventId: dialogueMessage._id,
+            dialogId: dialogueMessage.uid,
+            message: dialogueMessage,
         };
     }
 
@@ -140,10 +145,10 @@ class NotifierController
     static createRagfairOfferSoldNotification(dialogueMessage, ragfairData)
     {
         return {
-            "type": "RagfairOfferSold",
-            "eventId": dialogueMessage._id,
-            "dialogId": dialogueMessage.uid,
-            ...ragfairData
+            type: "RagfairOfferSold",
+            eventId: dialogueMessage._id,
+            dialogId: dialogueMessage.uid,
+            ...ragfairData,
         };
     }
 
@@ -160,11 +165,11 @@ class NotifierController
     static getChannel(sessionID)
     {
         return {
-            "server": HttpServer.buildUrl(),
-            "channel_id": sessionID,
-            "url": NotifierController.getServer(sessionID),
-            "notifierServer": NotifierController.getServer(sessionID),
-            "ws": NotifierController.getWebSocketServer(sessionID)
+            server: HttpServer.buildUrl(),
+            channel_id: sessionID,
+            url: NotifierController.getServer(sessionID),
+            notifierServer: NotifierController.getServer(sessionID),
+            ws: NotifierController.getWebSocketServer(sessionID),
         };
     }
 }

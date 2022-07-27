@@ -6,7 +6,7 @@ class PresetBuildController
 {
     static getUserBuilds(sessionID)
     {
-        return Object.values(SaveServer.profiles[sessionID].weaponbuilds);
+        return Object.values(SaveServer.getProfile(sessionID).weaponbuilds);
     }
 
     static saveBuild(pmcData, body, sessionID)
@@ -15,7 +15,7 @@ class PresetBuildController
         body.id = HashUtil.generate();
 
         const output = ItemEventRouter.getOutput(sessionID);
-        const savedBuilds = SaveServer.profiles[sessionID].weaponbuilds;
+        const savedBuilds = SaveServer.getProfile(sessionID).weaponbuilds;
 
         // replace duplicate ID's. The first item is the base item.
         // The root ID and the base item ID need to match.
@@ -23,7 +23,7 @@ class PresetBuildController
         body.root = body.items[0]._id;
 
         savedBuilds[body.name] = body;
-        SaveServer.profiles[sessionID].weaponbuilds = savedBuilds;
+        SaveServer.getProfile(sessionID).weaponbuilds = savedBuilds;
 
         output.profileChanges[sessionID].builds.push(body);
         return output;
@@ -31,14 +31,14 @@ class PresetBuildController
 
     static removeBuild(pmcData, body, sessionID)
     {
-        const savedBuilds = SaveServer.profiles[sessionID].weaponbuilds;
+        const savedBuilds = SaveServer.getProfile(sessionID).weaponbuilds;
 
         for (const name in savedBuilds)
         {
             if (savedBuilds[name].id === body.id)
             {
                 delete savedBuilds[name];
-                SaveServer.profiles[sessionID].weaponbuilds = savedBuilds;
+                SaveServer.getProfile(sessionID).weaponbuilds = savedBuilds;
                 break;
             }
         }

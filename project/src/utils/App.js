@@ -31,7 +31,8 @@ class App
         {
             let success = false;
             const lastRunTimeTimestamp = App.onUpdateLastRun[taskId] || 0; // 0 on first load so all update() calls occur on first load
-            const secondsSinceLastRun = TimeUtil.getTimestamp() - lastRunTimeTimestamp;
+            const secondsSinceLastRun =
+                TimeUtil.getTimestamp() - lastRunTimeTimestamp;
 
             try
             {
@@ -39,7 +40,9 @@ class App
             }
             catch (err)
             {
-                Logger.error(`Scheduled event: '${taskId}' failed to run successfully.`);
+                Logger.error(
+                    `Scheduled event: '${taskId}' failed to run successfully.`
+                );
                 console.log(err);
             }
 
@@ -54,7 +57,9 @@ class App
 
                 if (success === void 0 && !(secondsSinceLastRun % warnTime))
                 {
-                    Logger.debug(`onUpdate: ${taskId} doesn't report success or fail`);
+                    Logger.debug(
+                        `onUpdate: ${taskId} doesn't report success or fail`
+                    );
                 }
             }
         }

@@ -6,9 +6,9 @@ class MathUtil
 {
     /**
      * Helper to create the sum of all array elements
-    * @param   {array}     values          The array with numbers of which to calculate the sum
-    * @return  {number}                    sum(values)
-    */
+     * @param   {array}     values          The array with numbers of which to calculate the sum
+     * @return  {number}                    sum(values)
+     */
     static arraySum(values)
     {
         // sum with initial value being 0
@@ -25,7 +25,12 @@ class MathUtil
     {
         // curried function for cumulative sum: (cum, x) => cum += x
         // and 0 being the initial value for the map
-        return values.map((cum => x => cum += x)(0));
+        return values.map(
+            (
+                cum => x =>
+                    (cum += x)
+            )(0)
+        );
     }
 
     /**
@@ -73,15 +78,15 @@ class MathUtil
     }
 
     /**
-    * Linear interpolation
-    * e.g. used to do a continuous integration for quest rewards which are defined for specific support centers of pmcLevel
-    *
-    * @param   {string}    xp              the point of x at which to interpolate
-    * @param   {array}     x               support points in x (of same length as y)
-    * @param   {array}     y               support points in y (of same length as x)
-    * @return  {number}                    y(xp)
-    */
-    static Interp1(xp, x, y)
+     * Linear interpolation
+     * e.g. used to do a continuous integration for quest rewards which are defined for specific support centers of pmcLevel
+     *
+     * @param   {string}    xp              the point of x at which to interpolate
+     * @param   {array}     x               support points in x (of same length as y)
+     * @param   {array}     y               support points in y (of same length as x)
+     * @return  {number}                    y(xp)
+     */
+    static interp1(xp, x, y)
     {
         if (xp > x[x.length - 1])
         {
@@ -97,13 +102,14 @@ class MathUtil
             {
                 if (xp >= x[i] && xp <= x[i + 1])
                 {
-                    return y[i] + (xp - x[i]) * (y[i + 1] - y[i]) / (x[i + 1] - x[i]);
+                    return (
+                        y[i] +
+                        ((xp - x[i]) * (y[i + 1] - y[i])) / (x[i + 1] - x[i])
+                    );
                 }
             }
         }
     }
 }
-
-
 
 module.exports = MathUtil;

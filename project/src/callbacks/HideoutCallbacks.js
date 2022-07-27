@@ -21,7 +21,11 @@ class HideoutCallbacks
 
     static takeItemsFromAreaSlots(pmcData, body, sessionID)
     {
-        return HideoutController.takeItemsFromAreaSlots(pmcData, body, sessionID);
+        return HideoutController.takeItemsFromAreaSlots(
+            pmcData,
+            body,
+            sessionID
+        );
     }
 
     static toggleArea(pmcData, body, sessionID)
@@ -31,17 +35,29 @@ class HideoutCallbacks
 
     static singleProductionStart(pmcData, body, sessionID)
     {
-        return HideoutController.singleProductionStart(pmcData, body, sessionID);
+        return HideoutController.singleProductionStart(
+            pmcData,
+            body,
+            sessionID
+        );
     }
 
     static scavCaseProductionStart(pmcData, body, sessionID)
     {
-        return HideoutController.scavCaseProductionStart(pmcData, body, sessionID);
+        return HideoutController.scavCaseProductionStart(
+            pmcData,
+            body,
+            sessionID
+        );
     }
 
     static continuousProductionStart(pmcData, body, sessionID)
     {
-        return HideoutController.continuousProductionStart(pmcData, body, sessionID);
+        return HideoutController.continuousProductionStart(
+            pmcData,
+            body,
+            sessionID
+        );
     }
 
     static takeProduction(pmcData, body, sessionID)

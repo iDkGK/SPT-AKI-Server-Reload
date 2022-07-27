@@ -1,0 +1,56 @@
+{
+    "updateTime": [
+        {
+            "traderId": "54cb50c76803fa8b248b4571",
+            "seconds": 3600
+        },
+        {
+            "traderId": "54cb57776803fa99248b456e",
+            "seconds": 3600
+        },
+        {
+            "traderId": "579dc571d53a0658a154fbec",
+            "seconds": 3600
+        },
+        {
+            "traderId": "58330581ace78e27b8b10cee",
+            "seconds": 3600
+        },
+        {
+            "traderId": "5935c25fb3acc3127c3d8cd9",
+            "seconds": 3600
+        },
+        {
+            "traderId": "5a7c2eca46aef81a7ca2145d",
+            "seconds": 3600
+        },
+        {
+            "traderId": "5ac3b934156ae10c4430e83c",
+            "seconds": 3600
+        },
+        {
+            "traderId": "5c0647fdd443bc2504c2d371",
+            "seconds": 3600
+        },
+        {
+            "traderId": "ragfair",
+            "seconds": 3600
+        }
+    ],
+    "updateTimeDefault": 3600,
+    "fenceAssortSize": 100,
+    "fenceMaxPresetsCount": 5,
+    "fencePresetPriceMult": 2.5,
+    "minDurabilityForSale": 60,
+    "fenceItemIgnoreList": [
+        "58ac60eb86f77401897560ff",
+        "59e8936686f77467ce798647",
+        "56e294cdd2720b603a8b4575",
+        "5661632d4bdc2d903d8b456b",
+        "543be5e94bdc2df1348b4568",
+        "543be6674bdc2df1348b4569",
+        "5448bf274bdc2dfc2f8b456a",
+        "543be5664bdc2dd4348b4569",
+        "5447bedf4bdc2d87278b4568"
+    ]
+}

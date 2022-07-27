@@ -10,5 +10,5 @@ module.exports = {
     "aki-presets": PresetCallbacks.load,
     "aki-ragfair": RagfairCallbacks.load,
     "aki-save": SaveCallbacks.load,
-    "aki-traders": TraderCallbacks.load
+    "aki-traders": TraderCallbacks.load,
 };

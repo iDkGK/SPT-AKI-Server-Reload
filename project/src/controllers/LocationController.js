@@ -4,12 +4,18 @@ require("../Lib.js");
 
 class LocationController
 {
+    /* get a location with generated loot data */
+    static get(location)
+    {
+        const name = location.toLowerCase().replace(" ", "");
+        return LocationController.generate(name);
+    }
+
     /* generates a random location preset to use for local session */
     static generate(name)
     {
         const location = DatabaseServer.tables.locations[name];
         const output = location.base;
-        const ids = {};
 
         output.UnixDateTime = TimeUtil.getTimestamp();
 
@@ -22,11 +28,24 @@ class LocationController
         const locationName = location.base.Name;
 
         // generate loot
-        const staticWeapons = JsonUtil.clone(DatabaseServer.tables.loot.staticContainers[locationName].staticWeapons);
-        const staticContainers = JsonUtil.clone(DatabaseServer.tables.loot.staticContainers[locationName].staticContainers);
-        const staticForced = JsonUtil.clone(DatabaseServer.tables.loot.staticContainers[locationName].staticForced);
-        const staticLootDist = JsonUtil.clone(DatabaseServer.tables.loot.staticLoot);
-        const staticAmmoDist = JsonUtil.clone(DatabaseServer.tables.loot.staticAmmo);
+        const staticWeapons = JsonUtil.clone(
+            DatabaseServer.tables.loot.staticContainers[locationName]
+                .staticWeapons
+        );
+        const staticContainers = JsonUtil.clone(
+            DatabaseServer.tables.loot.staticContainers[locationName]
+                .staticContainers
+        );
+        const staticForced = JsonUtil.clone(
+            DatabaseServer.tables.loot.staticContainers[locationName]
+                .staticForced
+        );
+        const staticLootDist = JsonUtil.clone(
+            DatabaseServer.tables.loot.staticLoot
+        );
+        const staticAmmoDist = JsonUtil.clone(
+            DatabaseServer.tables.loot.staticAmmo
+        );
 
         output.Loot = [];
 
@@ -40,7 +59,13 @@ class LocationController
         // static loot
         for (const ci of staticContainers)
         {
-            const container = LocationGenerator.generateContainerLoot(ci, staticForced, staticLootDist, staticAmmoDist, name);
+            const container = LocationGenerator.generateContainerLoot(
+                ci,
+                staticForced,
+                staticLootDist,
+                staticAmmoDist,
+                name
+            );
             output.Loot.push(container);
             count++;
         }
@@ -48,34 +73,36 @@ class LocationController
 
         // dyanmic loot
         const dynamicLootDist = JsonUtil.clone(location.looseLoot);
-        const dynamicLoot = LocationGenerator.generateDynamicLoot(dynamicLootDist, staticAmmoDist, name);
+        const dynamicLoot = LocationGenerator.generateDynamicLoot(
+            dynamicLootDist,
+            staticAmmoDist,
+            name
+        );
         for (const dli of dynamicLoot)
         {
             output.Loot.push(dli);
         }
 
         // done generating
-        Logger.success(`A total of ${dynamicLoot.length} dynamic items spawned`);
+        Logger.success(
+            `A total of ${dynamicLoot.length} dynamic items spawned`
+        );
         Logger.success(`Generated location ${name}`);
 
         return output;
-    }
-
-    /* get a location with generated loot data */
-    static get(location)
-    {
-        const name = location.toLowerCase().replace(" ", "");
-        return LocationController.generate(name);
     }
 
     /* get all locations without loot data */
     static generateAll()
     {
         const locations = DatabaseServer.tables.locations;
-        const base = DatabaseServer.tables.locations.base;
-        const data = {};
+        const returnResult = {
+            locations: undefined,
+            paths: [],
+        };
 
         // use right id's and strip loot
+        const data = {};
         for (const name in locations)
         {
             if (name === "base")
@@ -89,8 +116,9 @@ class LocationController
             data[map._Id] = map;
         }
 
-        base.locations = data;
-        return base;
+        returnResult.locations = data;
+        returnResult.paths = locations.base.paths;
+        return returnResult;
     }
 }
 

@@ -6,9 +6,16 @@ const crypto = require("crypto");
 
 class ObjectId
 {
+    static randomBytes = crypto.randomBytes(5);
+    static constglobalCounter = 0;
+    static consttime = 0;
+    static globalCounter;
+    static time;
+
     static incGlobalCounter()
     {
-        return (ObjectId.globalCounter = (ObjectId.globalCounter + 1) % 0xffffff);
+        return (ObjectId.globalCounter =
+            (ObjectId.globalCounter + 1) % 0xffffff);
     }
 
     static toHexString(byteArray)
@@ -16,7 +23,7 @@ class ObjectId
         let hexString = "";
         for (let i = 0; i < byteArray.length; i++)
         {
-            hexString += ("0" + (byteArray[i] & 0xFF).toString(16)).slice(-2);
+            hexString += ("0" + (byteArray[i] & 0xff).toString(16)).slice(-2);
         }
         return hexString;
     }
@@ -48,9 +55,5 @@ class ObjectId
         return ObjectId.toHexString(objectIdBinary);
     }
 }
-
-ObjectId.randomBytes = crypto.randomBytes(5);
-ObjectId.globalCounter = 0;
-ObjectId.time = 0;
 
 module.exports = ObjectId;

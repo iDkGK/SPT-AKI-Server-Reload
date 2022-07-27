@@ -3,145 +3,151 @@
 require("../Lib.js");
 
 module.exports = {
-    "CustomizationWear": {
-        "aki": CustomizationCallbacks.wearClothing
+    CustomizationWear: {
+        aki: CustomizationCallbacks.wearClothing,
     },
-    "CustomizationBuy": {
-        "aki": CustomizationCallbacks.buyClothing
+    CustomizationBuy: {
+        aki: CustomizationCallbacks.buyClothing,
     },
-    "Eat": {
-        "aki": HealthCallbacks.offraidEat
+    Eat: {
+        aki: HealthCallbacks.offraidEat,
     },
-    "Heal": {
-        "aki": HealthCallbacks.offraidHeal
+    Heal: {
+        aki: HealthCallbacks.offraidHeal,
     },
-    "RestoreHealth": {
-        "aki": HealthCallbacks.healthTreatment
+    RestoreHealth: {
+        aki: HealthCallbacks.healthTreatment,
     },
-    "HideoutUpgrade": {
-        "aki": HideoutCallbacks.upgrade
+    HideoutUpgrade: {
+        aki: HideoutCallbacks.upgrade,
     },
-    "HideoutUpgradeComplete": {
-        "aki": HideoutCallbacks.upgradeComplete
+    HideoutUpgradeComplete: {
+        aki: HideoutCallbacks.upgradeComplete,
     },
-    "HideoutPutItemsInAreaSlots": {
-        "aki": HideoutCallbacks.putItemsInAreaSlots
+    HideoutPutItemsInAreaSlots: {
+        aki: HideoutCallbacks.putItemsInAreaSlots,
     },
-    "HideoutTakeItemsFromAreaSlots": {
-        "aki": HideoutCallbacks.takeItemsFromAreaSlots
+    HideoutTakeItemsFromAreaSlots: {
+        aki: HideoutCallbacks.takeItemsFromAreaSlots,
     },
-    "HideoutToggleArea": {
-        "aki": HideoutCallbacks.toggleArea
+    HideoutToggleArea: {
+        aki: HideoutCallbacks.toggleArea,
     },
-    "HideoutSingleProductionStart": {
-        "aki": HideoutCallbacks.singleProductionStart
+    HideoutSingleProductionStart: {
+        aki: HideoutCallbacks.singleProductionStart,
     },
-    "HideoutScavCaseProductionStart": {
-        "aki": HideoutCallbacks.scavCaseProductionStart
+    HideoutScavCaseProductionStart: {
+        aki: HideoutCallbacks.scavCaseProductionStart,
     },
-    "HideoutContinuousProductionStart": {
-        "aki": HideoutCallbacks.continuousProductionStart
+    HideoutContinuousProductionStart: {
+        aki: HideoutCallbacks.continuousProductionStart,
     },
-    "HideoutTakeProduction": {
-        "aki": HideoutCallbacks.takeProduction
+    HideoutTakeProduction: {
+        aki: HideoutCallbacks.takeProduction,
     },
-    "Insure": {
-        "aki": InsuranceCallbacks.insure
+    Insure: {
+        aki: InsuranceCallbacks.insure,
     },
-    "Move": {
-        "aki": InventoryCallbacks.moveItem
+    Move: {
+        aki: InventoryCallbacks.moveItem,
     },
-    "Remove": {
-        "aki": InventoryCallbacks.removeItem
+    Remove: {
+        aki: InventoryCallbacks.removeItem,
     },
-    "Split": {
-        "aki": InventoryCallbacks.splitItem
+    Split: {
+        aki: InventoryCallbacks.splitItem,
     },
-    "Merge": {
-        "aki": InventoryCallbacks.mergeItem
+    Merge: {
+        aki: InventoryCallbacks.mergeItem,
     },
-    "Transfer": {
-        "aki": InventoryCallbacks.transferItem
+    Transfer: {
+        aki: InventoryCallbacks.transferItem,
     },
-    "Swap": {
-        "aki": InventoryCallbacks.swapItem
+    Swap: {
+        aki: InventoryCallbacks.swapItem,
     },
-    "Fold": {
-        "aki": InventoryCallbacks.foldItem
+    Fold: {
+        aki: InventoryCallbacks.foldItem,
     },
-    "Toggle": {
-        "aki": InventoryCallbacks.toggleItem
+    Toggle: {
+        aki: InventoryCallbacks.toggleItem,
     },
-    "Tag": {
-        "aki": InventoryCallbacks.tagItem
+    Tag: {
+        aki: InventoryCallbacks.tagItem,
     },
-    "Bind": {
-        "aki": InventoryCallbacks.bindItem
+    Bind: {
+        aki: InventoryCallbacks.bindItem,
     },
-    "Examine": {
-        "aki": InventoryCallbacks.examineItem
+    Examine: {
+        aki: InventoryCallbacks.examineItem,
     },
-    "ReadEncyclopedia": {
-        "aki": InventoryCallbacks.readEncyclopedia
+    ReadEncyclopedia: {
+        aki: InventoryCallbacks.readEncyclopedia,
     },
-    "ApplyInventoryChanges": {
-        "aki": InventoryCallbacks.sortInventory
+    ApplyInventoryChanges: {
+        aki: InventoryCallbacks.sortInventory,
     },
-    "AddNote": {
-        "aki": NoteCallbacks.addNote
+    AddNote: {
+        aki: NoteCallbacks.addNote,
     },
-    "EditNote": {
-        "aki": NoteCallbacks.editNote
+    EditNote: {
+        aki: NoteCallbacks.editNote,
     },
-    "DeleteNote": {
-        "aki": NoteCallbacks.deleteNote
+    DeleteNote: {
+        aki: NoteCallbacks.deleteNote,
     },
-    "SaveBuild": {
-        "aki": PresetBuildCallbacks.saveBuild
+    SaveBuild: {
+        aki: PresetBuildCallbacks.saveBuild,
     },
-    "RemoveBuild": {
-        "aki": PresetBuildCallbacks.removeBuild
+    RemoveBuild: {
+        aki: PresetBuildCallbacks.removeBuild,
     },
-    "QuestAccept": {
-        "aki": QuestCallbacks.acceptQuest
+    QuestAccept: {
+        aki: QuestCallbacks.acceptQuest,
     },
-    "QuestComplete": {
-        "aki": QuestCallbacks.completeQuest
+    QuestComplete: {
+        aki: QuestCallbacks.completeQuest,
     },
-    "QuestHandover": {
-        "aki": QuestCallbacks.handoverQuest
+    QuestHandover: {
+        aki: QuestCallbacks.handoverQuest,
     },
-    "RagFairAddOffer": {
-        "aki": RagfairCallbacks.addOffer
+    RagFairAddOffer: {
+        aki: RagfairCallbacks.addOffer,
     },
-    "RagFairRemoveOffer": {
-        "aki": RagfairCallbacks.removeOffer
+    RagFairRemoveOffer: {
+        aki: RagfairCallbacks.removeOffer,
     },
-    "RagFairRenewOffer": {
-        "aki": RagfairCallbacks.extendOffer
+    RagFairRenewOffer: {
+        aki: RagfairCallbacks.extendOffer,
     },
-    "Repair": {
-        "aki": RepairCallbacks.repair
+    Repair: {
+        aki: RepairCallbacks.repair,
     },
-    "TradingConfirm": {
-        "aki": TradeCallbacks.processTrade
+    RepeatableQuestChange: {
+        aki: QuestCallbacks.changeRepeatableQuest,
     },
-    "RagFairBuyOffer": {
-        "aki": TradeCallbacks.processRagfairTrade
+    TraderRepair: {
+        aki: RepairCallbacks.traderRepair,
     },
-    "AddToWishList": {
-        "aki": WishlistCallbacks.addToWishlist
+    TradingConfirm: {
+        aki: TradeCallbacks.processTrade,
     },
-    "RemoveFromWishList": {
-        "aki": WishlistCallbacks.removeFromWishlist
+    RagFairBuyOffer: {
+        aki: TradeCallbacks.processRagfairTrade,
     },
-    "CreateMapMarker": {
-        "aki": InventoryCallbacks.createMapMarker
+    AddToWishList: {
+        aki: WishlistCallbacks.addToWishlist,
     },
-    "DeleteMapMarker": {
-        "aki": InventoryCallbacks.deleteMapMarker
+    RemoveFromWishList: {
+        aki: WishlistCallbacks.removeFromWishlist,
     },
-    "EditMapMarker": {
-        "aki": InventoryCallbacks.editMapMarker
-    }
+    CreateMapMarker: {
+        aki: InventoryCallbacks.createMapMarker,
+    },
+    DeleteMapMarker: {
+        aki: InventoryCallbacks.deleteMapMarker,
+    },
+    EditMapMarker: {
+        aki: InventoryCallbacks.editMapMarker,
+    },
 };

@@ -11,7 +11,7 @@ class InraidCallbacks
 
     static registerPlayer(url, info, sessionID)
     {
-        InraidController.addPlayer(sessionID, info.locationId);
+        InraidController.addPlayer(sessionID, info);
         return HttpResponse.nullResponse();
     }
 
@@ -34,6 +34,11 @@ class InraidCallbacks
     static getWeaponDurability(url, info, sessionID)
     {
         return HttpResponse.noBody(InraidConfig.save.durability);
+    }
+
+    static getAirdropConfig(url, info, sessionID)
+    {
+        return HttpResponse.noBody(AirdropConfig);
     }
 }
 

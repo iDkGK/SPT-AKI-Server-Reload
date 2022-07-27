@@ -6,15 +6,30 @@ class QuestHelper
 {
     /* changing these will require a wipe */
     static status = {
-        "Locked": 0,
-        "AvailableForStart": 1,
-        "Started": 2,
-        "AvailableForFinish": 3,
-        "Success": 4,
-        "Fail": 5,
-        "FailRestartable": 6,
-        "MarkedAsFailed": 7
+        Locked: 0,
+        AvailableForStart: 1,
+        Started: 2,
+        AvailableForFinish: 3,
+        Success: 4,
+        Fail: 5,
+        FailRestartable: 6,
+        MarkedAsFailed: 7,
     };
+
+    static getQuestConditions(q, furtherFilter = null)
+    {
+        return QuestHelper.filterConditions(q, "Quest", furtherFilter);
+    }
+
+    static getLevelConditions(q, furtherFilter = null)
+    {
+        return QuestHelper.filterConditions(q, "Level", furtherFilter);
+    }
+
+    static getLoyaltyConditions(q, furtherFilter = null)
+    {
+        return QuestHelper.filterConditions(q, "TraderLoyalty", furtherFilter);
+    }
 
     static filterConditions(q, questType, furtherFilter = null)
     {
@@ -34,21 +49,6 @@ class QuestHelper
         return filteredQuests;
     }
 
-    static getQuestConditions(q, furtherFilter = null)
-    {
-        return QuestHelper.filterConditions(q, "Quest", furtherFilter);
-    }
-
-    static getLevelConditions(q, furtherFilter = null)
-    {
-        return QuestHelper.filterConditions(q, "Level", furtherFilter);
-    }
-
-    static getLoyaltyConditions(q, furtherFilter = null)
-    {
-        return QuestHelper.filterConditions(q, "TraderLoyalty", furtherFilter);
-    }
-
     /**
      * returns true is the condition is satisfied
      */
@@ -62,16 +62,12 @@ class QuestHelper
                 case ">=":
                     return level >= cond._props.value;
                 default:
-                    Logger.debug(`Unrecognised Comparison Method: ${cond._props.compareMethod}`);
+                    Logger.debug(
+                        `Unrecognised Comparison Method: ${cond._props.compareMethod}`
+                    );
                     return false;
             }
         }
-    }
-
-    /* debug functions */
-    static getQuestLocale(questId)
-    {
-        return DatabaseServer.tables.locales.global["en"].quest[questId];
     }
 
     static getDeltaQuests(before, after)
@@ -85,7 +81,7 @@ class QuestHelper
 
         if (knownQuestsIds.length)
         {
-            return after.filter((q) =>
+            return after.filter(q =>
             {
                 return knownQuestsIds.indexOf(q._id) === -1;
             });
@@ -104,12 +100,19 @@ class QuestHelper
         }
 
         const profileSkill = pmcData.Skills.Common[index];
-        const clientSkill = output.profileChanges[sessionID].skills.Common[index];
+        const clientSkill =
+            output.profileChanges[sessionID].skills.Common[index];
 
         profileSkill.Progress += parseInt(progress);
         profileSkill.LastAccess = TimeUtil.getTimestamp();
         clientSkill.Progress = profileSkill.Progress;
         clientSkill.LastAccess = profileSkill.LastAccess;
+    }
+
+    /* debug functions */
+    static getQuestLocale(questId)
+    {
+        return DatabaseServer.tables.locales.global["en"].quest[questId];
     }
 
     /**
@@ -132,7 +135,9 @@ class QuestHelper
                 {
                     if (cond._props.target !== void 0)
                     {
-                        const locale = QuestHelper.getQuestLocale(cond._props.target);
+                        const locale = QuestHelper.getQuestLocale(
+                            cond._props.target
+                        );
 
                         if (locale)
                         {
@@ -141,7 +146,6 @@ class QuestHelper
 
                         output += `(${cond._props.target}) with status: `;
                     }
-
                 }
                 else
                 {
@@ -163,7 +167,8 @@ class QuestHelper
                     case "CounterCreator":
                         if (cond._props.target !== void 0)
                         {
-                            const taskDescription = currentQuestLocale.conditions[cond._props.id];
+                            const taskDescription =
+                                currentQuestLocale.conditions[cond._props.id];
                             if (taskDescription)
                             {
                                 output += `: ${taskDescription} `;

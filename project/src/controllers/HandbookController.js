@@ -22,53 +22,38 @@ class LookupCollection
 
 class HandbookController
 {
-    static lookup = new LookupCollection();
-
     static load()
     {
         const lookup = new LookupCollection();
 
-        for (const x of DatabaseServer.tables.templates.handbook.Items)
+        for (const handbookItem of DatabaseServer.tables.templates.handbook
+            .Items)
         {
-            lookup.items.byId[x.Id] = x.Price;
-            lookup.items.byParent[x.ParentId] || (lookup.items.byParent[x.ParentId] = []);
-            lookup.items.byParent[x.ParentId].push(x.Id);
+            lookup.items.byId[handbookItem.Id] = handbookItem.Price;
+            lookup.items.byParent[handbookItem.ParentId] ||
+                (lookup.items.byParent[handbookItem.ParentId] = []);
+            lookup.items.byParent[handbookItem.ParentId].push(handbookItem.Id);
         }
 
-        for (const x of DatabaseServer.tables.templates.handbook.Categories)
+        for (const handbookCategory of DatabaseServer.tables.templates.handbook
+            .Categories)
         {
-            lookup.categories.byId[x.Id] = x.ParentId ? x.ParentId : null;
+            lookup.categories.byId[handbookCategory.Id] =
+                handbookCategory.ParentId ? handbookCategory.ParentId : null;
 
-            if (x.ParentId)
+            if (handbookCategory.ParentId)
             {
                 // root as no parent
-                lookup.categories.byParent[x.ParentId] || (lookup.categories.byParent[x.ParentId] = []);
-                lookup.categories.byParent[x.ParentId].push(x.Id);
+                lookup.categories.byParent[handbookCategory.ParentId] ||
+                    (lookup.categories.byParent[handbookCategory.ParentId] =
+                        []);
+                lookup.categories.byParent[handbookCategory.ParentId].push(
+                    handbookCategory.Id
+                );
             }
         }
 
-        HandbookController.lookup = lookup;
-    }
-
-    static getTemplatePrice(x)
-    {
-        return (x in HandbookController.lookup.items.byId) ? HandbookController.lookup.items.byId[x] : 1;
-    }
-
-    /* all items in template with the given parent category */
-    static templatesWithParent(x)
-    {
-        return (x in HandbookController.lookup.items.byParent) ? HandbookController.lookup.items.byParent[x] : [];
-    }
-
-    static isCategory(x)
-    {
-        return (x in HandbookController.lookup.categories.byId);
-    }
-
-    static childrenCategories(x)
-    {
-        return (x in HandbookController.lookup.categories.byParent) ? HandbookController.lookup.categories.byParent[x] : [];
+        HandbookHelper.hydrateLookup(lookup);
     }
 }
 

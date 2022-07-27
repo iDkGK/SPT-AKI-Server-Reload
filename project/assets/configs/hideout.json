@@ -1,15 +1,12 @@
-"use strict";
-
-module.exports = {
+{
     "runIntervalSeconds": 900,
+    "fuelDrainRateMultipler": 0.00131,
     "scavCase": {
         "rewardParentBlacklist": [
-            ItemHelper.BASECLASS.Ammo,
-            ItemHelper.BASECLASS.Money
+            "5485a8684bdc2da71d8b4567",
+            "543be5dd4bdc2deb348b4569"
         ],
-        "rewardItemBlacklist": [
-
-        ],
+        "rewardItemBlacklist": [],
         "ammoRewards": {
             "giveMultipleOfTen": true,
             "minAmount": 10
@@ -30,4 +27,4 @@ module.exports = {
             }
         }
     }
-};
+}

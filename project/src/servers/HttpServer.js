@@ -14,15 +14,15 @@ class HttpServer
     static onRespond = require("../bindings/ServerRespond");
     static webSockets = {};
     static mime = {
-        "css": "text/css",
-        "bin": "application/octet-stream",
-        "html": "text/html",
-        "jpg": "image/jpeg",
-        "js": "text/javascript",
-        "json": "application/json",
-        "png": "image/png",
-        "svg": "image/svg+xml",
-        "txt": "text/plain",
+        css: "text/css",
+        bin: "application/octet-stream",
+        html: "text/html",
+        jpg: "image/jpeg",
+        js: "text/javascript",
+        json: "application/json",
+        png: "image/png",
+        svg: "image/svg+xml",
+        txt: "text/plain",
     };
     static websocketPingHandler = null;
 
@@ -66,12 +66,15 @@ class HttpServer
 
     static putInBuffer(sessionID, data, bufLength)
     {
-        if (HttpServer.buffers[sessionID] === undefined || HttpServer.buffers[sessionID].allocated !== bufLength)
+        if (
+            HttpServer.buffers[sessionID] === undefined ||
+            HttpServer.buffers[sessionID].allocated !== bufLength
+        )
         {
             HttpServer.buffers[sessionID] = {
                 written: 0,
                 allocated: bufLength,
-                buffer: Buffer.alloc(bufLength)
+                buffer: Buffer.alloc(bufLength),
             };
         }
 
@@ -89,7 +92,10 @@ class HttpServer
 
     static sendZlibJson(resp, output, sessionID)
     {
-        resp.writeHead(200, "OK", { "Content-Type": HttpServer.mime["json"], "Set-Cookie" : `PHPSESSID=${sessionID}` });
+        resp.writeHead(200, "OK", {
+            "Content-Type": HttpServer.mime["json"],
+            "Set-Cookie": `PHPSESSID=${sessionID}`,
+        });
 
         zlib.deflate(output, function (err, buf)
         {
@@ -114,7 +120,9 @@ class HttpServer
             }
             else
             {
-                Logger.debug(`WS: Socket not ready for ${sessionID}, message not sent`);
+                Logger.debug(
+                    `WS: Socket not ready for ${sessionID}, message not sent`
+                );
             }
         }
         catch (err)
@@ -126,7 +134,9 @@ class HttpServer
     static sendFile(resp, file)
     {
         const pathSlic = file.split("/");
-        const type = HttpServer.mime[pathSlic[pathSlic.length - 1].split(".")[1]] || HttpServer.mime["txt"];
+        const type =
+            HttpServer.mime[pathSlic[pathSlic.length - 1].split(".")[1]] ||
+            HttpServer.mime["txt"];
         const fileStream = fs.createReadStream(file);
 
         fileStream.on("open", function ()
@@ -138,14 +148,17 @@ class HttpServer
 
     static isConnectionWebSocket(sessionID)
     {
-        return HttpServer.webSockets[sessionID] !== undefined && HttpServer.webSockets[sessionID].readyState === WebSocket.OPEN;
+        return (
+            HttpServer.webSockets[sessionID] !== undefined &&
+            HttpServer.webSockets[sessionID].readyState === WebSocket.OPEN
+        );
     }
 
     static sendResponse(sessionID, req, resp, body)
     {
         // get response
-        const text = (body) ? body.toString() : "{}";
-        const info = (text) ? JsonUtil.deserialize(text) : {};
+        const text = body ? body.toString() : "{}";
+        const info = text ? JsonUtil.deserialize(text) : {};
         let output = HttpRouter.getResponse(req, info, sessionID);
 
         /* route doesn't exist or response is not properly set up */
@@ -153,7 +166,11 @@ class HttpServer
         {
             Logger.error(`[UNHANDLED][${req.url}]`);
             Logger.log(info);
-            output = HttpResponse.getBody(null, 404, `UNHANDLED RESPONSE: ${req.url}`);
+            output = HttpResponse.getBody(
+                null,
+                404,
+                `UNHANDLED RESPONSE: ${req.url}`
+            );
         }
 
         // execute data received callback
@@ -188,7 +205,7 @@ class HttpServer
         // request with data
         if (req.method === "POST")
         {
-            req.on("data", (data) =>
+            req.on("data", data =>
             {
                 zlib.inflate(data, (err, body) =>
                 {
@@ -199,14 +216,22 @@ class HttpServer
 
         if (req.method === "PUT")
         {
-            req.on("data", (data) =>
+            req.on("data", data =>
             {
                 // receive data
                 if ("expect" in req.headers)
                 {
-                    const requestLength = parseInt(req.headers["content-length"]);
+                    const requestLength = parseInt(
+                        req.headers["content-length"]
+                    );
 
-                    if (!HttpServer.putInBuffer(req.headers.sessionid, data, requestLength))
+                    if (
+                        !HttpServer.putInBuffer(
+                            req.headers.sessionid,
+                            data,
+                            requestLength
+                        )
+                    )
                     {
                         resp.writeContinue();
                     }
@@ -244,34 +269,49 @@ class HttpServer
 
         httpServer.listen(HttpConfig.port, HttpConfig.ip, () =>
         {
-            Logger.success(`Started webserver at ${HttpServer.getBackendUrl()}`);
+            Logger.success(
+                `Started webserver at ${HttpServer.getBackendUrl()}`
+            );
         });
 
-        httpServer.on("error", (e) =>
+        httpServer.on("error", e =>
         {
             /* server is already running or program using privileged port without root */
-            if (process.platform === "linux" && !(process.getuid && process.getuid() === 0) && e.port < 1024)
+            if (
+                process.platform === "linux" &&
+                !(process.getuid && process.getuid() === 0) &&
+                e.port < 1024
+            )
             {
-                Logger.error("Non-root processes cannot bind to ports below 1024");
+                Logger.error(
+                    "Non-root processes cannot bind to ports below 1024"
+                );
             }
             else
             {
-                Logger.error(`Port ${e.port} is already in use, check if the server isn't already running`);
+                Logger.error(
+                    `Port ${e.port} is already in use, check if the server isn't already running`
+                );
             }
         });
 
         // Setting up websocket
         const webSocketServer = new WebSocket.Server({
-            "server": httpServer
+            server: httpServer,
         });
 
         webSocketServer.addListener("listening", () =>
         {
-            Logger.success(`Started websocket at ${HttpServer.getWebsocketUrl()}`);
+            Logger.success(
+                `Started websocket at ${HttpServer.getWebsocketUrl()}`
+            );
             Logger.success("Server is running. Happy playing!");
         });
 
-        webSocketServer.addListener("connection", HttpServer.wsOnConnection.bind(this));
+        webSocketServer.addListener(
+            "connection",
+            HttpServer.wsOnConnection.bind(this)
+        );
     }
 
     static wsOnConnection(ws, req)
@@ -301,7 +341,7 @@ class HttpServer
 
             if (ws.readyState === WebSocket.OPEN)
             {
-                ws.send(JSON.stringify(NotifierController.defaultMessage));
+                ws.send(JSON.stringify(NotifierController.defaultNotification));
             }
             else
             {

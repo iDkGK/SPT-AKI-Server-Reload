@@ -4,54 +4,91 @@ require("../Lib.js");
 
 class TradeController
 {
-    static buyItem(pmcData, body, sessionID, foundInRaid, upd)
+    // separate is that selling or buying
+    static confirmTrading(
+        pmcData,
+        body,
+        sessionID,
+        foundInRaid = false,
+        upd = null
+    )
     {
-        let output = ItemEventRouter.getOutput(sessionID);
+        // buying
+        if (body.type === "buy_from_trader")
+        {
+            const buyData = body;
+            return TradeController.buyItem(
+                pmcData,
+                buyData,
+                sessionID,
+                foundInRaid,
+                upd
+            );
+        }
+
+        // selling
+        if (body.type === "sell_to_trader")
+        {
+            const sellData = body;
+            return TradeController.sellItem(pmcData, sellData, sessionID);
+        }
+
+        return "";
+    }
+
+    static buyItem(pmcData, buyRequestData, sessionID, foundInRaid, upd)
+    {
+        const traderAssorts = TraderHelper.getTraderAssortsById(buyRequestData.tid).items;
+        const assortBeingPurchased = traderAssorts.find(x => x._id === buyRequestData.item_id);
+        const hasBuyRestrictions = ItemHelper.hasBuyRestrictions(assortBeingPurchased);
+        // Ensure purchase does not exceed trader item limit
+        if (hasBuyRestrictions)
+        {
+            TradeController.checkPurchaseIsWithinTraderItemLimit(assortBeingPurchased, buyRequestData.item_id, buyRequestData.count);
+        }
+        /// Pay for item
+        output = PaymentService.payMoney(pmcData, buyRequestData, sessionID, output);
         const newReq = {
-            "items": [
+            items: [
                 {
-                    "item_id": body.item_id,
-                    "count": body.count,
-                }
+                    item_id: buyRequestData.item_id,
+                    count: buyRequestData.count,
+                },
             ],
-            "tid": body.tid
+            tid: buyRequestData.tid,
         };
         const callback = () =>
         {
-            output = PaymentController.payMoney(pmcData, body, sessionID, output);
+            output = PaymentService.payMoney(pmcData, buyRequestData, sessionID, output);
             if (output.warnings.length > 0)
             {
                 throw "Transaction failed";
             }
 
-            TradeController.incrementAssortBuyCount(body.tid, body.item_id, body.count);
-
-            Logger.debug(`Bought item: ${body.item_id}`);
+            if (buyRequestData.tid === TraderHelper.TRADER.Fence)
+            {
+                // Bought fence offer, remove from listing
+                FenceService.removeFenceOffer(buyRequestData.item_id);
+            }
+            else
+            {
+                if (hasBuyRestrictions)
+                {
+                    TradeController.incrementAssortBuyCount(assortBeingPurchased, buyRequestData.count);
+                }
+            }
+            Logger.debug(`Bought item: ${buyRequestData.item_id} from ${buyRequestData.tid}`);
         };
 
-        return InventoryController.addItem(pmcData, newReq, output, sessionID, callback, foundInRaid, upd);
-    }
-
-    static incrementAssortBuyCount(traderId, assortId, itemCount)
-    {
-        const isFence = traderId === TraderHelper.TRADER.Fence;
-        const traderAssorts = isFence
-            ? TraderController.fenceAssort.items
-            : DatabaseServer.tables.traders[traderId].assort.items;
-
-        const relatedAssortIndex = traderAssorts.findIndex(i => i._id === assortId);
-
-        if (isFence)
-        {
-            traderAssorts.splice(relatedAssortIndex, 1);
-            return;
-        }
-
-        const itemToUpdate = traderAssorts[relatedAssortIndex];
-        if (itemToUpdate)
-        {
-            itemToUpdate.upd.BuyRestrictionCurrent += itemCount;
-        }
+        return InventoryHelper.addItem(
+            pmcData,
+            newReq,
+            output,
+            sessionID,
+            callback,
+            foundInRaid,
+            upd
+        );
     }
 
     /**
@@ -82,40 +119,27 @@ class TradeController
                     Logger.debug(`Selling: ${checkID}`);
 
                     // remove item
-                    output = InventoryController.removeItem(pmcData, checkID, sessionID, output);
+                    output = InventoryHelper.removeItem(
+                        pmcData,
+                        checkID,
+                        sessionID,
+                        output
+                    );
 
                     // add money to return to the player
-                    if (output !== "")
+                    if (output.profileChanges !== null)
                     {
-                        money += parseInt(prices[item._id][0][0].count);
+                        money += prices[item._id][0][0].count;
                         break;
                     }
 
-                    return "";
+                    return;
                 }
             }
         }
 
-        // get money the item]
-        return PaymentController.getMoney(pmcData, money, body, output, sessionID);
-    }
-
-    // separate is that selling or buying
-    static confirmTrading(pmcData, body, sessionID, foundInRaid = false, upd = null)
-    {
-        // buying
-        if (body.type === "buy_from_trader")
-        {
-            return TradeController.buyItem(pmcData, body, sessionID, foundInRaid, upd);
-        }
-
-        // selling
-        if (body.type === "sell_to_trader")
-        {
-            return TradeController.sellItem(pmcData, body, sessionID);
-        }
-
-        return "";
+        // get money the item
+        return PaymentService.getMoney(pmcData, money, body, output, sessionID);
     }
 
     // Ragfair trading
@@ -125,30 +149,71 @@ class TradeController
 
         for (const offer of body.offers)
         {
-            const data = RagfairServer.getOffer(offer.id);
+            const fleaOffer = RagfairServer.getOffer(offer.id);
             Logger.debug(JSON.stringify(offer, null, 2));
 
-            pmcData = ProfileController.getPmcProfile(sessionID);
+            pmcData = ProfileHelper.getPmcProfile(sessionID);
             body = {
-                "Action": "TradingConfirm",
-                "type": "buy_from_trader",
-                "tid": (data.user.memberType !== 4) ? "ragfair" : data.user.id,
-                "item_id": data.root,
-                "count": offer.count,
-                "scheme_id": 0,
-                "scheme_items": offer.items
+                Action: "TradingConfirm",
+                type: "buy_from_trader",
+                tid:
+                    fleaOffer.user.memberType !==
+                    RagfairServerHelper.memberCategory.trader
+                        ? "ragfair"
+                        : fleaOffer.user.id,
+                item_id: fleaOffer.root,
+                count: offer.count,
+                scheme_id: 0,
+                scheme_items: offer.items,
             };
 
-            if (data.user.memberType !== 4)
+            if (
+                fleaOffer.user.memberType !==
+                RagfairServerHelper.memberCategory.trader
+            )
             {
                 // remove player item offer stack
-                RagfairServer.removeOfferStack(data._id, offer.count);
+                RagfairServer.removeOfferStack(fleaOffer._id, offer.count);
             }
 
-            output = TradeController.confirmTrading(pmcData, body, sessionID, false, data.items[0].upd);
+            output = TradeController.confirmTrading(
+                pmcData,
+                body,
+                sessionID,
+                false,
+                fleaOffer.items[0].upd
+            );
         }
 
         return output;
+    }
+
+    static incrementAssortBuyCount(assortBeingPurchased, itemsPurchasedCount)
+    {
+        assortBeingPurchased.upd.BuyRestrictionCurrent += itemsPurchasedCount;
+
+        if (assortBeingPurchased.upd.BuyRestrictionCurrent === assortBeingPurchased.upd.BuyRestrictionMax)
+        {
+            //Hide flea offer when over purchase limit reached
+            if (RagfairServer.doesOfferExist(assortBeingPurchased._id))
+            {
+                RagfairServer.hideOffer(assortBeingPurchased._id);
+            }
+            return;
+        }
+
+        if (assortBeingPurchased.upd.BuyRestrictionCurrent > assortBeingPurchased.upd.BuyRestrictionMax)
+        {
+            throw "Unable to purchase item, Purchase limit reached";
+        }
+    }
+
+    static checkPurchaseIsWithinTraderItemLimit(assortBeingPurchased, assortId, count)
+    {
+        if ((assortBeingPurchased.upd.BuyRestrictionCurrent + count) > assortBeingPurchased.upd?.BuyRestrictionMax)
+        {
+            throw `Unable to purchase ${count} items, this would exceed your purchase limit of ${assortBeingPurchased.upd.BuyRestrictionMax} from the trader this refresh`;
+        }
     }
 }
 

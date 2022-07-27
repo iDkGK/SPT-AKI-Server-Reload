@@ -2,6 +2,26 @@
 
 class RagfairServerHelper
 {
+    static offerOwnerType = {
+        anyOwnerType: 0,
+        traderOwnerType: 1,
+        playerOwnerType: 2,
+    };
+
+    static memberCategory = {
+        default: 0,
+        developer: 1,
+        uniqueId: 2,
+        trader: 4,
+        group: 8,
+        system: 16,
+        chatModerator: 32,
+        chatModeratorWithPermanentBan: 64,
+        unitTest: 28,
+        sherpa: 56,
+        emissary: 12,
+    };
+
     static isItemValidRagfairItem(itemDetails)
     {
         const blacklistConfig = RagfairConfig.dynamic.blacklist;
@@ -13,7 +33,10 @@ class RagfairServerHelper
         }
 
         // Skip bsg blacklisted items
-        if (blacklistConfig.enableBsgList && !itemDetails[1]._props.CanSellOnRagfair)
+        if (
+            blacklistConfig.enableBsgList &&
+            !itemDetails[1]._props.CanSellOnRagfair
+        )
         {
             return false;
         }
@@ -25,7 +48,10 @@ class RagfairServerHelper
         }
 
         // Skip quest items
-        if (blacklistConfig.enableQuestList && ItemHelper.isQuestItem(itemDetails[1]._id))
+        if (
+            blacklistConfig.enableQuestList &&
+            ItemHelper.isQuestItem(itemDetails[1]._id)
+        )
         {
             return false;
         }
@@ -65,11 +91,19 @@ class RagfairServerHelper
         const itemDetails = ItemHelper.getItem(tplId);
         if (!itemDetails[0])
         {
-            throw new Error(`Item with tpl ${tplId} not found. Unable to generate a dynamic stack count.`);
+            throw new Error(
+                `Item with tpl ${tplId} not found. Unable to generate a dynamic stack count.`
+            );
         }
 
         // Item Types to return one of
-        if (isWeaponPreset || ItemHelper.doesItemOrParentsIdMatch(itemDetails[1]._id, RagfairConfig.dynamic.showAsSingleStack))
+        if (
+            isWeaponPreset ||
+            ItemHelper.doesItemOrParentsIdMatch(
+                itemDetails[1]._id,
+                RagfairConfig.dynamic.showAsSingleStack
+            )
+        )
         {
             return 1;
         }
@@ -80,10 +114,20 @@ class RagfairServerHelper
         // non-stackable - use differnt values to calcualte stack size
         if (!maxStackCount || maxStackCount === 1)
         {
-            return Math.round(RandomUtil.getInt(config.nonStackableCount.min, config.nonStackableCount.max));
+            return Math.round(
+                RandomUtil.getInt(
+                    config.nonStackableCount.min,
+                    config.nonStackableCount.max
+                )
+            );
         }
 
-        const stackPercent = Math.round(RandomUtil.getInt(config.stackablePercent.min, config.stackablePercent.max));
+        const stackPercent = Math.round(
+            RandomUtil.getInt(
+                config.stackablePercent.min,
+                config.stackablePercent.max
+            )
+        );
 
         return Math.round((maxStackCount / 100) * stackPercent);
     }
@@ -109,17 +153,18 @@ class RagfairServerHelper
         if (RagfairServerHelper.isPlayer(userID))
         {
             // player offer
-            return SaveServer.profiles[userID].characters.pmc.Info.AccountType;
+            return SaveServer.getProfile(userID).characters.pmc.Info
+                .AccountType;
         }
 
         if (RagfairServerHelper.isTrader(userID))
         {
             // trader offer
-            return 4;
+            return RagfairServerHelper.memberCategory.trader;
         }
 
         // generated offer
-        return 0;
+        return RagfairServerHelper.memberCategory.default;
     }
 
     static getNickname(userID)
@@ -127,7 +172,7 @@ class RagfairServerHelper
         if (RagfairServerHelper.isPlayer(userID))
         {
             // player offer
-            return SaveServer.profiles[userID].characters.pmc.Info.Nickname;
+            return SaveServer.getProfile(userID).characters.pmc.Info.Nickname;
         }
 
         if (RagfairServerHelper.isTrader(userID))
@@ -138,9 +183,13 @@ class RagfairServerHelper
 
         // generated offer
         // recurse if name is longer than max characters allowed (15 characters)
-        const type = (RandomUtil.getInt(0, 1) === 0) ? "usec" : "bear";
-        const name = RandomUtil.getArrayValue(DatabaseServer.tables.bots.types[type].firstName);
-        return (name.length > 15) ? RagfairServerHelper.getNickname(userID) : name;
+        const type = RandomUtil.getInt(0, 1) === 0 ? "usec" : "bear";
+        const name = RandomUtil.getStringArrayValue(
+            DatabaseServer.tables.bots.types[type].firstName
+        );
+        return name.length > 15
+            ? RagfairServerHelper.getNickname(userID)
+            : name;
     }
 }
 

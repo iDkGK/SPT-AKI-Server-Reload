@@ -7,9 +7,9 @@ class GameEventHelper
     static get EVENT()
     {
         return {
-            "None": "None",
-            "Christmas": "Christmas",
-            "Halloween": "Halloween"
+            None: "None",
+            Christmas: "Christmas",
+            Halloween: "Halloween",
         };
     }
 
@@ -32,9 +32,10 @@ class GameEventHelper
 
     static christmasEventEnabled()
     {
-        return DatabaseServer.tables.globals.config.EventType.includes(GameEventHelper.EVENT.Christmas);
+        return DatabaseServer.tables.globals.config.EventType.includes(
+            GameEventHelper.EVENT.Christmas
+        );
     }
-
 }
 
 module.exports = GameEventHelper;

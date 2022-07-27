@@ -1,12 +1,14 @@
-"use strict";
-
-module.exports = {
+{
     "redeemTime": 48,
     "repeatableQuests": [
         {
             "name": "Daily",
-            "types": ["Elimination", "Completion", "Exploration"],
-            "resetTime": 60 * 60 * 24,
+            "types": [
+                "Elimination",
+                "Completion",
+                "Exploration"
+            ],
+            "resetTime": 86400,
             "numQuests":3,
             "minPlayerLevel": 5,
             "rewardScaling": {
@@ -15,7 +17,7 @@ module.exports = {
                 "roubles": [6000, 10000, 100000, 250000],
                 "items": [1, 2, 4, 4],
                 "reputation": [0.01, 0.01, 0.01, 0.01],
-                "rewardSpread": 0.5 // spread for factor of reward at 0.5 the reward according to level is multiplied by a random value between 0.5 and 1.5
+                "rewardSpread": 0.5
             },
             "locations": {
                 "any": ["any"],
@@ -30,31 +32,31 @@ module.exports = {
             },
             "traderWhitelist": [
                 {
-                    "traderId": TraderHelper.TRADER.Prapor,
+                    "traderId": "54cb50c76803fa8b248b4571",
                     "questTypes": ["Completion", "Exploration", "Elimination"]
                 },
                 {
-                    "traderId": TraderHelper.TRADER.Therapist,
+                    "traderId": "54cb57776803fa99248b456e",
                     "questTypes": ["Completion", "Exploration", "Elimination"]
                 },
                 {
-                    "traderId": TraderHelper.TRADER.Skier,
+                    "traderId": "58330581ace78e27b8b10cee",
                     "questTypes": ["Completion", "Exploration", "Elimination"]
                 },
                 {
-                    "traderId": TraderHelper.TRADER.Peacekeeper,
+                    "traderId": "5935c25fb3acc3127c3d8cd9",
                     "questTypes": ["Completion", "Exploration", "Elimination"]
                 },
                 {
-                    "traderId": TraderHelper.TRADER.Mechanic,
+                    "traderId": "5a7c2eca46aef81a7ca2145d",
                     "questTypes": ["Completion", "Exploration"]
                 },
                 {
-                    "traderId": TraderHelper.TRADER.Ragman,
+                    "traderId": "5ac3b934156ae10c4430e83c",
                     "questTypes": ["Completion", "Exploration", "Elimination"]
                 },
                 {
-                    "traderId": TraderHelper.TRADER.Jaeger,
+                    "traderId": "5c0647fdd443bc2504c2d371",
                     "questTypes": ["Completion", "Exploration", "Elimination"]
                 }
             ],
@@ -65,12 +67,12 @@ module.exports = {
                         "probability": 0.25,
                         "passageRequirementWhitelist": [
                             "None",
-                            "TransferItem",     // car extracts
-                            "WorldEvent",       // activate trigger condition
+                            "TransferItem",
+                            "WorldEvent",
                             "Train",
-                            "Reference",        // special stuff like cliff descent
-                            "Empty"             // no backpack
-                        ]                       // currently all but "ScavCooperation"
+                            "Reference",
+                            "Empty"
+                        ]
                     }
                 },
                 "Completion": {
@@ -79,7 +81,7 @@ module.exports = {
                     "minRequestedBulletAmount": 20,
                     "maxRequestedBulletAmount": 60,
                     "useWhitelist": true,
-                    "useBlacklist": false,
+                    "useBlacklist": false
                 },
                 "Elimination": {
                     "targets": [
@@ -122,7 +124,7 @@ module.exports = {
                             "key": "bossKojaniy",
                             "relativeProbability": 0.5,
                             "data": { "isBoss": true }
-                        },
+                        }
                     ],
                     "bodyPartProb": 0.4,
                     "bodyParts": [
@@ -150,7 +152,7 @@ module.exports = {
                             "key": "Legs",
                             "relativeProbability": 1,
                             "data": ["LeftLeg", "RightLeg"]
-                        },
+                        }
                     ],
                     "specificLocationProb": 0.25,
                     "distLocationBlacklist": ["laboratory", "factory4_day", "factory4_night"],
@@ -164,8 +166,12 @@ module.exports = {
         },
         {
             "name": "Weekly",
-            "types": ["Elimination", "Completion", "Exploration"],
-            "resetTime": 7 * 60 * 60 * 24,
+            "types": [
+                "Elimination",
+                "Completion",
+                "Exploration"
+            ],
+            "resetTime": 604800,
             "numQuests": 1,
             "minPlayerLevel": 15,
             "rewardScaling": {
@@ -174,7 +180,7 @@ module.exports = {
                 "roubles": [12000, 20000, 200000, 500000],
                 "items": [3, 3, 4, 4],
                 "reputation": [0.02, 0.03, 0.03, 0.03],
-                "rewardSpread": 0.5 // spread for factor of reward at 0.5 the reward according to level is multiplied by a random value between 0.5 and 1.5
+                "rewardSpread": 0.5
             },
             "locations": {
                 "any": ["any"],
@@ -189,31 +195,31 @@ module.exports = {
             },
             "traderWhitelist": [
                 {
-                    "traderId": TraderHelper.TRADER.Prapor,
+                    "traderId": "54cb50c76803fa8b248b4571",
                     "questTypes": ["Completion", "Exploration", "Elimination"]
                 },
                 {
-                    "traderId": TraderHelper.TRADER.Therapist,
+                    "traderId": "54cb57776803fa99248b456e",
                     "questTypes": ["Completion", "Exploration", "Elimination"]
                 },
                 {
-                    "traderId": TraderHelper.TRADER.Skier,
+                    "traderId": "58330581ace78e27b8b10cee",
                     "questTypes": ["Completion", "Exploration", "Elimination"]
                 },
                 {
-                    "traderId": TraderHelper.TRADER.Peacekeeper,
+                    "traderId": "5935c25fb3acc3127c3d8cd9",
                     "questTypes": ["Completion", "Exploration", "Elimination"]
                 },
                 {
-                    "traderId": TraderHelper.TRADER.Mechanic,
+                    "traderId": "5a7c2eca46aef81a7ca2145d",
                     "questTypes": ["Completion", "Exploration"]
                 },
                 {
-                    "traderId": TraderHelper.TRADER.Ragman,
+                    "traderId": "5ac3b934156ae10c4430e83c",
                     "questTypes": ["Completion", "Exploration", "Elimination"]
                 },
                 {
-                    "traderId": TraderHelper.TRADER.Jaeger,
+                    "traderId": "5c0647fdd443bc2504c2d371",
                     "questTypes": ["Completion", "Exploration", "Elimination"]
                 }
             ],
@@ -224,12 +230,12 @@ module.exports = {
                         "probability": 0.5,
                         "passageRequirementWhitelist": [
                             "None",
-                            "TransferItem",     // car extracts
-                            "WorldEvent",       // activate trigger condition
+                            "TransferItem",
+                            "WorldEvent",
                             "Train",
-                            "Reference",        // special stuff like cliff descent
-                            "Empty"             // no backpack
-                        ]                       // currently all but "ScavCooperation"
+                            "Reference",
+                            "Empty"
+                        ]
                     }
                 },
                 "Completion": {
@@ -238,7 +244,7 @@ module.exports = {
                     "minRequestedBulletAmount": 20,
                     "maxRequestedBulletAmount": 60,
                     "useWhitelist": true,
-                    "useBlacklist": false,
+                    "useBlacklist": false
                 },
                 "Elimination": {
                     "targets": [
@@ -281,7 +287,7 @@ module.exports = {
                             "key": "bossKojaniy",
                             "relativeProbability": 0.5,
                             "data": { "isBoss": true }
-                        },
+                        }
                     ],
                     "bodyPartProb": 0.4,
                     "bodyParts": [
@@ -309,7 +315,7 @@ module.exports = {
                             "key": "Legs",
                             "relativeProbability": 1,
                             "data": ["LeftLeg", "RightLeg"]
-                        },
+                        }
                     ],
                     "specificLocationProb": 0.25,
                     "distLocationBlacklist": ["laboratory", "factory4_day", "factory4_night"],
@@ -320,49 +326,6 @@ module.exports = {
                     "minKills": 5
                 }
             }
-        },
+        }
     ]
-};
-
-// Request for dailies has been according to wiki:
-// level 45+
-// add reward randomistion:
-// 20,000 to 80,000 exp
-// 100,000 to 250,000 roubles
-// 700 to 1750 euros if from peacekeeper
-// 1 to 4 items
-//
-// level 21-45
-// add reward randomistion:
-// up to 20,000 exp
-// up to 100,000 roubles
-// up to 700 if from peacekeeper
-// 1 to 4 items
-//
-// level 5-20
-// add reward randomistion:
-// up to 2000 exp
-// up to 10,000 roubles
-// up to 70 if from peacekeeper
-// 1 to 2 items
-//
-// quest types:
-// exit location
-// extract between 1 and 5 times from location
-//
-// elimination PMC
-// kill between 2-15 PMCs
-// from a distance between 20-50 meters
-// kill via damage from a particular body part
-//
-// elimination scav
-// kill between 2-15 scavs
-// from a distance between 20-50 meters
-// kill via damage from a particular body part
-//
-// boss elimination
-// any distance OR from a distance of more than 80
-//
-// find and transfer
-// find and handover a random number of items
-// items are random
+}

@@ -1,7 +1,5 @@
 "use strict";
 
-const Watermark = require("../utils/Watermark.js");
-
 require("../Lib.js");
 
 class LauncherCallbacks
@@ -9,24 +7,24 @@ class LauncherCallbacks
     static connect()
     {
         return HttpResponse.noBody({
-            "backendUrl": HttpServer.getBackendUrl(),
-            "name": "SPT-AKI Server",
-            "editions": Object.keys(DatabaseServer.tables.templates.profiles)
+            backendUrl: HttpServer.getBackendUrl(),
+            name: "SPT-AKI Server",
+            editions: Object.keys(DatabaseServer.tables.templates.profiles),
         });
     }
 
     static login(url, info, sessionID)
     {
-        ProfileController.sessionId = sessionID;
+        ProfileHelper.sessionId = sessionID;
 
         const output = LauncherController.login(info);
-        return (!output) ? "FAILED" : output;
+        return !output ? "FAILED" : output;
     }
 
     static register(url, info, sessionID)
     {
         const output = LauncherController.register(info);
-        return (!output) ? "FAILED" : "OK";
+        return !output ? "FAILED" : "OK";
     }
 
     static get(url, info, sessionID)
@@ -38,19 +36,19 @@ class LauncherCallbacks
     static changeUsername(url, info, sessionID)
     {
         const output = LauncherController.changeUsername(info);
-        return (!output) ? "FAILED" : "OK";
+        return !output ? "FAILED" : "OK";
     }
 
     static changePassword(url, info, sessionID)
     {
         const output = LauncherController.changePassword(info);
-        return (!output) ? "FAILED" : "OK";
+        return !output ? "FAILED" : "OK";
     }
 
     static wipe(url, info, sessionID)
     {
         const output = LauncherController.wipe(info);
-        return (!output) ? "FAILED" : "OK";
+        return !output ? "FAILED" : "OK";
     }
 
     static getMiniProfile(url, info, sessionID)
@@ -80,7 +78,9 @@ class LauncherCallbacks
 
     static getCompatibleTarkovVersion()
     {
-        return HttpResponse.noBody(LauncherController.getCompatibleTarkovVersion());
+        return HttpResponse.noBody(
+            LauncherController.getCompatibleTarkovVersion()
+        );
     }
 }
 

@@ -9,26 +9,26 @@ class Logger
     static showDebugInConsole = false;
     static filepath = "user/logs/server.log";
     static colors = {
-        "front": {
-            "black": "\x1b[30m",
-            "red": "\x1b[31m",
-            "green": "\x1b[32m",
-            "yellow": "\x1b[33m",
-            "blue": "\x1b[34m",
-            "magenta": "\x1b[35m",
-            "cyan": "\x1b[36m",
-            "white": "\x1b[37m"
+        front: {
+            black: "\x1b[30m",
+            red: "\x1b[31m",
+            green: "\x1b[32m",
+            yellow: "\x1b[33m",
+            blue: "\x1b[34m",
+            magenta: "\x1b[35m",
+            cyan: "\x1b[36m",
+            white: "\x1b[37m",
         },
-        "back": {
-            "black": "\x1b[40m",
-            "red": "\x1b[41m",
-            "green": "\x1b[42m",
-            "yellow": "\x1b[43m",
-            "blue": "\x1b[44m",
-            "magenta": "\x1b[45m",
-            "cyan": "\x1b[46m",
-            "white": "\x1b[47m"
-        }
+        back: {
+            black: "\x1b[40m",
+            red: "\x1b[41m",
+            green: "\x1b[42m",
+            yellow: "\x1b[43m",
+            blue: "\x1b[44m",
+            magenta: "\x1b[45m",
+            cyan: "\x1b[46m",
+            white: "\x1b[47m",
+        },
     };
 
     static initialize()
@@ -55,7 +55,9 @@ class Logger
     static log(data, front = "", back = "")
     {
         // set colors
-        const colors = `${(Logger.colors.front[front] || "")}${Logger.colors.back[back] || ""}`;
+        const colors = `${Logger.colors.front[front] || ""}${
+            Logger.colors.back[back] || ""
+        }`;
 
         // show logged message
         if (colors)
@@ -91,18 +93,18 @@ class Logger
         Logger.log(`[INFO] ${data}`, "cyan", "black");
     }
 
-    static debug(data, isError = false)
+    static debug(data, isError = false, onlyShowInConsole = false)
     {
         if (Logger.showDebugInConsole)
         {
-            Logger.log(`[DEBUG] ${data}`, (isError) ? "red" : "green", "black");
+            Logger.log(`[DEBUG] ${data}`, isError ? "red" : "green", "black");
         }
-        else
+
+        if (!onlyShowInConsole)
         {
             Logger.writeToLogFile(util.format(`[DEBUG] ${data}`));
         }
     }
-
 }
 
 module.exports = Logger;

@@ -6,7 +6,11 @@ class BotController
 {
     static getBotLimit(type)
     {
-        return BotConfig.presetBatch[(type === "cursedAssault" || type === "assaultGroup") ? "assault" : type];
+        return BotConfig.presetBatch[
+            type === "cursedAssault" || type === "assaultGroup"
+                ? "assault"
+                : type
+        ];
     }
 
     static getBotDifficulty(type, difficulty)
@@ -18,35 +22,65 @@ class BotController
             case "core":
                 return DatabaseServer.tables.bots.core;
             case BotConfig.pmc.bearType:
-                difficultySettings = BotController.getPmcDifficultySettings("bear", difficulty);
+                difficultySettings = BotController.getPmcDifficultySettings(
+                    "bear",
+                    difficulty
+                );
                 BotController.randomisePmcHostility(difficultySettings);
                 break;
             case BotConfig.pmc.usecType:
-                difficultySettings = BotController.getPmcDifficultySettings("usec", difficulty);
+                difficultySettings = BotController.getPmcDifficultySettings(
+                    "usec",
+                    difficulty
+                );
                 BotController.randomisePmcHostility(difficultySettings);
                 break;
             // don't replace type
             default:
-                difficultySettings = DatabaseServer.tables.bots.types[type].difficulty[difficulty];
+                BotController.getBotDifficultySettings(type, difficulty);
                 break;
         }
 
         return difficultySettings;
     }
 
+    static getBotDifficultySettings(type, difficulty)
+    {
+        const bot = DatabaseServer.tables.bots.types[type];
+        if (!bot)
+        {
+            // get fallback
+            Logger.warning(
+                `Unable to find difficulty for bot: ${type} difficulty: ${difficulty}, using assault`
+            );
+            DatabaseServer.tables.bots.types[type] = JsonUtil.clone(
+                DatabaseServer.tables.bots.types.assault
+            );
+        }
+        return DatabaseServer.tables.bots.types[type].difficulty[difficulty];
+    }
+
     static getPmcDifficultySettings(type, difficulty)
     {
-        const difficultySetting = BotConfig.pmc.difficulty.toLowerCase() === "asonline" ? difficulty : BotConfig.pmc.difficulty.toLowerCase();
+        const difficultySetting =
+            BotConfig.pmc.difficulty.toLowerCase() === "asonline"
+                ? difficulty
+                : BotConfig.pmc.difficulty.toLowerCase();
 
-        return DatabaseServer.tables.bots.types[type].difficulty[difficultySetting];
+        return DatabaseServer.tables.bots.types[type].difficulty[
+            difficultySetting
+        ];
     }
 
     static randomisePmcHostility(difficultySettings)
     {
-        if (RandomUtil.getInt(0, 99) < BotConfig.pmc.chanceSameSideIsHostilePercent)
+        if (
+            RandomUtil.getInt(0, 99) <
+            BotConfig.pmc.chanceSameSideIsHostilePercent
+        )
         {
-            difficultySettings.Mind.DEFAULT_ENEMY_USEC = true;
-            difficultySettings.Mind.DEFAULT_ENEMY_BEAR = true;
+            difficultySettings.Mind["DEFAULT_ENEMY_USEC"] = true;
+            difficultySettings.Mind["DEFAULT_ENEMY_BEAR"] = true;
         }
     }
 
@@ -64,9 +98,14 @@ class BotController
         // generate bot
         const node = DatabaseServer.tables.bots.types[role.toLowerCase()];
 
-        const levelResult = BotController.generateRandomLevel(node.experience.level.min, node.experience.level.max);
+        const levelResult = BotController.generateRandomLevel(
+            node.experience.level.min,
+            node.experience.level.max
+        );
 
-        bot.Info.Nickname = `${RandomUtil.getArrayValue(node.firstName)} ${RandomUtil.getArrayValue(node.lastName) || ""}`;
+        bot.Info.Nickname = `${RandomUtil.getArrayValue(node.firstName)} ${
+            RandomUtil.getArrayValue(node.lastName) || ""
+        }`;
 
         if (BotConfig.showTypeInNickname)
         {
@@ -81,16 +120,30 @@ class BotController
 
         bot.Info.Experience = levelResult.exp;
         bot.Info.Level = levelResult.level;
-        bot.Info.Settings.Experience = RandomUtil.getInt(node.experience.reward.min, node.experience.reward.max);
+        bot.Info.Settings.Experience = RandomUtil.getInt(
+            node.experience.reward.min,
+            node.experience.reward.max
+        );
         bot.Info.Settings.StandingForKill = node.experience.standingForKill;
         bot.Info.Voice = RandomUtil.getArrayValue(node.appearance.voice);
-        bot.Health = BotController.generateHealth(node.health, bot.Info.Side === "Savage");
+        bot.Health = BotController.generateHealth(
+            node.health,
+            bot.Info.Side === "Savage"
+        );
         bot.Skills = BotController.generateSkills(node.skills);
         bot.Customization.Head = RandomUtil.getArrayValue(node.appearance.head);
         bot.Customization.Body = RandomUtil.getArrayValue(node.appearance.body);
         bot.Customization.Feet = RandomUtil.getArrayValue(node.appearance.feet);
-        bot.Customization.Hands = RandomUtil.getArrayValue(node.appearance.hands);
-        bot.Inventory = BotGenerator.generateInventory(node.inventory, node.chances, node.generation, role, isPmc);
+        bot.Customization.Hands = RandomUtil.getArrayValue(
+            node.appearance.hands
+        );
+        bot.Inventory = BotGenerator.generateInventory(
+            node.inventory,
+            node.chances,
+            node.generation,
+            role,
+            isPmc
+        );
 
         if (BotController.isBotPmc(role))
         {
@@ -109,7 +162,13 @@ class BotController
     static removeChristmasItemsFromBotInventory(nodeInventory)
     {
         const christmasItems = GameEventHelper.christmasEventItems;
-        const locationsToFilter = ["FaceCover", "Headwear", "Backpack", "Pockets", "TacticalVest"];
+        const locationsToFilter = [
+            "FaceCover",
+            "Headwear",
+            "Backpack",
+            "Pockets",
+            "TacticalVest",
+        ];
         for (const equipmentItem in nodeInventory.equipment)
         {
             if (!locationsToFilter.includes(equipmentItem))
@@ -117,8 +176,12 @@ class BotController
                 continue;
             }
 
-            let equipment = nodeInventory.equipment[equipmentItem];
-            equipment = Object.fromEntries(Object.entries(equipment).filter(([index, val])=>!christmasItems.includes(val)));
+            const equipment = nodeInventory.equipment[equipmentItem];
+            nodeInventory.equipment[equipmentItem] = Object.fromEntries(
+                Object.entries(equipment).filter(
+                    ([index, val]) => !christmasItems.includes(index)
+                )
+            );
         }
 
         for (const itemContainer in nodeInventory.items)
@@ -128,19 +191,23 @@ class BotController
                 continue;
             }
 
-            let loot = nodeInventory.items[itemContainer];
-            loot = Object.fromEntries(Object.entries(loot).filter(([index, val])=>!christmasItems.includes(val)));
+            const loot = nodeInventory.items[itemContainer];
+            nodeInventory.items[itemContainer] = loot.filter(
+                x => !christmasItems.includes(x)
+            );
         }
     }
 
     static isBotPmc(botRole)
     {
-        return (["usec", "bear"].includes(botRole.toLowerCase()));
+        return ["usec", "bear"].includes(botRole.toLowerCase());
     }
 
     static isBotBoss(botRole)
     {
-        return BotConfig.bosses.some(x => x.toLowerCase() === botRole.toLowerCase());
+        return BotConfig.bosses.some(
+            x => x.toLowerCase() === botRole.toLowerCase()
+        );
     }
 
     static isBotFollower(botRole)
@@ -156,12 +223,20 @@ class BotController
         {
             for (let i = 0; i < condition.Limit; i++)
             {
-                const pmcSide = (RandomUtil.getInt(0, 99) < BotConfig.pmc.isUsec) ? "Usec" : "Bear";
+                const pmcSide =
+                    RandomUtil.getInt(0, 99) < BotConfig.pmc.isUsec
+                        ? "Usec"
+                        : "Bear";
                 let role = condition.Role;
-                const isPmc = playerScav ? false : (role in BotConfig.pmc.types && RandomUtil.getInt(0, 99) < BotConfig.pmc.types[role]);
+                const isPmc = playerScav
+                    ? false
+                    : role in BotConfig.pmc.types &&
+                      RandomUtil.getInt(0, 99) < BotConfig.pmc.types[role];
                 let bot = JsonUtil.clone(DatabaseServer.tables.bots.base);
 
-                bot.Info.Settings.BotDifficulty = (isPmc) ? this.getPMCDifficulty(condition.Difficulty) : condition.Difficulty;
+                bot.Info.Settings.BotDifficulty = isPmc
+                    ? BotController.getPMCDifficulty(condition.Difficulty)
+                    : condition.Difficulty;
 
                 if (isPmc)
                 {
@@ -170,7 +245,7 @@ class BotController
                 }
 
                 bot.Info.Settings.Role = role;
-                bot.Info.Side = (isPmc) ? pmcSide : "Savage";
+                bot.Info.Side = isPmc ? pmcSide : "Savage";
                 bot = BotController.generateBot(bot, role.toLowerCase(), isPmc);
 
                 if (isPmc)
@@ -182,8 +257,16 @@ class BotController
                 output.unshift(bot);
             }
         }
-        const pmcCount = output.reduce((acc, cur) => cur.Info.Side === "Bear" || cur.Info.Side === "Usec" ? ++acc : acc, 0);
-        Logger.debug(`Generated ${output.length} total bots. Replaced ${pmcCount} with PMCs`);
+        const pmcCount = output.reduce(
+            (acc, cur) =>
+                cur.Info.Side === "Bear" || cur.Info.Side === "Usec"
+                    ? ++acc
+                    : acc,
+            0
+        );
+        Logger.debug(
+            `Generated ${output.length} total bots. Replaced ${pmcCount} with PMCs`
+        );
         return output;
     }
 
@@ -212,7 +295,8 @@ class BotController
 
     static generateRandomLevel(min, max)
     {
-        const expTable = DatabaseServer.tables.globals.config.exp.level.exp_table;
+        const expTable =
+            DatabaseServer.tables.globals.config.exp.level.exp_table;
         const maxLevel = Math.min(max, expTable.length);
 
         // Get random level based on the exp table.
@@ -236,66 +320,100 @@ class BotController
     /** Converts health object to the required format */
     static generateHealth(healthObj, playerScav = false)
     {
-        const bodyParts = (playerScav) ? healthObj.BodyParts[0] : RandomUtil.getArrayValue(healthObj.BodyParts);
+        const bodyParts = playerScav
+            ? healthObj.BodyParts[0]
+            : RandomUtil.getArrayValue(healthObj.BodyParts);
 
-        return {
-            "Hydration": {
-                "Current": RandomUtil.getInt(healthObj.Hydration.min, healthObj.Hydration.max),
-                "Maximum": healthObj.Hydration.max
+        const newHealth = {
+            Hydration: {
+                Current: RandomUtil.getInt(
+                    healthObj.Hydration.min,
+                    healthObj.Hydration.max
+                ),
+                Maximum: healthObj.Hydration.max,
             },
-            "Energy": {
-                "Current": RandomUtil.getInt(healthObj.Energy.min, healthObj.Energy.max),
-                "Maximum": healthObj.Energy.max
+            Energy: {
+                Current: RandomUtil.getInt(
+                    healthObj.Energy.min,
+                    healthObj.Energy.max
+                ),
+                Maximum: healthObj.Energy.max,
             },
-            "Temperature": {
-                "Current": RandomUtil.getInt(healthObj.Temperature.min, healthObj.Temperature.max),
-                "Maximum": healthObj.Temperature.max
+            Temperature: {
+                Current: RandomUtil.getInt(
+                    healthObj.Temperature.min,
+                    healthObj.Temperature.max
+                ),
+                Maximum: healthObj.Temperature.max,
             },
-            "BodyParts": {
-                "Head": {
-                    "Health": {
-                        "Current": RandomUtil.getInt(bodyParts.Head.min, bodyParts.Head.max),
-                        "Maximum": bodyParts.Head.max
-                    }
+            BodyParts: {
+                Head: {
+                    Health: {
+                        Current: RandomUtil.getInt(
+                            bodyParts.Head.min,
+                            bodyParts.Head.max
+                        ),
+                        Maximum: bodyParts.Head.max,
+                    },
                 },
-                "Chest": {
-                    "Health": {
-                        "Current": RandomUtil.getInt(bodyParts.Chest.min, bodyParts.Chest.max),
-                        "Maximum": bodyParts.Chest.max
-                    }
+                Chest: {
+                    Health: {
+                        Current: RandomUtil.getInt(
+                            bodyParts.Chest.min,
+                            bodyParts.Chest.max
+                        ),
+                        Maximum: bodyParts.Chest.max,
+                    },
                 },
-                "Stomach": {
-                    "Health": {
-                        "Current": RandomUtil.getInt(bodyParts.Stomach.min, bodyParts.Stomach.max),
-                        "Maximum": bodyParts.Stomach.max
-                    }
+                Stomach: {
+                    Health: {
+                        Current: RandomUtil.getInt(
+                            bodyParts.Stomach.min,
+                            bodyParts.Stomach.max
+                        ),
+                        Maximum: bodyParts.Stomach.max,
+                    },
                 },
-                "LeftArm": {
-                    "Health": {
-                        "Current": RandomUtil.getInt(bodyParts.LeftArm.min, bodyParts.LeftArm.max),
-                        "Maximum": bodyParts.LeftArm.max
-                    }
+                LeftArm: {
+                    Health: {
+                        Current: RandomUtil.getInt(
+                            bodyParts.LeftArm.min,
+                            bodyParts.LeftArm.max
+                        ),
+                        Maximum: bodyParts.LeftArm.max,
+                    },
                 },
-                "RightArm": {
-                    "Health": {
-                        "Current": RandomUtil.getInt(bodyParts.RightArm.min, bodyParts.RightArm.max),
-                        "Maximum": bodyParts.RightArm.max
-                    }
+                RightArm: {
+                    Health: {
+                        Current: RandomUtil.getInt(
+                            bodyParts.RightArm.min,
+                            bodyParts.RightArm.max
+                        ),
+                        Maximum: bodyParts.RightArm.max,
+                    },
                 },
-                "LeftLeg": {
-                    "Health": {
-                        "Current": RandomUtil.getInt(bodyParts.LeftLeg.min, bodyParts.LeftLeg.max),
-                        "Maximum": bodyParts.LeftLeg.max
-                    }
+                LeftLeg: {
+                    Health: {
+                        Current: RandomUtil.getInt(
+                            bodyParts.LeftLeg.min,
+                            bodyParts.LeftLeg.max
+                        ),
+                        Maximum: bodyParts.LeftLeg.max,
+                    },
                 },
-                "RightLeg": {
-                    "Health": {
-                        "Current": RandomUtil.getInt(bodyParts.RightLeg.min, bodyParts.RightLeg.max),
-                        "Maximum": bodyParts.RightLeg.max
-                    }
-                }
-            }
+                RightLeg: {
+                    Health: {
+                        Current: RandomUtil.getInt(
+                            bodyParts.RightLeg.min,
+                            bodyParts.RightLeg.max
+                        ),
+                        Maximum: bodyParts.RightLeg.max,
+                    },
+                },
+            },
+            UpdateTime: 0,
         };
+        return newHealth;
     }
 
     static generateSkills(skillsObj)
@@ -308,10 +426,14 @@ class BotController
         {
             for (const skillId in skillsObj.Common)
             {
-                skills.push({
-                    "Id": skillId,
-                    "Progress": RandomUtil.getInt(skillsObj.Common[skillId].min, skillsObj.Common[skillId].max),
-                });
+                const skill = {
+                    Id: skillId,
+                    Progress: RandomUtil.getInt(
+                        skillsObj.Common[skillId].min,
+                        skillsObj.Common[skillId].max
+                    ),
+                };
+                skills.push(skill);
             }
         }
 
@@ -320,44 +442,57 @@ class BotController
         {
             for (const masteringId in skillsObj.Mastering)
             {
-                masteries.push({
-                    "Id": masteringId,
-                    "Progress": RandomUtil.getInt(skillsObj.Mastering[masteringId].min, skillsObj.Mastering[masteringId].max)
-                });
+                const mastery = {
+                    Id: masteringId,
+                    Progress: RandomUtil.getInt(
+                        skillsObj.Mastering[masteringId].min,
+                        skillsObj.Mastering[masteringId].max
+                    ),
+                };
+                masteries.push(mastery);
             }
         }
 
-        return {
-            "Common": skills,
-            "Mastering": masteries,
-            "Points": 0
+        const skillsToReturn = {
+            Common: skills,
+            Mastering: masteries,
+            Points: 0,
         };
+
+        return skillsToReturn;
     }
 
     static generateDogtag(bot)
     {
-        bot.Inventory.items.push({
+        const upd = {
+            SpawnedInSession: true,
+            DogTag: {
+                AccountId: bot.aid,
+                ProfileId: bot._id,
+                Nickname: bot.Info.Nickname,
+                Side: bot.Info.Side,
+                Level: bot.Info.Level,
+                Time: new Date().toISOString(),
+                Status: "Killed by ",
+                KillerAccountId: "Unknown",
+                KillerProfileId: "Unknown",
+                KillerName: "Unknown",
+                WeaponName: "Unknown",
+            },
+        };
+
+        const inventoryItem = {
             _id: HashUtil.generate(),
-            _tpl: ((bot.Info.Side === "Usec") ? ItemHelper.BASECLASS.DogTagUsec : ItemHelper.BASECLASS.DogTagBear),
+            _tpl:
+                bot.Info.Side === "Usec"
+                    ? ItemHelper.BASECLASS.DogTagUsec
+                    : ItemHelper.BASECLASS.DogTagBear,
             parentId: bot.Inventory.equipment,
-            slotId: "Dogtag",
-            upd: {
-                "Dogtag": {
-                    "AccountId": bot.aid,
-                    "ProfileId": bot._id,
-                    "Nickname": bot.Info.Nickname,
-                    "Side": bot.Info.Side,
-                    "Level": bot.Info.Level,
-                    "Time": (new Date().toISOString()),
-                    "Status": "Killed by ",
-                    "KillerAccountId": "Unknown",
-                    "KillerProfileId": "Unknown",
-                    "KillerName": "Unknown",
-                    "WeaponName": "Unknown"
-                },
-                "SpawnedInSession": true
-            }
-        });
+            location: undefined,
+            upd: upd,
+        };
+
+        bot.Inventory.items.push(inventoryItem);
 
         return bot;
     }

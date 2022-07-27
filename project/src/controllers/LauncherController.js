@@ -6,9 +6,9 @@ class LauncherController
 {
     static find(sessionID)
     {
-        if (sessionID in SaveServer.profiles)
+        if (sessionIdKey in SaveServer.getProfiles())
         {
-            return SaveServer.profiles[sessionID].info;
+            return SaveServer.getProfile(sessionIdKey).info;
         }
 
         return undefined;
@@ -18,9 +18,9 @@ class LauncherController
     {
         const miniProfiles = [];
 
-        for (const id in SaveServer.profiles)
+        for (const sessionIdKey in SaveServer.getProfiles())
         {
-            miniProfiles.push(ProfileController.getMiniProfile(id));
+            miniProfiles.push(ProfileHelper.getMiniProfile(sessionIdKey));
         }
 
         return miniProfiles;
@@ -28,14 +28,14 @@ class LauncherController
 
     static isWiped(sessionID)
     {
-        return SaveServer.profiles[sessionID].info.wipe;
+        return SaveServer.getProfile(sessionID).info.wipe;
     }
 
     static login(info)
     {
-        for (const sessionID in SaveServer.profiles)
+        for (const sessionID in SaveServer.getProfiles())
         {
-            const account = SaveServer.profiles[sessionID].info;
+            const account = SaveServer.getProfile(sessionID).info;
             if (info.username === account.username)
             {
                 return sessionID;
@@ -47,9 +47,11 @@ class LauncherController
 
     static register(info)
     {
-        for (const sessionID in SaveServer.profiles)
+        for (const sessionID in SaveServer.getProfiles())
         {
-            if (info.username === SaveServer.profiles[sessionID].info.username)
+            if (
+                info.username === SaveServer.getProfile(sessionID).info.username
+            )
             {
                 return "";
             }
@@ -61,16 +63,14 @@ class LauncherController
     static createAccount(info)
     {
         const sessionID = HashUtil.generate();
-
-        SaveServer.profiles[sessionID] = {
-            "info": {
-                "id": sessionID,
-                "username": info.username,
-                "password": info.password,
-                "wipe": true,
-                "edition": info.edition
-            }
+        const newProfileDetails = {
+            id: sessionID,
+            username: info.username,
+            password: info.password,
+            wipe: true,
+            edition: info.edition,
         };
+        SaveServer.createProfile(newProfileDetails);
 
         SaveServer.loadProfile(sessionID);
         SaveServer.saveProfile(sessionID);
@@ -83,7 +83,7 @@ class LauncherController
 
         if (sessionID)
         {
-            SaveServer.profiles[sessionID].info.username = info.change;
+            SaveServer.getProfile(sessionID).info.username = info.change;
         }
 
         return sessionID;
@@ -95,7 +95,7 @@ class LauncherController
 
         if (sessionID)
         {
-            SaveServer.profiles[sessionID].info.password = info.change;
+            SaveServer.getProfile(sessionID).info.password = info.change;
         }
 
         return sessionID;
@@ -107,8 +107,9 @@ class LauncherController
 
         if (sessionID)
         {
-            SaveServer.profiles[sessionID].info.edition = info.edition;
-            SaveServer.profiles[sessionID].info.wipe = true;
+            const profile = SaveServer.getProfile(sessionID);
+            profile.info.edition = info.edition;
+            profile.info.wipe = true;
         }
 
         return sessionID;

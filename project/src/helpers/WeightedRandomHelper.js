@@ -11,7 +11,10 @@ class WeightedRandomHelper
     {
         const itemKeys = Object.keys(itemArray);
         const weights = Object.values(itemArray);
-        const chosenItem = WeightedRandomHelper.weightedRandom(itemKeys, weights);
+        const chosenItem = WeightedRandomHelper.weightedRandom(
+            itemKeys,
+            weights
+        );
 
         return chosenItem.item;
     }
@@ -57,7 +60,8 @@ class WeightedRandomHelper
         // - weights = [1, 4, 3]
         // - maxCumulativeWeight = 8
         // - range for the random number is [0...8]
-        const maxCumulativeWeight = cumulativeWeights[cumulativeWeights.length - 1];
+        const maxCumulativeWeight =
+            cumulativeWeights[cumulativeWeights.length - 1];
         const randomNumber = maxCumulativeWeight * Math.random();
 
         // Picking the random item based on its weight.

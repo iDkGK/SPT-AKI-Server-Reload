@@ -20,8 +20,10 @@ class NotifierCallbacks
          *  be sent to client as NEWLINE separated strings... yup.
          */
         NotifierController.notifyAsync(sessionID)
-            .then((messages) => messages.map(message => JSON.stringify(message)).join("\n"))
-            .then((text) => HttpServer.sendTextJson(resp, text));
+            .then(messages =>
+                messages.map(message => JSON.stringify(message)).join("\n")
+            )
+            .then(text => HttpServer.sendTextJson(resp, text));
     }
 
     static getNotifier(url, info, sessionID)
@@ -37,9 +39,9 @@ class NotifierCallbacks
     static selectProfile(url, info, sessionID)
     {
         return HttpResponse.getBody({
-            "status": "ok",
-            "notifier": NotifierController.getChannel(sessionID),
-            "notifierServer": NotifierController.getServer(sessionID)
+            status: "ok",
+            notifier: NotifierController.getChannel(sessionID),
+            notifierServer: NotifierController.getServer(sessionID),
         });
     }
 

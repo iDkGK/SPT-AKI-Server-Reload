@@ -4,11 +4,24 @@ require("../Lib.js");
 
 class QuestCallbacks
 {
+    static changeRepeatableQuest(pmcData, body, sessionID)
+    {
+        return RepeatableQuestController.changeRepeatableQuest(
+            pmcData,
+            body,
+            sessionID
+        );
+    }
+
     static acceptQuest(pmcData, body, sessionID)
     {
         if (body.type === "repeatable")
         {
-            return QuestController.acceptRepeatableQuest(pmcData, body, sessionID);
+            return QuestController.acceptRepeatableQuest(
+                pmcData,
+                body,
+                sessionID
+            );
         }
 
         return QuestController.acceptQuest(pmcData, body, sessionID);
@@ -31,7 +44,9 @@ class QuestCallbacks
 
     static activityPeriods(url, info, sessionID)
     {
-        return HttpResponse.getBody(RepeatableQuestController.GetClientRepeatableQuests(info, sessionID));
+        return HttpResponse.getBody(
+            RepeatableQuestController.getClientRepeatableQuests(info, sessionID)
+        );
     }
 }
 

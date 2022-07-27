@@ -1,7 +1,5 @@
 "use strict";
 
-const { NOOP } = require("ws/lib/constants");
-
 require("../Lib.js");
 
 class QuestController
@@ -10,19 +8,21 @@ class QuestController
     {
         const quests = [];
         const allQuests = QuestController.questValues();
-        const profile = ProfileController.getPmcProfile(sessionID);
+        const profile = ProfileHelper.getPmcProfile(sessionID);
 
         for (const quest of allQuests)
         {
             // If a quest is already in the profile we need to just add it
-            if (profile.Quests.includes(pq => pq.qid === quest._id))
+            if (profile.Quests.some(x => x.qid === quest._id))
             {
                 quests.push(quest);
                 continue;
             }
 
             // Don't add quests that have a level higher than the user's
-            const levels = QuestHelper.getLevelConditions(quest.conditions.AvailableForStart);
+            const levels = QuestHelper.getLevelConditions(
+                quest.conditions.AvailableForStart
+            );
 
             if (levels.length)
             {
@@ -32,11 +32,18 @@ class QuestController
                 }
             }
 
-            const questRequirements = QuestHelper.getQuestConditions(quest.conditions.AvailableForStart);
-            const loyaltyRequirements = QuestHelper.getLoyaltyConditions(quest.conditions.AvailableForStart);
+            const questRequirements = QuestHelper.getQuestConditions(
+                quest.conditions.AvailableForStart
+            );
+            const loyaltyRequirements = QuestHelper.getLoyaltyConditions(
+                quest.conditions.AvailableForStart
+            );
 
             // If the quest has no quest/loyalty conditions then add to visible quest list
-            if (questRequirements.length === 0 && loyaltyRequirements.length === 0)
+            if (
+                questRequirements.length === 0 &&
+                loyaltyRequirements.length === 0
+            )
             {
                 quests.push(quest);
                 continue;
@@ -47,7 +54,9 @@ class QuestController
             let haveCompletedPreviousQuest = true;
             for (const condition of questRequirements)
             {
-                const previousQuest = profile.Quests.find(pq => pq.qid === condition._props.target);
+                const previousQuest = profile.Quests.find(
+                    pq => pq.qid === condition._props.target
+                );
 
                 // If the previous quest isn't in the user profile, it hasn't been completed or started
                 if (!previousQuest)
@@ -57,7 +66,10 @@ class QuestController
                 }
 
                 // If previous is in user profile, check condition requirement and current status
-                if (previousQuest.status === Object.keys(QuestHelper.status)[condition._props.status[0]])
+                if (
+                    previousQuest.status ===
+                    Object.keys(QuestHelper.STATUS)[condition._props.status[0]]
+                )
                 {
                     continue;
                 }
@@ -66,10 +78,18 @@ class QuestController
                 // but maybe this is better:
                 // if ((condition._props.status[0] === QuestHelper.status.Started)
                 // && (previousQuest.status === "AvailableForFinish" || previousQuest.status ===  "Success")
-                if ((condition._props.status[0] === QuestHelper.status.Started))
+                if (condition._props.status[0] === QuestHelper.STATUS.Started)
                 {
-                    const statusName = Object.keys(QuestHelper.status)[condition._props.status[0]];
-                    Logger.debug(`[QUESTS]: fix for polikhim bug: ${quest._id} (${QuestHelper.getQuestLocale(quest._id).name}) ${condition._props.status[0]}, ${statusName} != ${previousQuest.status}`);
+                    const statusName = Object.keys(QuestHelper.STATUS)[
+                        condition._props.status[0]
+                    ];
+                    Logger.debug(
+                        `[QUESTS]: fix for polikhim bug: ${quest._id} (${
+                            QuestHelper.getQuestLocale(quest._id).name
+                        }) ${condition._props.status[0]}, ${statusName} != ${
+                            previousQuest.status
+                        }`
+                    );
                     continue;
                 }
                 haveCompletedPreviousQuest = false;
@@ -79,7 +99,10 @@ class QuestController
             let passesLoyaltyRequirements = true;
             for (const condition of loyaltyRequirements)
             {
-                const result = QuestController.loyaltyRequirementCheck(condition._props, profile);
+                const result = QuestController.loyaltyRequirementCheck(
+                    condition._props,
+                    profile
+                );
                 if (!result)
                 {
                     passesLoyaltyRequirements = false;
@@ -97,9 +120,13 @@ class QuestController
 
     static loyaltyRequirementCheck(loyaltyRequirementProperties, profile)
     {
-        const requiredLoyaltyStanding = Number(loyaltyRequirementProperties.value);
+        const requiredLoyaltyStanding = Number(
+            loyaltyRequirementProperties.value
+        );
         const operator = loyaltyRequirementProperties.compareMethod;
-        const currentTraderStanding = profile.TradersInfo[loyaltyRequirementProperties.target].loyaltyLevel;
+        const currentTraderStanding =
+            profile.TradersInfo[loyaltyRequirementProperties.target]
+                .loyaltyLevel;
 
         if (operator === ">=")
         {
@@ -136,11 +163,10 @@ class QuestController
     {
         for (const quest of QuestController.questValues())
         {
-            const conditions = quest.conditions.AvailableForFinish.filter(
-                c =>
-                {
-                    return c._parent === "FindItem";
-                });
+            const conditions = quest.conditions.AvailableForFinish.filter(c =>
+            {
+                return c._parent === "FindItem";
+            });
 
             for (const condition of conditions)
             {
@@ -173,7 +199,13 @@ class QuestController
             // separate base item and mods, fix stacks
             if (item._id === reward.target)
             {
-                if ((item.parentId !== undefined) && (item.parentId === "hideout") && (item.upd !== undefined) && (item.upd.StackObjectsCount !== undefined) && (item.upd.StackObjectsCount > 1))
+                if (
+                    item.parentId !== undefined &&
+                    item.parentId === "hideout" &&
+                    item.upd !== undefined &&
+                    item.upd.StackObjectsCount !== undefined &&
+                    item.upd.StackObjectsCount > 1
+                )
                 {
                     itemCount = item.upd.StackObjectsCount;
                     item.upd.StackObjectsCount = 1;
@@ -206,17 +238,19 @@ class QuestController
             }
 
             // reparentPresets generates new unique ids for the children while preserving hierarchy
-            rewardItems = rewardItems.concat(RagfairServer.reparentPresets(target, items));
+            rewardItems = rewardItems.concat(
+                RagfairServer.reparentPresets(target, items)
+            );
         }
 
         return rewardItems;
     }
 
     /* Gets a flat list of reward items for the given quest and state
-    * input: quest, a quest object
-    * input: state, the quest status that holds the items (Started, Success, Fail)
-    * output: an array of items with the correct maxStack
-    */
+     * input: quest, a quest object
+     * input: state, the quest status that holds the items (Started, Success, Fail)
+     * output: an array of items with the correct maxStack
+     */
     static getQuestRewardItems(quest, state)
     {
         let questRewards = [];
@@ -225,7 +259,9 @@ class QuestController
         {
             if ("Item" === reward.type)
             {
-                questRewards = questRewards.concat(QuestController.processReward(reward));
+                questRewards = questRewards.concat(
+                    QuestController.processReward(reward)
+                );
             }
         }
 
@@ -263,7 +299,7 @@ class QuestController
 
         if (intelCenterBonus > 0)
         {
-            quest = QuestController.applyMoneyBoost(quest, intelCenterBonus);    // money = money + (money * intelCenterBonus / 100)
+            quest = QuestController.applyMoneyBoost(quest, intelCenterBonus); // money = money + (money * intelCenterBonus / 100)
         }
 
         for (const reward of quest.rewards[state])
@@ -271,29 +307,42 @@ class QuestController
             switch (reward.type)
             {
                 case "Skill":
-                    QuestHelper.rewardSkillPoints(sessionID, pmcData, output, reward.target, reward.value);
+                    QuestHelper.rewardSkillPoints(
+                        sessionID,
+                        pmcData,
+                        output,
+                        reward.target,
+                        reward.value
+                    );
                     break;
 
                 case "Experience":
-                    pmcData = ProfileController.getPmcProfile(sessionID);
+                    pmcData = ProfileHelper.getPmcProfile(sessionID);
                     pmcData.Info.Experience += parseInt(reward.value);
-                    output.profileChanges[sessionID].experience = pmcData.Info.Experience;
+                    output.profileChanges[sessionID].experience =
+                        pmcData.Info.Experience;
                     break;
 
                 case "TraderStanding":
-                    pmcData = ProfileController.getPmcProfile(sessionID);
-                    pmcData.TradersInfo[reward.target].standing += parseFloat(reward.value);
+                    pmcData = ProfileHelper.getPmcProfile(sessionID);
+                    pmcData.TradersInfo[reward.target].standing += parseFloat(
+                        reward.value
+                    );
 
                     if (pmcData.TradersInfo[reward.target].standing < 0)
                     {
                         pmcData.TradersInfo[reward.target].standing = 0;
                     }
 
-                    TraderController.lvlUp(reward.target, sessionID);
+                    TraderHelper.lvlUp(reward.target, sessionID);
                     break;
 
                 case "TraderUnlock":
-                    TraderController.changeTraderDisplay(reward.target, true, sessionID);
+                    TraderHelper.changeTraderDisplay(
+                        reward.target,
+                        true,
+                        sessionID
+                    );
                     break;
             }
         }
@@ -304,31 +353,51 @@ class QuestController
     static acceptQuest(pmcData, acceptedQuest, sessionID)
     {
         const state = "Started";
-        const existingQuest = pmcData.Quests.find(q => q.qid === acceptedQuest.qid);
-        QuestController.addQuestToPMCData(pmcData, existingQuest, state, acceptedQuest);
+        const existingQuest = pmcData.Quests.find(
+            q => q.qid === acceptedQuest.qid
+        );
+        QuestController.addQuestToPMCData(
+            pmcData,
+            existingQuest,
+            state,
+            acceptedQuest
+        );
 
         // Create a dialog message for starting the quest.
         // Note that for starting quests, the correct locale field is "description", not "startedMessageText".
-        const quest = QuestController.getQuestFromDb(acceptedQuest.qid, pmcData);
-        let startedMessageId = QuestController.getQuestLocaleIdFromDb(quest.startedMessageText);
+        const quest = QuestController.getQuestFromDb(
+            acceptedQuest.qid,
+            pmcData
+        );
+        let startedMessageId = QuestController.getQuestLocaleIdFromDb(
+            quest.startedMessageText
+        );
         const questRewards = QuestController.getQuestRewardItems(quest, state);
 
         // blank or is a guid, use description instead (its always a guid...)
         if (startedMessageId === "" || startedMessageId.length === 24)
         {
-            startedMessageId = QuestController.getQuestLocaleIdFromDb(quest.description);
+            startedMessageId = QuestController.getQuestLocaleIdFromDb(
+                quest.description
+            );
         }
 
-        const messageContent = {
-            "templateId": startedMessageId,
-            "type": DialogueController.getMessageTypeValue("questStart"),
-            "maxStorageTime": QuestConfig.redeemTime * 3600
-        };
+        const messageContent = DialogueHelper.createMessageContext(
+            startedMessageId,
+            DialogueHelper.getMessageTypeValue("questStart"),
+            QuestConfig.redeemTime
+        );
 
-        DialogueController.addDialogueMessage(quest.traderId, messageContent, sessionID, questRewards);
+        DialogueHelper.addDialogueMessage(
+            quest.traderId,
+            messageContent,
+            sessionID,
+            questRewards
+        );
 
         const acceptQuestResponse = ItemEventRouter.getOutput(sessionID);
-        acceptQuestResponse.profileChanges[sessionID].quests = QuestController.acceptedUnlocked(acceptedQuest.qid, sessionID);
+        acceptQuestResponse.profileChanges[sessionID].quests =
+            QuestController.acceptedUnlocked(acceptedQuest.qid, sessionID);
         return acceptQuestResponse;
     }
 
@@ -341,41 +410,61 @@ class QuestController
         let repeatableQuestDb = null;
         for (const repeatable of pmcData.RepeatableQuests)
         {
-            repeatableQuestDb = repeatable.activeQuests.find(x => x._id === acceptedQuest.qid);
+            repeatableQuestDb = repeatable.activeQuests.find(
+                x => x._id === acceptedQuest.qid
+            );
             if (repeatableQuestDb)
             {
-                Logger.debug(`Accepted repeatable quest ${acceptedQuest.qid} from ${repeatable.name}`);
+                Logger.debug(
+                    `Accepted repeatable quest ${acceptedQuest.qid} from ${repeatable.name}`
+                );
                 break;
             }
         }
 
         if (!repeatableQuestDb)
         {
-            Logger.error(`Accepted a repeatable quest ${acceptedQuest.qid} which could not be found in the activeQuests. Please report bug.`);
+            Logger.error(
+                `Accepted a repeatable quest ${acceptedQuest.qid} which could not be found in the activeQuests. Please report bug.`
+            );
             throw new Error("So sad...");
         }
 
         const locale = DatabaseServer.tables.locales.global["en"];
-        let questStartedMessageKey = locale.repeatableQuest[repeatableQuestDb.startedMessageText];
+        let questStartedMessageKey =
+            locale.repeatableQuest[repeatableQuestDb.startedMessageText];
         const questStartedMessageText = locale.mail[questStartedMessageKey];
 
         // if value is blank or a guid
-        if (questStartedMessageText.trim() === "" || questStartedMessageText.length === 24)
+        if (
+            questStartedMessageText.trim() === "" ||
+            questStartedMessageText.length === 24
+        )
         {
-            questStartedMessageKey = locale.repeatableQuest[repeatableQuestDb.description];
+            questStartedMessageKey =
+                locale.repeatableQuest[repeatableQuestDb.description];
         }
 
-        const questRewards = QuestController.getQuestRewardItems(repeatableQuestDb, state);
-        const messageContent = {
-            "templateId": questStartedMessageKey,
-            "type": DialogueController.getMessageTypeValue("questStart"),
-            "maxStorageTime": QuestConfig.redeemTime * 3600
-        };
+        const questRewards = QuestController.getQuestRewardItems(
+            repeatableQuestDb,
+            state
+        );
+        const messageContent = DialogueHelper.createMessageContext(
+            questStartedMessageKey,
+            DialogueHelper.getMessageTypeValue("questStart"),
+            QuestConfig.redeemTime
+        );
 
-        DialogueController.addDialogueMessage(repeatableQuestDb.traderId, messageContent, sessionID, questRewards);
+        DialogueHelper.addDialogueMessage(
+            repeatableQuestDb.traderId,
+            messageContent,
+            sessionID,
+            questRewards
+        );
 
         const acceptQuestResponse = ItemEventRouter.getOutput(sessionID);
-        acceptQuestResponse.profileChanges[sessionID].quests = QuestController.acceptedUnlocked(acceptedQuest.qid, sessionID);
+        acceptQuestResponse.profileChanges[sessionID].quests =
+            QuestController.acceptedUnlocked(acceptedQuest.qid, sessionID);
         return acceptQuestResponse;
     }
 
@@ -390,43 +479,62 @@ class QuestController
         else
         {
             // If the quest doesn't exists, add it
-            pmcData.Quests.push({
-                "qid": acceptedQuest.qid,
-                "startTime": TimeUtil.getTimestamp(),
-                "status": newState,
-                "completedConditions": []
-            });
+            const newQuest = {
+                qid: acceptedQuest.qid,
+                startTime: TimeUtil.getTimestamp(),
+                status: newState,
+                completedConditions: [],
+            };
+
+            pmcData.Quests.push(newQuest);
         }
     }
 
     static completeQuest(pmcData, body, sessionID)
     {
         const beforeQuests = QuestController.getClientQuests(sessionID);
-        const questRewards = QuestController.applyQuestReward(pmcData, body, "Success", sessionID);
+        const questRewards = QuestController.applyQuestReward(
+            pmcData,
+            body,
+            "Success",
+            sessionID
+        );
 
         //Check if any of linked quest is failed, and that is unrestartable.
-        const checkQuest = QuestController.questValues().filter((q) =>
+        const checkQuest = QuestController.questValues().filter(q =>
         {
-            return q.conditions.Fail.length > 0 && q.conditions.Fail[0]._props.target === body.qid;
+            return (
+                q.conditions.Fail.length > 0 &&
+                q.conditions.Fail[0]._props.target === body.qid
+            );
         });
 
         for (const checkFail of checkQuest)
         {
-            if (checkFail.conditions.Fail[0]._props.status[0] === QuestHelper.status.Success)
+            if (
+                checkFail.conditions.Fail[0]._props.status[0] ===
+                QuestHelper.STATUS.Success
+            )
             {
-                const checkQuestId = pmcData.Quests.find(qq => qq.qid === checkFail._id);
+                const checkQuestId = pmcData.Quests.find(
+                    qq => qq.qid === checkFail._id
+                );
 
                 if (checkQuestId)
                 {
-                    const failBody = { "Action": "QuestComplete", "qid": checkFail._id, "removeExcessItems": true };
+                    const failBody = {
+                        Action: "QuestComplete",
+                        qid: checkFail._id,
+                        removeExcessItems: true,
+                    };
                     QuestController.failQuest(pmcData, failBody, sessionID);
                 }
                 else
                 {
                     const questData = {
-                        "qid": checkFail._id,
-                        "startTime": TimeUtil.getTimestamp(),
-                        "status": "Fail"
+                        qid: checkFail._id,
+                        startTime: TimeUtil.getTimestamp(),
+                        status: "Fail",
                     };
                     pmcData.Quests.push(questData);
                 }
@@ -435,53 +543,85 @@ class QuestController
 
         // Create a dialog message for completing the quest.
         const quest = QuestController.getQuestFromDb(body.qid, pmcData);
-        const successMessageId = QuestController.getQuestLocaleIdFromDb(quest.successMessageText);
-        const messageContent = {
-            "templateId": successMessageId,
-            "type": DialogueController.getMessageTypeValue("questSuccess"),
-            "maxStorageTime": QuestConfig.redeemTime * 3600
-        };
+        const successMessageId = QuestController.getQuestLocaleIdFromDb(
+            quest.successMessageText
+        );
+        const messageContent = DialogueHelper.createMessageContext(
+            successMessageId,
+            DialogueHelper.getMessageTypeValue("questSuccess"),
+            QuestConfig.redeemTime
+        );
 
-        DialogueController.addDialogueMessage(quest.traderId, messageContent, sessionID, questRewards);
+        DialogueHelper.addDialogueMessage(
+            quest.traderId,
+            messageContent,
+            sessionID,
+            questRewards
+        );
 
         const completeQuestResponse = ItemEventRouter.getOutput(sessionID);
-        completeQuestResponse.profileChanges[sessionID].quests = QuestHelper.getDeltaQuests(beforeQuests, QuestController.getClientQuests(sessionID));
-        Object.assign(completeQuestResponse.profileChanges[sessionID].traderRelations, pmcData.TradersInfo);
+        completeQuestResponse.profileChanges[sessionID].quests =
+            QuestHelper.getDeltaQuests(
+                beforeQuests,
+                QuestController.getClientQuests(sessionID)
+            );
+        Object.assign(
+            completeQuestResponse.profileChanges[sessionID].traderRelations,
+            pmcData.TradersInfo
+        );
 
         // check if it's a repeatable quest. If so remove from Quests and repeatable.activeQuests list to repeatable.inactiveQuests
         for (const currentRepeatable of pmcData.RepeatableQuests)
         {
-            const repeatableQuest = currentRepeatable.activeQuests.find(q => q._id === body.qid);
+            const repeatableQuest = currentRepeatable.activeQuests.find(
+                q => q._id === body.qid
+            );
             if (repeatableQuest)
             {
-                currentRepeatable.activeQuests = currentRepeatable.activeQuests.filter(q => q._id !== body.qid);
+                currentRepeatable.activeQuests =
+                    currentRepeatable.activeQuests.filter(
+                        q => q._id !== body.qid
+                    );
                 currentRepeatable.inactiveQuests.push(repeatableQuest);
             }
         }
 
         // make sure we level up
-        pmcData.Info.Level = PlayerController.calculateLevel(pmcData);
+        pmcData.Info.Level = PlayerService.calculateLevel(pmcData);
 
         return completeQuestResponse;
     }
 
     static failQuest(pmcData, body, sessionID)
     {
-        const questRewards = QuestController.applyQuestReward(pmcData, body, "Fail", sessionID);
+        const questRewards = QuestController.applyQuestReward(
+            pmcData,
+            body,
+            "Fail",
+            sessionID
+        );
 
         // Create a dialog message for completing the quest.
         const quest = QuestController.getQuestFromDb(body.qid, pmcData);
-        const failMessageId = QuestController.getQuestLocaleIdFromDb(quest.failMessageText);
-        const messageContent = {
-            "templateId": failMessageId,
-            "type": DialogueController.getMessageTypeValue("questFail"),
-            "maxStorageTime": QuestConfig.redeemTime * 3600
-        };
+        const failMessageId = QuestController.getQuestLocaleIdFromDb(
+            quest.failMessageText
+        );
+        const messageContent = DialogueHelper.createMessageContext(
+            failMessageId,
+            DialogueHelper.getMessageTypeValue("questFail"),
+            QuestConfig.redeemTime
+        );
 
-        DialogueController.addDialogueMessage(quest.traderId, messageContent, sessionID, questRewards);
+        DialogueHelper.addDialogueMessage(
+            quest.traderId,
+            messageContent,
+            sessionID,
+            questRewards
+        );
 
         const failedQuestResponse = ItemEventRouter.getOutput(sessionID);
-        failedQuestResponse.profileChanges[sessionID].quests = QuestController.failedUnlocked(body.qid, sessionID);
+        failedQuestResponse.profileChanges[sessionID].quests =
+            QuestController.failedUnlocked(body.qid, sessionID);
 
         return failedQuestResponse;
     }
@@ -538,17 +678,25 @@ class QuestController
 
         for (const condition of quest.conditions.AvailableForFinish)
         {
-            if (condition._props.id === body.conditionId && types.includes(condition._parent))
+            if (
+                condition._props.id === body.conditionId &&
+                types.includes(condition._parent)
+            )
             {
-                value = parseInt(condition._props.value);
+                value = condition._props.value;
                 handoverMode = condition._parent === types[0];
 
-                const profileCounter = (body.conditionId in pmcData.BackendCounters) ? pmcData.BackendCounters[body.conditionId].value : 0;
+                const profileCounter =
+                    body.conditionId in pmcData.BackendCounters
+                        ? pmcData.BackendCounters[body.conditionId].value
+                        : 0;
                 value -= profileCounter;
 
                 if (value <= 0)
                 {
-                    Logger.error(`Quest handover error: condition is already satisfied? qid=${body.qid}, condition=${body.conditionId}, profileCounter=${profileCounter}, value=${value}`);
+                    Logger.error(
+                        `Quest handover error: condition is already satisfied? qid=${body.qid}, condition=${body.conditionId}, profileCounter=${profileCounter}, value=${value}`
+                    );
                     return output;
                 }
 
@@ -558,7 +706,9 @@ class QuestController
 
         if (handoverMode && value === 0)
         {
-            Logger.error(`Quest handover error: condition not found or incorrect value. qid=${body.qid}, condition=${body.conditionId}`);
+            Logger.error(
+                `Quest handover error: condition not found or incorrect value. qid=${body.qid}, condition=${body.conditionId}`
+            );
             return output;
         }
 
@@ -569,7 +719,13 @@ class QuestController
             counter += amount;
             if (itemHandover.count - amount > 0)
             {
-                QuestController.changeItemStack(pmcData, itemHandover.id, itemHandover.count - amount, sessionID, output);
+                QuestController.changeItemStack(
+                    pmcData,
+                    itemHandover.id,
+                    itemHandover.count - amount,
+                    sessionID,
+                    output
+                );
                 if (counter === value)
                 {
                     break;
@@ -578,11 +734,16 @@ class QuestController
             else
             {
                 // for weapon handover quests, remove the item and its children.
-                const toRemove = InventoryHelper.findAndReturnChildren(pmcData, itemHandover.id);
+                const toRemove = InventoryHelper.findAndReturnChildren(
+                    pmcData,
+                    itemHandover.id
+                );
                 let index = pmcData.Inventory.items.length;
 
                 // important: don't tell the client to remove the attachments, it will handle it
-                output.profileChanges[sessionID].items.del.push({ "_id": itemHandover.id });
+                output.profileChanges[sessionID].items.del.push({
+                    _id: itemHandover.id,
+                });
 
                 // important: loop backward when removing items from the array we're looping on
                 while (index-- > 0)
@@ -601,7 +762,11 @@ class QuestController
         }
         else
         {
-            pmcData.BackendCounters[body.conditionId] = { "id": body.conditionId, "qid": body.qid, "value": counter };
+            pmcData.BackendCounters[body.conditionId] = {
+                id: body.conditionId,
+                qid: body.qid,
+                value: counter,
+            };
         }
 
         return output;
@@ -609,22 +774,33 @@ class QuestController
 
     static acceptedUnlocked(acceptedQuestId, sessionID)
     {
-        const profile = ProfileController.getPmcProfile(sessionID);
-        const quests = QuestController.questValues().filter((q) =>
+        const profile = ProfileHelper.getPmcProfile(sessionID);
+        const quests = QuestController.questValues().filter(q =>
         {
             const acceptedQuestCondition = q.conditions.AvailableForStart.find(
                 c =>
                 {
-                    return c._parent === "Quest" && c._props.target === acceptedQuestId && c._props.status[0] === QuestHelper.status.Started;
-                });
+                    return (
+                        c._parent === "Quest" &&
+                        c._props.target === acceptedQuestId &&
+                        c._props.status[0] === QuestHelper.STATUS.Started
+                    );
+                }
+            );
 
             if (!acceptedQuestCondition)
             {
                 return false;
             }
 
-            const profileQuest = profile.Quests.find(pq => pq.qid === acceptedQuestId);
-            return profileQuest && (profileQuest.status === "Started" || profileQuest.status === "AvailableForFinish");
+            const profileQuest = profile.Quests.find(
+                pq => pq.qid === acceptedQuestId
+            );
+            return (
+                profileQuest &&
+                (profileQuest.status === "Started" ||
+                    profileQuest.status === "AvailableForFinish")
+            );
         });
 
         return QuestController.cleanQuestList(quests);
@@ -632,22 +808,29 @@ class QuestController
 
     static failedUnlocked(failedQuestId, sessionID)
     {
-        const profile = ProfileController.getPmcProfile(sessionID);
-        const quests = QuestController.questValues().filter((q) =>
+        const profile = ProfileHelper.getPmcProfile(sessionID);
+        const quests = QuestController.questValues().filter(q =>
         {
             const acceptedQuestCondition = q.conditions.AvailableForStart.find(
                 c =>
                 {
-                    return c._parent === "Quest" && c._props.target === failedQuestId && c._props.status[0] === QuestHelper.status.Fail;
-                });
+                    return (
+                        c._parent === "Quest" &&
+                        c._props.target === failedQuestId &&
+                        c._props.status[0] === QuestHelper.STATUS.Fail
+                    );
+                }
+            );
 
             if (!acceptedQuestCondition)
             {
                 return false;
             }
 
-            const profileQuest = profile.Quests.find(pq => pq.qid === failedQuestId);
-            return profileQuest && (profileQuest.status === "Fail");
+            const profileQuest = profile.Quests.find(
+                pq => pq.qid === failedQuestId
+            );
+            return profileQuest && profileQuest.status === "Fail";
         });
 
         return QuestController.cleanQuestList(quests);
@@ -659,9 +842,12 @@ class QuestController
         {
             if (reward.type === "Item")
             {
-                if (PaymentController.isMoneyTpl(reward.items[0]._tpl))
+                if (PaymentHelper.isMoneyTpl(reward.items[0]._tpl))
                 {
-                    reward.items[0].upd.StackObjectsCount += Math.round(reward.items[0].upd.StackObjectsCount * moneyBoost / 100);
+                    reward.items[0].upd.StackObjectsCount += Math.round(
+                        (reward.items[0].upd.StackObjectsCount * moneyBoost) /
+                            100
+                    );
                 }
             }
         }
@@ -673,10 +859,14 @@ class QuestController
     // TODO maybe merge this function and the one from customization
     static changeItemStack(pmcData, id, value, sessionID, output)
     {
-        const inventoryItemIndex = pmcData.Inventory.items.findIndex(item => item._id === id);
+        const inventoryItemIndex = pmcData.Inventory.items.findIndex(
+            item => item._id === id
+        );
         if (inventoryItemIndex < 0)
         {
-            Logger.error(`changeItemStack: Item with _id = ${id} not found in inventory`);
+            Logger.error(
+                `changeItemStack: Item with _id = ${id} not found in inventory`
+            );
             return;
         }
 
@@ -686,19 +876,19 @@ class QuestController
             item.upd.StackObjectsCount = value;
 
             output.profileChanges[sessionID].items.change.push({
-                "_id": item._id,
-                "_tpl": item._tpl,
-                "parentId": item.parentId,
-                "slotId": item.slotId,
-                "location": item.location,
-                "upd": { "StackObjectsCount": item.upd.StackObjectsCount }
+                _id: item._id,
+                _tpl: item._tpl,
+                parentId: item.parentId,
+                slotId: item.slotId,
+                location: item.location,
+                upd: { StackObjectsCount: item.upd.StackObjectsCount },
             });
         }
         else
         {
             // this case is probably dead Code right now, since the only calling function
             // checks explicitely for Value > 0.
-            output.profileChanges[sessionID].items.del.push({ "_id": id });
+            output.profileChanges[sessionID].items.del.push({ _id: id });
             pmcData.Inventory.items.splice(inventoryItemIndex, 1);
         }
     }
@@ -712,16 +902,16 @@ class QuestController
     }
 
     /*
-    * Quest status values
-    * 0 - Locked
-    * 1 - AvailableForStart
-    * 2 - Started
-    * 3 - AvailableForFinish
-    * 4 - Success
-    * 5 - Fail
-    * 6 - FailRestartable
-    * 7 - MarkedAsFailed
-    */
+     * Quest status values
+     * 0 - Locked
+     * 1 - AvailableForStart
+     * 2 - Started
+     * 3 - AvailableForFinish
+     * 4 - Success
+     * 5 - Fail
+     * 6 - FailRestartable
+     * 7 - MarkedAsFailed
+     */
     static questStatus(pmcData, questID)
     {
         for (const quest of pmcData.Quests)
@@ -748,14 +938,19 @@ class QuestController
     static cleanQuestConditions(quest)
     {
         quest = JsonUtil.clone(quest);
-        quest.conditions.AvailableForStart = quest.conditions.AvailableForStart.filter(q => q._parent === "Level");
+        quest.conditions.AvailableForStart =
+            quest.conditions.AvailableForStart.filter(
+                q => q._parent === "Level"
+            );
 
         return quest;
     }
 
     static resetProfileQuestCondition(sessionID, conditionId)
     {
-        const startedQuests = ProfileController.getPmcProfile(sessionID).Quests.filter(q => q.status === "Started");
+        const startedQuests = ProfileHelper.getPmcProfile(
+            sessionID
+        ).Quests.filter(q => q.status === "Started");
 
         for (const quest of startedQuests)
         {

@@ -8,6 +8,12 @@ class JsonUtil
 {
     static fileHashes = null;
 
+    /**
+     * From object to string
+     * @param data object to turn into JSON
+     * @param prettify Should output be prettified?
+     * @returns string
+     */
     static serialize(data, prettify = false)
     {
         if (prettify)
@@ -20,12 +26,19 @@ class JsonUtil
         }
     }
 
-    static deserialize(s)
+    /**
+     * From string to object
+     * @param jsonString json string to turn into object
+     * @returns object
+     */
+    static deserialize(jsonString)
     {
-        const { data, changed } = fixJson(`${s}`);
+        const { data, changed } = fixJson(`${jsonString}`);
         if (changed)
         {
-            Logger.error("Detected faulty json, please fix your json file using VSCodium");
+            Logger.error(
+                "Detected faulty json, please fix your json file using VSCodium"
+            );
         }
 
         return data;
@@ -46,7 +59,9 @@ class JsonUtil
         // Get all file hashes
         if (!JsonUtil.fileHashes)
         {
-            JsonUtil.fileHashes = JsonUtil.deserialize(VFS.readFile(`${jsonCachePath}`));
+            JsonUtil.fileHashes = JsonUtil.deserialize(
+                VFS.readFile(`${jsonCachePath}`)
+            );
         }
 
         // Get hash of file and check if missing or hash mismatch
@@ -54,16 +69,22 @@ class JsonUtil
         if (!savedHash || savedHash !== generatedHash)
         {
             const { data, changed } = fixJson(`${jsonString}`);
-            if (changed) // data invalid, return it
+            if (changed)
             {
-                Logger.error(`${filePath} - Detected faulty json, please fix your json file using VSCodium`);
+                // data invalid, return it
+                Logger.error(
+                    `${filePath} - Detected faulty json, please fix your json file using VSCodium`
+                );
                 return data;
             }
             else
             {
                 // data valid, save hash and call function again
                 JsonUtil.fileHashes[filePath] = generatedHash;
-                VFS.writeFile(jsonCachePath, JsonUtil.serialize(JsonUtil.fileHashes, true));
+                VFS.writeFile(
+                    jsonCachePath,
+                    JsonUtil.serialize(JsonUtil.fileHashes, true)
+                );
                 savedHash = generatedHash;
             }
         }

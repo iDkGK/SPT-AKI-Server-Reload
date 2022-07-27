@@ -60,7 +60,11 @@ class MatchCallbacks
 
         if (output === false)
         {
-            return HttpResponse.getBody(null, 420, "Please play as PMC and go through the offline settings screen before pressing ready.");
+            return HttpResponse.getBody(
+                null,
+                420,
+                "Please play as PMC and go through the offline settings screen before pressing ready."
+            );
         }
 
         return HttpResponse.getBody(output);
@@ -73,7 +77,9 @@ class MatchCallbacks
 
     static getMetrics(url, info, sessionID)
     {
-        return HttpResponse.getBody(JsonUtil.serialize(DatabaseServer.tables.match.metrics));
+        return HttpResponse.getBody(
+            JsonUtil.serialize(DatabaseServer.tables.match.metrics)
+        );
     }
 
     static getGroupStatus(url, info, sessionID)
@@ -83,7 +89,9 @@ class MatchCallbacks
 
     static createGroup(url, info, sessionID)
     {
-        return HttpResponse.getBody(MatchController.createGroup(sessionID, info));
+        return HttpResponse.getBody(
+            MatchController.createGroup(sessionID, info)
+        );
     }
 
     static deleteGroup(url, info, sessionID)

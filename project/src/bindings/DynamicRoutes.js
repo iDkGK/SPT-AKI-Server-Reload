@@ -4,58 +4,58 @@ require("../Lib.js");
 
 module.exports = {
     "/client/menu/locale/": {
-        "aki": DataCallbacks.getLocalesMenu
+        aki: DataCallbacks.getLocalesMenu,
     },
     "/client/locale/": {
-        "aki": DataCallbacks.getLocalesGlobal
+        aki: DataCallbacks.getLocalesGlobal,
     },
     "/singleplayer/settings/bot/limit/": {
-        "aki": BotCallbacks.getBotLimit
+        aki: BotCallbacks.getBotLimit,
     },
     "/singleplayer/settings/bot/difficulty/": {
-        "aki": BotCallbacks.getBotDifficulty
+        aki: BotCallbacks.getBotDifficulty,
     },
     "/client/trading/customization/": {
-        "aki": CustomizationCallbacks.getTraderSuits
+        aki: CustomizationCallbacks.getTraderSuits,
     },
     ".jpg": {
-        "aki": HttpCallbacks.getImage
+        aki: HttpCallbacks.getImage,
     },
     ".png": {
-        "aki": HttpCallbacks.getImage
+        aki: HttpCallbacks.getImage,
     },
     ".ico": {
-        "aki": HttpCallbacks.getImage
+        aki: HttpCallbacks.getImage,
     },
     "/client/location/getLocalloot": {
         "aki-name": InraidCallbacks.registerPlayer,
-        "aki-loot": LocationCallbacks.getLocation
+        "aki-loot": LocationCallbacks.getLocation,
     },
     ".bundle": {
-        "aki": BundleCallbacks.getBundle
+        aki: BundleCallbacks.getBundle,
     },
     "/client/trading/api/getUserAssortPrice/trader/": {
-        "aki": TraderCallbacks.getProfilePurchases
+        aki: TraderCallbacks.getProfilePurchases,
     },
     "/client/trading/api/getTrader/": {
-        "aki": TraderCallbacks.getTrader
+        aki: TraderCallbacks.getTrader,
     },
     "/client/trading/api/getTraderAssort/": {
-        "aki": TraderCallbacks.getAssort
+        aki: TraderCallbacks.getAssort,
     },
     "/?last_id": {
-        "aki": NotifierCallbacks.notify
+        aki: NotifierCallbacks.notify,
     },
     "/notifierServer": {
-        "aki": NotifierCallbacks.notify
+        aki: NotifierCallbacks.notify,
     },
     "/push/notifier/get/": {
-        "aki": NotifierCallbacks.getNotifier
+        aki: NotifierCallbacks.getNotifier,
     },
     "/push/notifier/getwebsocket/": {
-        "aki": NotifierCallbacks.getNotifier
+        aki: NotifierCallbacks.getNotifier,
     },
     "/singleplayer/settings/bot/maxCap": {
-        "aki": BotCallbacks.getBotCap
-    }
+        aki: BotCallbacks.getBotCap,
+    },
 };

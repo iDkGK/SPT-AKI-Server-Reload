@@ -11,7 +11,11 @@ class HealthCallbacks
 
     static syncHealth(url, info, sessionID)
     {
-        HealthController.saveVitality(ProfileController.getPmcProfile(sessionID), info, sessionID);
+        HealthController.saveVitality(
+            ProfileHelper.getPmcProfile(sessionID),
+            info,
+            sessionID
+        );
         return HttpResponse.emptyResponse();
     }
 

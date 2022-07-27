@@ -4,6 +4,8 @@ require("../Lib.js");
 
 class TimeUtil
 {
+    static oneHourAsSeconds = 3600;
+
     static formatTime(date)
     {
         const hours = `0${date.getHours()}`.substr(-2);
@@ -21,12 +23,12 @@ class TimeUtil
 
     static getDate()
     {
-        return this.formatDate(new Date());
+        return TimeUtil.formatDate(new Date());
     }
 
     static getTime()
     {
-        return this.formatTime(new Date());
+        return TimeUtil.formatTime(new Date());
     }
 
     static getTimestamp()

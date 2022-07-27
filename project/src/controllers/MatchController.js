@@ -15,12 +15,16 @@ class MatchController
     {
         if (info.profileId.includes("pmcAID"))
         {
-            return ProfileController.getCompleteProfile(info.profileId.replace("pmcAID", "AID"));
+            return ProfileHelper.getCompleteProfile(
+                info.profileId.replace("pmcAID", "AID")
+            );
         }
 
         if (info.profileId.includes("scavAID"))
         {
-            return ProfileController.getCompleteProfile(info.profileId.replace("scavAID", "AID"));
+            return ProfileHelper.getCompleteProfile(
+                info.profileId.replace("scavAID", "AID")
+            );
         }
 
         return null;
@@ -29,9 +33,9 @@ class MatchController
     static getMatch(location)
     {
         return {
-            "id": "TEST",
-            "ip": "127.0.0.1",
-            "port": 9909
+            id: "TEST",
+            ip: "127.0.0.1",
+            port: 9909,
         };
     }
 
@@ -43,30 +47,22 @@ class MatchController
         // --- LOOP (DO THIS FOR EVERY PLAYER IN GROUP)
         // get player profile
         const account = LauncherController.find(sessionID);
-        let profileID = "";
-
-        if (info.savage === true)
-        {
-            profileID = `scav${account.id}`;
-        }
-        else
-        {
-            profileID = `pmc${account.id}`;
-        }
+        const profileID = info.savage
+            ? `scav${account.id}`
+            : `pmc${account.id}`;
 
         // get list of players joining into the match
         output.push({
-            "profileid": profileID,
-            "status": "busy",
-            "sid": "",
-            "ip": match.ip,
-            "port": match.port,
-            "version": "live",
-            "location": info.location,
-            "gamemode": "deathmatch",
-            "shortid": match.id
+            profileid: profileID,
+            status: "busy",
+            sid: "",
+            ip: match.ip,
+            port: match.port,
+            version: "live",
+            location: info.location,
+            gamemode: "deathmatch",
+            shortid: match.id,
         });
-        // ---
 
         return output;
     }
@@ -74,9 +70,9 @@ class MatchController
     static getGroupStatus(info)
     {
         return {
-            "players": [],
-            "invite": [],
-            "group": []
+            players: [],
+            invite: [],
+            group: [],
         };
     }
 
@@ -85,25 +81,25 @@ class MatchController
         const groupID = "test";
 
         MatchController.locations[info.location].groups[groupID] = {
-            "_id": groupID,
-            "owner": `pmc${sessionID}`,
-            "location": info.location,
-            "gameVersion": "live",
-            "region": "EUR",
-            "status": "wait",
-            "isSavage": false,
-            "timeShift": "CURR",
-            "dt": TimeUtil.getTimestamp(),
-            "players": [
+            _id: groupID,
+            owner: `pmc${sessionID}`,
+            location: info.location,
+            gameVersion: "live",
+            region: "EUR",
+            status: "wait",
+            isSavage: false,
+            timeShift: "CURR",
+            dt: TimeUtil.getTimestamp(),
+            players: [
                 {
-                    "_id": `pmc${sessionID}`,
-                    "region": "EUR",
-                    "ip": "127.0.0.1",
-                    "savageId": `scav${sessionID}`,
-                    "accessKeyId": ""
-                }
+                    _id: `pmc${sessionID}`,
+                    region: "EUR",
+                    ip: "127.0.0.1",
+                    savageId: `scav${sessionID}`,
+                    accessKeyId: "",
+                },
             ],
-            "customDataCenter": []
+            customDataCenter: [],
         };
 
         return MatchController.locations[info.location].groups[groupID];
@@ -113,20 +109,28 @@ class MatchController
     {
         for (const locationID in MatchController.locations)
         {
-            for (const groupID in MatchController.locations[locationID].groups)
+            for (const groupID in MatchController.locations[locationID]
+                .groups)
             {
                 if (groupID === info.groupId)
                 {
-                    delete MatchController.locations[locationID].groups[groupID];
+                    delete MatchController.locations[locationID].groups[
+                        groupID
+                    ];
                     return;
                 }
             }
         }
     }
 
+    static startOfflineRaid(info, sessionID)
+    {
+        //TODO:
+    }
+
     static endOfflineRaid(info, sessionID)
     {
-        const pmcData = ProfileController.getPmcProfile(sessionID);
+        const pmcData = ProfileHelper.getPmcProfile(sessionID);
         const extract = info.exitName;
 
         if (!InraidConfig.carExtracts.includes(extract))
@@ -150,9 +154,15 @@ class MatchController
         const baseGain = InraidConfig.carExtractBaseStandingGain;
         fenceStanding += Math.max(baseGain / extractCount, 0.01);
 
-        pmcData.TradersInfo[fenceID].standing = Math.min(Math.max(fenceStanding, -7), 6);
-        TraderController.lvlUp(fenceID, sessionID);
-        pmcData.TradersInfo[fenceID].loyaltyLevel = Math.max(pmcData.TradersInfo[fenceID].loyaltyLevel, 1);
+        pmcData.TradersInfo[fenceID].standing = Math.min(
+            Math.max(fenceStanding, -7),
+            6
+        );
+        TraderHelper.lvlUp(fenceID, sessionID);
+        pmcData.TradersInfo[fenceID].loyaltyLevel = Math.max(
+            pmcData.TradersInfo[fenceID].loyaltyLevel,
+            1
+        );
     }
 }
 

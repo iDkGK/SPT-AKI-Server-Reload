@@ -1,8 +1,9 @@
+"use strict";
+
 require("../Lib");
 
-class PlayerController
+class PlayerService
 {
-
     /**
      * increases the profile skill and updates any output
      * @param {Object} pmcData
@@ -12,7 +13,9 @@ class PlayerController
      */
     static incrementSkillLevel(pmcData, output, skillName, amount)
     {
-        const profileSkill = pmcData.Skills.Common.find(skill => skill.Id === skillName);
+        const profileSkill = pmcData.Skills.Common.find(
+            skill => skill.Id === skillName
+        );
 
         if (!amount || amount < 0)
         {
@@ -24,7 +27,9 @@ class PlayerController
 
         if (output)
         {
-            const outputSkill = output.skills.Common.find(skill => skill.Id === skillName);
+            const outputSkill = output.skills.Common.find(
+                skill => skill.Id === skillName
+            );
             outputSkill.Progress += amount;
         }
     }
@@ -37,7 +42,8 @@ class PlayerController
     {
         let exp = 0;
 
-        for (const level in DatabaseServer.tables.globals.config.exp.level.exp_table)
+        for (const level in DatabaseServer.tables.globals.config.exp.level
+            .exp_table)
         {
             if (pmcData.Info.Experience < exp)
             {
@@ -45,7 +51,9 @@ class PlayerController
             }
 
             pmcData.Info.Level = parseInt(level);
-            exp += DatabaseServer.tables.globals.config.exp.level.exp_table[level].exp;
+            exp +=
+                DatabaseServer.tables.globals.config.exp.level.exp_table[level]
+                    .exp;
         }
 
         return pmcData.Info.Level;
@@ -57,7 +65,8 @@ class PlayerController
     static getRandomExperience()
     {
         let exp = 0;
-        const expTable = DatabaseServer.tables.globals.config.exp.level.exp_table;
+        const expTable =
+            DatabaseServer.tables.globals.config.exp.level.exp_table;
 
         // Get random level based on the exp table.
         const randomLevel = RandomUtil.getInt(0, expTable.length - 1) + 1;
@@ -84,9 +93,14 @@ class PlayerController
      */
     static getStashSlotMap(pmcData, sessionID)
     {
-        const PlayerStashSize = InventoryHelper.getPlayerStashSize(sessionID);
-        return ContainerHelper.getContainerMap(PlayerStashSize[0], PlayerStashSize[1], pmcData.Inventory.items, pmcData.Inventory.stash);
+        const playerStashSize = InventoryHelper.getPlayerStashSize(sessionID);
+        return InventoryHelper.getContainerMap(
+            playerStashSize[0],
+            playerStashSize[1],
+            pmcData.Inventory.items,
+            pmcData.Inventory.stash
+        );
     }
 }
 
-module.exports = PlayerController;
+module.exports = PlayerService;

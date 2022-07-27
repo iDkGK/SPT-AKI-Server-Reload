@@ -2,25 +2,35 @@
 
 require("../Lib.js");
 const semver = require("semver");
-const AkiConfig = require("../configs/AkiConfig.js");
 
 class ModLoader
 {
-    static basepath = "";
+    static basepath = "user/mods/";
     static imported = {};
     static onLoad = {};
 
     static load()
     {
-        ModLoader.basepath = "user/mods/";
         ModLoader.importMods();
         ModLoader.executeMods();
+    }
+
+    static getBundles(local)
+    {
+        throw new Error("Method not implemented.");
+    }
+
+    static getBundle(key, arg1)
+    {
+        throw new Error("Method not implemented.");
     }
 
     static importClass(name, filepath)
     {
         // import class
-        const modpath = (globalThis.G_RELEASE_CONFIGURATION) ? `../${filepath}` : `../../${filepath}`;
+        const modpath = globalThis.G_RELEASE_CONFIGURATION
+            ? `../${filepath}`
+            : `../../${filepath}`;
         globalThis[name] = require(modpath);
     }
 
@@ -52,13 +62,20 @@ class ModLoader
         const loadedMods = {};
         for (const mod of mods)
         {
-            loadedMods[mod] = JsonUtil.deserialize(VFS.readFile(`${ModLoader.getModPath(mod)}/package.json`));
+            loadedMods[mod] = JsonUtil.deserialize(
+                VFS.readFile(`${ModLoader.getModPath(mod)}/package.json`)
+            );
         }
 
         for (const modToValidate of Object.values(loadedMods))
         {
             // Returns if any mod dependency is not satisfied
-            if (!ModLoader.areModDependenciesFulfilled(modToValidate, loadedMods))
+            if (
+                !ModLoader.areModDependenciesFulfilled(
+                    modToValidate,
+                    loadedMods
+                )
+            )
             {
                 errorsFound = true;
             }
@@ -96,21 +113,30 @@ class ModLoader
         // Error and prevent loading If no akiVersion property exists
         if (!mod.akiVersion)
         {
-            Logger.error(`Mod ${modName} is missing the akiVersion field, most likely due to being out of date and incompatible with the current version of AKI`);
+            Logger.error(
+                `Mod ${modName} is missing the akiVersion field, most likely due to being out of date and incompatible with the current version of AKI`
+            );
             return false;
         }
 
         // Error and prevent loading if akiVersion property is not a valid semver string
-        if (!semver.valid(mod.akiVersion) && !semver.validRange(mod.akiVersion))
+        if (
+            !semver.valid(mod.akiVersion) &&
+            !semver.validRange(mod.akiVersion)
+        )
         {
-            Logger.error(`Mod ${modName} contains an invalid semver string in the akiVersion field. Examples of valid values: https://github.com/npm/node-semver#versions`);
+            Logger.error(
+                `Mod ${modName} contains an invalid semver string in the akiVersion field. Examples of valid values: https://github.com/npm/node-semver#versions`
+            );
             return false;
         }
 
         // Warn and allow loading if semver is not satisfied
         if (!semver.satisfies(akiVersion, mod.akiVersion))
         {
-            Logger.warning(`Mod ${modName} is not compatible with the current version of AKI. You may encounter issues - no support will be provided!`);
+            Logger.warning(
+                `Mod ${modName} is not compatible with the current version of AKI. You may encounter issues - no support will be provided!`
+            );
             return true;
         }
 
@@ -125,7 +151,9 @@ class ModLoader
         // if loadorder.json exists: load it, otherwise generate load order
         if (VFS.exists(`${ModLoader.basepath}loadorder.json`))
         {
-            source = JsonUtil.deserialize(VFS.readFile(`${ModLoader.basepath}loadorder.json`));
+            source = JsonUtil.deserialize(
+                VFS.readFile(`${ModLoader.basepath}loadorder.json`)
+            );
         }
         else
         {
@@ -137,7 +165,12 @@ class ModLoader
         {
             if ("main" in ModLoader.imported[mod])
             {
-                ModLoader.importClass(mod, `${ModLoader.getModPath(mod)}${ModLoader.imported[mod].main}`);
+                ModLoader.importClass(
+                    mod,
+                    `${ModLoader.getModPath(mod)}${
+                        ModLoader.imported[mod].main
+                    }`
+                );
             }
         }
 
@@ -161,7 +194,9 @@ class ModLoader
         const modpath = ModLoader.getModPath(mod);
 
         // add mod to imported list
-        ModLoader.imported[mod] = JsonUtil.deserialize(VFS.readFile(`${modpath}/package.json`));
+        ModLoader.imported[mod] = JsonUtil.deserialize(
+            VFS.readFile(`${modpath}/package.json`)
+        );
 
         // add mod bundles
         if (VFS.exists(`${modpath}bundles.json`))
@@ -172,7 +207,7 @@ class ModLoader
 
     static areModDependenciesFulfilled(mod, loadedMods)
     {
-        if (!("dependencies" in mod))
+        if (!mod.dependencies)
         {
             return true;
         }
@@ -186,13 +221,22 @@ class ModLoader
             // Raise dependency version incompatible if the dependency is not found in the mod list
             if (!(modDependency in loadedMods))
             {
-                Logger.error(`Mod ${modName} requires ${modDependency} to be installed.`);
+                Logger.error(
+                    `Mod ${modName} requires ${modDependency} to be installed.`
+                );
                 return false;
             }
 
-            if (!semver.satisfies(loadedMods[modDependency].version, requiredVersion))
+            if (
+                !semver.satisfies(
+                    loadedMods[modDependency].version,
+                    requiredVersion
+                )
+            )
             {
-                Logger.error(`Mod ${modName} requires ${modDependency} version "${requiredVersion}". Current installed version is "${loadedMods[modDependency].version}"`);
+                Logger.error(
+                    `Mod ${modName} requires ${modDependency} version "${requiredVersion}". Current installed version is "${loadedMods[modDependency].version}"`
+                );
                 return false;
             }
         }
@@ -213,14 +257,15 @@ class ModLoader
             // Raise dependency version incompatible if any incompatible mod is found
             if (incompatibleModName in loadedMods)
             {
-                Logger.error(`Mod ${mod.author}-${mod.name} is incompatible with ${incompatibleModName}`);
+                Logger.error(
+                    `Mod ${mod.author}-${mod.name} is incompatible with ${incompatibleModName}`
+                );
                 return false;
             }
         }
 
         return true;
     }
-
 
     static validMod(mod)
     {
@@ -232,7 +277,9 @@ class ModLoader
         }
 
         // validate mod
-        const config = JsonUtil.deserialize(VFS.readFile(`${ModLoader.getModPath(mod)}/package.json`));
+        const config = JsonUtil.deserialize(
+            VFS.readFile(`${ModLoader.getModPath(mod)}/package.json`)
+        );
         const checks = ["name", "author", "version", "license"];
         let issue = false;
 
@@ -240,14 +287,18 @@ class ModLoader
         {
             if (!(check in config))
             {
-                console.log(`Mod ${mod} package.json requires ${check} property`);
+                console.log(
+                    `Mod ${mod} package.json requires ${check} property`
+                );
                 issue = true;
             }
         }
 
         if (!semver.valid(config.version))
         {
-            console.log(`Mod ${mod} package.json contains an invalid version string`);
+            console.log(
+                `Mod ${mod} package.json contains an invalid version string`
+            );
             issue = true;
         }
 
@@ -255,21 +306,29 @@ class ModLoader
         {
             if (config.main.split(".").pop() !== "js")
             {
-                console.log(`Mod ${mod} package.json main property must be a .js file`);
+                console.log(
+                    `Mod ${mod} package.json main property must be a .js file`
+                );
                 issue = true;
             }
 
-
             if (!VFS.exists(`${ModLoader.getModPath(mod)}/${config.main}`))
             {
-                console.log(`Mod ${mod} package.json main property points to non-existing file`);
+                console.log(
+                    `Mod ${mod} package.json main property points to non-existing file`
+                );
                 issue = true;
             }
         }
 
-        if (config.incompatibilities && !Array.isArray(config.incompatibilities))
+        if (
+            config.incompatibilities &&
+            !Array.isArray(config.incompatibilities)
+        )
         {
-            console.log(`Mod ${mod} package.json property 'incompatibilities' should be a string array`);
+            console.log(
+                `Mod ${mod} package.json property 'incompatibilities' should be a string array`
+            );
             issue = true;
         }
 
@@ -309,7 +368,8 @@ class ModLoader
             throw "Error parsing mod load order";
         }
 
-        const dependencies = ("dependencies" in config) ? config.dependencies : [];
+        const dependencies =
+            "dependencies" in config ? config.dependencies : [];
 
         visited[mod] = config.version;
 
@@ -331,7 +391,7 @@ class ModLoader
 
         for (const mod in mods)
         {
-            if (mods[mod] in result)
+            if (mods[mod][0] in result)
             {
                 continue;
             }
