@@ -4,7 +4,7 @@ require("../Lib.js");
 
 class ResponseWrapper
 {
-    output;
+    output = "";
 
     constructor()
     {}

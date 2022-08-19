@@ -71,7 +71,7 @@ class HttpServer
     static sendZlibJson(resp, output, sessionID)
     {
         resp.writeHead(200, "OK", {
-            "Content-Type": httpServerHelper.getMimeText("json"),
+            "Content-Type": HttpServerHelper.getMimeText("json"),
             "Set-Cookie": `PHPSESSID=${sessionID}`,
         });
 
@@ -107,9 +107,9 @@ class HttpServer
     {
         const pathSlic = file.split("/");
         const type =
-            httpServerHelper.getMimeText(
+            HttpServerHelper.getMimeText(
                 pathSlic[pathSlic.length - 1].split(".")[1]
-            ) || httpServerHelper.getMimeText("txt");
+            ) || HttpServerHelper.getMimeText("txt");
         const fileStream = fs.createReadStream(file);
 
         fileStream.on("open", function ()
