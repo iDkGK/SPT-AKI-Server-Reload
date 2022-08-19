@@ -9,7 +9,7 @@ class ItemHelper
      * @param       {string}    tpl       the template id / tpl
      * @returns                             boolean; true for items that may be in player posession and not quest items
      */
-    static isValidItem(tpl, invalidBaseTypes = null)
+    static isValidItem(tpl, invalidBaseTypes = undefined)
     {
         const defaultInvalidBaseTypes = [
             BaseClasses.LOOT_CONTAINER,
@@ -21,7 +21,7 @@ class ItemHelper
             BaseClasses.POCKETS,
         ];
 
-        if (invalidBaseTypes === null)
+        if (invalidBaseTypes === undefined)
         {
             invalidBaseTypes = defaultInvalidBaseTypes;
         }
@@ -575,14 +575,14 @@ class ItemHelper
      * @param fastPanel
      * @returns
      */
-    static replaceIDs(pmcData, items, insuredItems = null, fastPanel = null)
+    static replaceIDs(pmcData, items, insuredItems = undefined, fastPanel = undefined)
     {
         // replace bsg shit long ID with proper one
         let serialisedInventory = JsonUtil.serialize(items);
 
         for (const item of items)
         {
-            if (pmcData !== null)
+            if (pmcData !== undefined)
             {
                 // Insured items shouldn't be renamed
                 // only works for pmcs.
@@ -619,7 +619,7 @@ class ItemHelper
             );
 
             // Also replace in quick slot if the old ID exists.
-            if (fastPanel !== null)
+            if (fastPanel !== undefined)
             {
                 for (const itemSlot in fastPanel)
                 {

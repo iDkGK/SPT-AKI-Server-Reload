@@ -105,7 +105,7 @@ class RepeatableQuestController
 
                     for (let i = 0; i < repeatableConfig.numQuests; i++)
                     {
-                        let quest = null;
+                        let quest;
                         let lifeline = 0;
                         while (!quest && questTypePool.types.length > 0)
                         {
@@ -685,7 +685,7 @@ class RepeatableQuestController
         }
 
         // draw the target body part and calculate the difficulty factor
-        let bodyPartsToClient = null;
+        let bodyPartsToClient;
         let bodyPartDifficulty = 0;
         if (eliminationConfig.bodyPartProb > Math.random())
         {
@@ -711,7 +711,7 @@ class RepeatableQuestController
         }
 
         // draw a distance condition
-        let distance = null;
+        let distance;
         let distanceDifficulty = 0;
         let isDistanceRequirementAllowed =
             !repeatableConfig.questConfig.Elimination.distLocationBlacklist.includes(
@@ -1156,7 +1156,7 @@ class RepeatableQuestController
             for (let i = 0; i < rewardNumItems; i++)
             {
                 let value = 1;
-                let children = null;
+                let children;
                 const itemSelected =
                     itemSelection[RandomUtil.randInt(itemSelection.length)];
                 if (
@@ -1241,7 +1241,7 @@ class RepeatableQuestController
      * @param   {integer}   index           all rewards will be appended to a list, for unkown reasons the client wants the index
      * @returns {object}                    object of "Reward"-item-type
      */
-    static generateRewardItem(tpl, value, index, preset = null)
+    static generateRewardItem(tpl, value, index, preset = undefined)
     {
         const id = ObjectId.generate();
         const rewardItem = {
@@ -1335,7 +1335,7 @@ class RepeatableQuestController
                         repeatableConfig
                     );
                 // TODO: somehow we need to reduce the questPool by the currently active quests (for all repeatables)
-                let quest = null;
+                let quest;
                 let lifeline = 0;
                 while (!quest && questTypePool.types.length > 0)
                 {

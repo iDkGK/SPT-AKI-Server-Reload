@@ -4,17 +4,17 @@ require("../Lib.js");
 
 class QuestConditionHelper
 {
-    static getQuestConditions(q, furtherFilter = null)
+    static getQuestConditions(q, furtherFilter = undefined)
     {
         return QuestConditionHelper.filterConditions(q, "Quest", furtherFilter);
     }
 
-    static getLevelConditions(q, furtherFilter = null)
+    static getLevelConditions(q, furtherFilter = undefined)
     {
         return QuestConditionHelper.filterConditions(q, "Level", furtherFilter);
     }
 
-    static getLoyaltyConditions(q, furtherFilter = null)
+    static getLoyaltyConditions(q, furtherFilter = undefined)
     {
         return QuestConditionHelper.filterConditions(
             q,
@@ -23,7 +23,7 @@ class QuestConditionHelper
         );
     }
 
-    static filterConditions(q, questType, furtherFilter = null)
+    static filterConditions(q, questType, furtherFilter = undefined)
     {
         const filteredQuests = q.filter(c =>
         {

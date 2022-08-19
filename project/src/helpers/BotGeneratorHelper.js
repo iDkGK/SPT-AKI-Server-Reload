@@ -73,7 +73,7 @@ class BotGeneratorHelper
 
         for (const modSlot in itemModPool)
         {
-            const itemSlot = ExhaustableArray.getModItemSlot(
+            const itemSlot = BotGeneratorHelper.getModItemSlot(
                 modSlot,
                 parentTemplate
             );
@@ -86,7 +86,7 @@ class BotGeneratorHelper
             }
 
             if (
-                !ExhaustableArray.shouldModBeSpawned(
+                !BotGeneratorHelper.shouldModBeSpawned(
                     itemSlot,
                     modSlot,
                     modSpawnChances
@@ -108,7 +108,7 @@ class BotGeneratorHelper
             {
                 modTpl = exhaustableModPool.getRandomValue();
                 if (
-                    !ExhaustableArray.isItemIncompatibleWithCurrentItems(
+                    !BotGeneratorHelper.isItemIncompatibleWithCurrentItems(
                         items,
                         modTpl,
                         modSlot
@@ -126,7 +126,7 @@ class BotGeneratorHelper
             );
             if (!found && parentSlot !== undefined && parentSlot._required)
             {
-                modTpl = ExhaustableArray.getModTplFromItemDb(
+                modTpl = BotGeneratorHelper.getModTplFromItemDb(
                     modTpl,
                     parentSlot,
                     modSlot,
@@ -176,23 +176,23 @@ class BotGeneratorHelper
                 _tpl: modTpl,
                 parentId: parentId,
                 slotId: modSlot,
-                ...ExhaustableArray.generateExtraPropertiesForItem(modTemplate),
+                ...BotGeneratorHelper.generateExtraPropertiesForItem(modTemplate),
             });
 
             // I first thought we could use the recursive generateModsForItems as previously for cylinder magazines.
             // However, the recurse doesnt go over the slots of the parent mod but over the modPool which is given by the bot config
             // where we decided to keep cartridges instead of camoras. And since a CylinderMagazine only has one cartridge entry and
             // this entry is not to be filled, we need a special handling for the CylinderMagazine
-            if (ExhaustableArray.magazineIsCylinderRelated(parentItem._name))
+            if (BotGeneratorHelper.magazineIsCylinderRelated(parentItem._name))
             {
                 // we don't have child mods, we need to create the camoras for the magazines instead
-                ExhaustableArray.fillCamora(items, modPool, modId, modTemplate);
+                BotGeneratorHelper.fillCamora(items, modPool, modId, modTemplate);
             }
             else
             {
                 if (Object.keys(modPool).includes(modTpl))
                 {
-                    ExhaustableArray.generateModsForItem(
+                    BotGeneratorHelper.generateModsForItem(
                         items,
                         modPool,
                         modId,
@@ -230,7 +230,7 @@ class BotGeneratorHelper
     {
         const modSpawnChance =
             itemSlot._required ||
-            ExhaustableArray.getAmmoContainers().includes(modSlot)
+            BotGeneratorHelper.getAmmoContainers().includes(modSlot)
                 ? 100
                 : modSpawnChances[modSlot];
 
@@ -295,7 +295,7 @@ class BotGeneratorHelper
     {
         const itemModPool = modPool[parentTemplate._id];
 
-        let exhaustableModPool = null;
+        let exhaustableModPool;
         let modSlot = "cartridges";
         const camoraFirstSlot = "camora_000";
         if (modSlot in itemModPool)
@@ -310,7 +310,7 @@ class BotGeneratorHelper
         {
             modSlot = camoraFirstSlot;
             exhaustableModPool = new ExhaustableArray(
-                ExhaustableArray.mergeCamoraPoolsTogether(itemModPool),
+                BotGeneratorHelper.mergeCamoraPoolsTogether(itemModPool),
                 RandomUtil,
                 JsonUtil
             );
@@ -329,7 +329,7 @@ class BotGeneratorHelper
         {
             modTpl = exhaustableModPool.getRandomValue();
             if (
-                !ExhaustableArray.isItemIncompatibleWithCurrentItems(
+                !BotGeneratorHelper.isItemIncompatibleWithCurrentItems(
                     items,
                     modTpl,
                     modSlot
@@ -386,7 +386,7 @@ class BotGeneratorHelper
         return poolResult;
     }
 
-    static generateExtraPropertiesForItem(itemTemplate, botRole = null)
+    static generateExtraPropertiesForItem(itemTemplate, botRole = undefined)
     {
         const properties = {};
 
@@ -396,7 +396,7 @@ class BotGeneratorHelper
             {
                 // Is weapon
                 properties.Repairable =
-                    ExhaustableArray.generateWeaponRepairableProperties(
+                    BotGeneratorHelper.generateWeaponRepairableProperties(
                         itemTemplate,
                         botRole
                     );
@@ -405,7 +405,7 @@ class BotGeneratorHelper
             {
                 // Is armor
                 properties.Repairable =
-                    ExhaustableArray.generateArmorRepairableProperties(
+                    BotGeneratorHelper.generateArmorRepairableProperties(
                         itemTemplate,
                         botRole
                     );
@@ -520,7 +520,7 @@ class BotGeneratorHelper
     {
         // Find combatible mods and make an array of them
         const unsortedModArray = parentSlot._props.filters[0].Filter;
-        const sortedModArray = ExhaustableArray.sortModArray(unsortedModArray);
+        const sortedModArray = BotGeneratorHelper.sortModArray(unsortedModArray);
 
         // Find mod item that fits slot from sorted mod array
         const exhaustableModPool = new ExhaustableArray(
@@ -533,7 +533,7 @@ class BotGeneratorHelper
         {
             tmpModTpl = exhaustableModPool.getFirstValue();
             if (
-                !ExhaustableArray.isItemIncompatibleWithCurrentItems(
+                !BotGeneratorHelper.isItemIncompatibleWithCurrentItems(
                     items,
                     tmpModTpl,
                     modSlot
@@ -669,7 +669,7 @@ class BotGeneratorHelper
                 }
 
                 if (
-                    !ExhaustableArray.itemAllowedInContainer(
+                    !BotGeneratorHelper.itemAllowedInContainer(
                         slotGrid,
                         parentTpl
                     )

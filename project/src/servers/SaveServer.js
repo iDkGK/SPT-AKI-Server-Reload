@@ -54,16 +54,6 @@ class SaveServer
             throw new Error("session id provided was empty");
         }
 
-        if (SaveServer.profiles === null)
-        {
-            throw new Error("no profiles found in saveServer");
-        }
-
-        if (SaveServer.profiles[sessionId] === null)
-        {
-            throw new Error(`no profile found for sessionId: ${sessionId}`);
-        }
-
         return SaveServer.profiles[sessionId];
     }
 
@@ -74,7 +64,7 @@ class SaveServer
 
     static deleteProfileById(sessionID)
     {
-        if (SaveServer.profiles[sessionID] !== null)
+        if (SaveServer.profiles[sessionID] !== undefined)
         {
             delete SaveServer.profiles[sessionID];
             return true;
@@ -85,7 +75,7 @@ class SaveServer
 
     static createProfile(profileInfo)
     {
-        if (SaveServer.profiles[profileInfo.id] !== null)
+        if (SaveServer.profiles[profileInfo.id] !== undefined)
         {
             throw new Error(
                 `profile already exists for sessionId: ${profileInfo.id}`

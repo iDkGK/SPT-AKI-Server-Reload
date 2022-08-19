@@ -148,7 +148,7 @@ class TradeHelper
                     );
 
                     // add money to return to the player
-                    if (output.profileChanges !== null)
+                    if (output.profileChanges !== undefined)
                     {
                         money += prices[item._id][0][0].count;
                         break;

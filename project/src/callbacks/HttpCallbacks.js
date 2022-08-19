@@ -16,8 +16,7 @@ class HttpCallbacks
 
     static getImage()
     {
-        return "";
-        // return ImageRouter.getImage();
+        return ImageRouter.getImage();
     }
 }
 

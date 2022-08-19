@@ -9,7 +9,7 @@ class TradeController
         body,
         sessionID,
         foundInRaid = false,
-        upd = null
+        upd = undefined
     )
     {
         // buying

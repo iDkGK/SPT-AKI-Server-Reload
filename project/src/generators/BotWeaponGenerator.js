@@ -161,7 +161,7 @@ class BotWeaponGenerator
      * @param botRole for durability values
      * @returns
      */
-    constructWeaponBaseArray(
+    static constructWeaponBaseArray(
         weaponTpl,
         weaponParentId,
         equipmentSlot,

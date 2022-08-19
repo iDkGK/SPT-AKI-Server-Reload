@@ -164,7 +164,7 @@ class QuestController
         const state = QuestStatus.Started;
         QuestHelper.addQuestToPMCData(pmcData, state, acceptedQuest);
 
-        let repeatableQuestDb = null;
+        let repeatableQuestDb;
         for (const repeatable of pmcData.RepeatableQuests)
         {
             repeatableQuestDb = repeatable.activeQuests.find(

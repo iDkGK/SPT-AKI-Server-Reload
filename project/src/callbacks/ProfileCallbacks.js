@@ -6,7 +6,7 @@ class ProfileCallbacks
 {
     static onSaveLoad(profile)
     {
-        if (profile.characters === null)
+        if (profile.characters === undefined)
         {
             profile.characters = {
                 pmc: {},

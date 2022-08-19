@@ -162,7 +162,7 @@ class RagfairOfferGenerator
      * Create multiple offers for items by using a unique list of items we've generated previously
      * @param expiredOffers optional, expired offers to regenerate
      */
-    static generateDynamicOffers(expiredOffers = null)
+    static generateDynamicOffers(expiredOffers = undefined)
     {
         const config = RagfairConfig.dynamic;
 

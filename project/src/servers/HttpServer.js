@@ -12,7 +12,7 @@ class HttpServer
     static buffers = {};
     static onReceive = {};
     static webSockets = {};
-    static websocketPingHandler = null;
+    static websocketPingHandler = undefined;
 
     static get onRespond()
     {

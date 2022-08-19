@@ -196,8 +196,8 @@ class InventoryController
     static transferItem(pmcData, body, sessionID)
     {
         const output = ItemEventRouter.getOutput(sessionID);
-        let itemFrom = null;
-        let itemTo = null;
+        let itemFrom;
+        let itemTo;
 
         for (const iterItem of pmcData.Inventory.items)
         {
@@ -210,13 +210,13 @@ class InventoryController
                 itemTo = iterItem;
             }
 
-            if (itemFrom !== null && itemTo !== null)
+            if (itemFrom !== undefined && itemTo !== undefined)
             {
                 break;
             }
         }
 
-        if (itemFrom !== null && itemTo !== null)
+        if (itemFrom !== undefined && itemTo !== undefined)
         {
             let stackFrom = 1;
 
@@ -294,7 +294,7 @@ class InventoryController
         sessionID,
         callback,
         foundInRaid = false,
-        addUpd = null
+        addUpd = undefined
     )
     {
         return InventoryHelper.addItem(
@@ -557,7 +557,7 @@ class InventoryController
             for (const target of body.changedItems)
             {
                 // remove unsorted items
-                let updatedItem = undefined;
+                let updatedItem;
 
                 items = items.filter(item =>
                 {

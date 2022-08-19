@@ -185,7 +185,7 @@ class RandomUtil
          * @param       {number}                        relativeProbability         The relative probability of this element
          * @param       {any}                           data                        Optional data attached to the element
          */
-        constructor(key, relativeProbability, data = null)
+        constructor(key, relativeProbability, data = undefined)
         {
             this.key = key;
             this.relativeProbability = relativeProbability;

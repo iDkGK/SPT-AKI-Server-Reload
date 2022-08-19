@@ -1,0 +1,6 @@
+module.exports =
+{
+    ANYOWNERTYPE: 0,
+    TRADEROWNERTYPE: 1,
+    PLAYEROWNERTYPE: 2
+};

@@ -83,7 +83,7 @@ class InRaidHelper
     {
         for (const victim of victims)
         {
-            let standingForKill = null;
+            let standingForKill;
             if (victim.Side === "Savage")
             {
                 standingForKill =

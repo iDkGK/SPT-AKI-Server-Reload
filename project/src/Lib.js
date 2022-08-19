@@ -114,7 +114,13 @@ globalThis.BundleLoader = require("./loaders/BundleLoader.js");
 globalThis.ModLoader = require("./loaders/ModLoader.js");
 
 // models
+// eft
+globalThis.BanType = require("./models/eft/common/tables/BanType.js");
+globalThis.SurvivorClass = require("./models/eft/common/tables/SurvivorClass.js");
+globalThis.WildSpawnType = require("./models/eft/common/WildSpawnType.js");
+globalThis.BodyPart = require("./models/eft/health/BodyPart.js");
 globalThis.Effect = require("./models/eft/health/Effect.js");
+globalThis.OfferOwnerType = require("./models/eft/ragfair/OfferOwnerType.js");
 // enums
 globalThis.AmmoTypes = require("./models/enums/AmmoTypes.js");
 globalThis.BaseClasses = require("./models/enums/BaseClasses.js");
@@ -163,6 +169,7 @@ globalThis.NotificationService = require("./services/NotificationService.js");
 globalThis.PaymentService = require("./services/PaymentService.js");
 globalThis.PlayerService = require("./services/PlayerService.js");
 globalThis.ProfileFixerService = require("./services/ProfileFixerService.js");
+globalThis.ProfileSnapshotService = require("./services/ProfileSnapshotService.js");
 globalThis.PlayerService = require("./services/PlayerService.js");
 globalThis.RagfairCategoriesService = require("./services/RagfairCategoriesService.js");
 globalThis.RagfairLinkedItemService = require("./services/RagfairLinkedItemService.js");

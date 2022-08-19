@@ -51,7 +51,7 @@ class LauncherController
             }
         }
 
-        return createAccount(info);
+        return LauncherController.createAccount(info);
     }
 
     static createAccount(info)

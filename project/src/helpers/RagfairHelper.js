@@ -158,7 +158,7 @@ class RagfairHelper
     static mergeStackable(items)
     {
         const list = [];
-        let rootItem = null;
+        let rootItem;
 
         for (let item of items)
         {

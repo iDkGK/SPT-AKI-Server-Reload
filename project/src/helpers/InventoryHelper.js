@@ -11,7 +11,7 @@ class InventoryHelper
         sessionID,
         callback,
         foundInRaid = false,
-        addUpd = null
+        addUpd = undefined
     )
     {
         const itemLib = [];

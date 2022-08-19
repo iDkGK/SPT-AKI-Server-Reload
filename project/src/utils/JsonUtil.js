@@ -6,7 +6,7 @@ const fixJson = require("json-fixer");
 
 class JsonUtil
 {
-    static fileHashes = null;
+    static fileHashes = undefined;
 
     /**
      * From object to string

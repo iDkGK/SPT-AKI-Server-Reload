@@ -79,7 +79,7 @@ class ProfileFixerService
     {
         if (pmcProfile.ConditionCounters)
         {
-            pmcProfile.ConditionCounters.Counters = pmcProfile.ConditionCounters.Counters.filter(c => c.qid !== null);
+            pmcProfile.ConditionCounters.Counters = pmcProfile.ConditionCounters.Counters.filter(c => c.qid !== undefined);
         }
     }
 
@@ -131,7 +131,7 @@ class ProfileFixerService
         for (const traderId in pmcProfile.TradersInfo)
         {
             const trader = pmcProfile.TradersInfo[traderId];
-            if (trader && trader.salesSum === null)
+            if (trader && (trader.salesSum === undefined || trader.salesSum === null))
             {
                 Logger.warning(`trader ${traderId} has a null salesSum value, resetting to 0.`);
                 trader.salesSum = 0;

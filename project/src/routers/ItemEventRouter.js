@@ -4,17 +4,14 @@ require("../Lib.js");
 
 class ItemEventRouter
 {
+    static output = {
+        warnings: [],
+        profileChanges: {},
+    };
+
     static get onEvent()
     {
         return require("../bindings/ItemEvents");
-    }
-
-    static get output()
-    {
-        return {
-            warnings: [],
-            profileChanges: {},
-        };
     }
 
     static handleEvents(info, sessionID)

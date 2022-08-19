@@ -30,7 +30,7 @@ class LocationGenerator
             .itemcountDistribution)
         {
             itemCountArray.push(
-                new ProbabilityObject(icd.count, icd.relativeProbability)
+                new RandomUtil.ProbabilityObject(icd.count, icd.relativeProbability)
             );
         }
         const numberItems = Math.round(
@@ -42,7 +42,7 @@ class LocationGenerator
         for (const icd of staticLootDist[containerTypeId].itemDistribution)
         {
             itemDistribution.push(
-                new ProbabilityObject(icd.tpl, icd.relativeProbability)
+                new RandomUtil.ProbabilityObject(icd.tpl, icd.relativeProbability)
             );
         }
 
@@ -144,7 +144,7 @@ class LocationGenerator
         for (const si of dynamicDist)
         {
             spawnpointArray.push(
-                new ProbabilityObject(si.template.Id, si.probability, si)
+                new RandomUtil.ProbabilityObject(si.template.Id, si.probability, si)
             );
         }
 
@@ -172,7 +172,7 @@ class LocationGenerator
             for (const itemDist of spi.itemDistribution)
             {
                 itemArray.push(
-                    new ProbabilityObject(
+                    new RandomUtil.ProbabilityObject(
                         itemDist.tpl,
                         itemDist.relativeProbability
                     )
@@ -378,7 +378,7 @@ class LocationGenerator
         for (const icd of staticAmmoDist[caliber])
         {
             ammoArray.push(
-                new ProbabilityObject(icd.tpl, icd.relativeProbability)
+                new RandomUtil.ProbabilityObject(icd.tpl, icd.relativeProbability)
             );
         }
         return ammoArray.draw(1)[0];

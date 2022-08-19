@@ -61,7 +61,7 @@ class ProfileHelper
      * @param scavProfile post-raid scav profile
      * @returns updated profile array
      */
-    postRaidXpWorkaroundFix(sessionId, output, pmcProfile, scavProfile)
+    static postRaidXpWorkaroundFix(sessionId, output, pmcProfile, scavProfile)
     {
         const clonedPmc = JsonUtil.clone(pmcProfile);
         const clonedScav = JsonUtil.clone(scavProfile);
