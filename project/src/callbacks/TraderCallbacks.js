@@ -9,25 +9,31 @@ class TraderCallbacks
         TraderController.load();
     }
 
+    static update()
+    {
+        return TraderController.update();
+    }
+
     static getTraderSettings(url, info, sessionID)
     {
-        return HttpResponse.getBody(TraderController.getAllTraders(sessionID));
+        return HttpResponseUtil.getBody(
+            TraderController.getAllTraders(sessionID)
+        );
     }
 
     static getProfilePurchases(url, info, sessionID)
     {
         const traderID = url.substr(url.lastIndexOf("/") + 1);
-        return HttpResponse.getBody(
-            TraderController.getPurchasesData(traderID, sessionID)
+        return HttpResponseUtil.getBody(
+            TraderController.getPurchasesData(sessionID, traderID)
         );
     }
 
     static getTrader(url, info, sessionID)
     {
         const traderID = url.replace("/client/trading/api/getTrader/", "");
-        TraderController.updateTraders();
-        return HttpResponse.getBody(
-            TraderController.getTrader(traderID, sessionID)
+        return HttpResponseUtil.getBody(
+            TraderController.getTrader(sessionID, traderID)
         );
     }
 
@@ -37,15 +43,9 @@ class TraderCallbacks
             "/client/trading/api/getTraderAssort/",
             ""
         );
-        TraderController.updateTraders();
-        return HttpResponse.getBody(
+        return HttpResponseUtil.getBody(
             TraderController.getAssort(sessionID, traderID)
         );
-    }
-
-    static update()
-    {
-        return TraderController.updateTraders();
     }
 }
 

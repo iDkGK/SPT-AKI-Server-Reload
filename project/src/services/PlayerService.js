@@ -1,6 +1,6 @@
 "use strict";
 
-require("../Lib");
+require("../Lib.js");
 
 class PlayerService
 {
@@ -8,14 +8,12 @@ class PlayerService
      * increases the profile skill and updates any output
      * @param {Object} pmcData
      * @param {Object} output
-     * @param {String} skill
+     * @param {String} skillName
      * @param {Number} amount
      */
     static incrementSkillLevel(pmcData, output, skillName, amount)
     {
-        const profileSkill = pmcData.Skills.Common.find(
-            skill => skill.Id === skillName
-        );
+        const profileSkill = pmcData.Skills.Common.find(skill => skill.Id === skillName);
 
         if (!amount || amount < 0)
         {
@@ -27,9 +25,7 @@ class PlayerService
 
         if (output)
         {
-            const outputSkill = output.skills.Common.find(
-                skill => skill.Id === skillName
-            );
+            const outputSkill = output.skills.Common.find(skill => skill.Id === skillName);
             outputSkill.Progress += amount;
         }
     }
@@ -42,8 +38,7 @@ class PlayerService
     {
         let exp = 0;
 
-        for (const level in DatabaseServer.tables.globals.config.exp.level
-            .exp_table)
+        for (const level in DatabaseServer.getTables().globals.config.exp.level.exp_table)
         {
             if (pmcData.Info.Experience < exp)
             {
@@ -51,55 +46,10 @@ class PlayerService
             }
 
             pmcData.Info.Level = parseInt(level);
-            exp +=
-                DatabaseServer.tables.globals.config.exp.level.exp_table[level]
-                    .exp;
+            exp += DatabaseServer.getTables().globals.config.exp.level.exp_table[level].exp;
         }
 
         return pmcData.Info.Level;
-    }
-
-    /**
-     * @returns number
-     */
-    static getRandomExperience()
-    {
-        let exp = 0;
-        const expTable =
-            DatabaseServer.tables.globals.config.exp.level.exp_table;
-
-        // Get random level based on the exp table.
-        const randomLevel = RandomUtil.getInt(0, expTable.length - 1) + 1;
-
-        for (let i = 0; i < randomLevel; i++)
-        {
-            exp += expTable[i].exp;
-        }
-
-        // Sprinkle in some random exp within the level, unless we are at max level.
-        if (randomLevel < expTable.length - 1)
-        {
-            exp += RandomUtil.getInt(0, expTable[randomLevel].exp - 1);
-        }
-
-        return exp;
-    }
-
-    /**
-     * Made a 2d array table with 0 - free slot and 1 - used slot
-     * @param {Object} pmcData
-     * @param {string} sessionID
-     * @returns Array
-     */
-    static getStashSlotMap(pmcData, sessionID)
-    {
-        const playerStashSize = InventoryHelper.getPlayerStashSize(sessionID);
-        return InventoryHelper.getContainerMap(
-            playerStashSize[0],
-            playerStashSize[1],
-            pmcData.Inventory.items,
-            pmcData.Inventory.stash
-        );
     }
 }
 

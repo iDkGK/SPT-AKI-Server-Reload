@@ -4,16 +4,17 @@ require("../Lib.js");
 
 class PMCLootGenerator
 {
-    static pocketLootPool = {};
-    static backpackLootPool = {};
+    static pocketLootPool = [];
+    static backpackLootPool = [];
 
     static generatePMCPocketLootPool()
     {
-        const items = DatabaseServer.tables.templates.items;
+        const items = DatabaseServer.getTables().templates.items;
 
         const allowedItemTypes = BotConfig.pmc.dynamicLoot.whitelist;
         const itemBlacklist = BotConfig.pmc.dynamicLoot.blacklist;
 
+        // Hydrate loot dictionary if empty
         if (Object.keys(PMCLootGenerator.pocketLootPool).length === 0)
         {
             const itemsToAdd = Object.values(items).filter(
@@ -33,7 +34,7 @@ class PMCLootGenerator
 
     static generatePMCBackpackLootPool()
     {
-        const items = DatabaseServer.tables.templates.items;
+        const items = DatabaseServer.getTables().templates.items;
 
         const allowedItemTypes = BotConfig.pmc.dynamicLoot.whitelist;
         const itemBlacklist = BotConfig.pmc.dynamicLoot.blacklist;

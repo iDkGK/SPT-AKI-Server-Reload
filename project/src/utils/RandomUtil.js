@@ -322,6 +322,84 @@ class RandomUtil
         );
         return randomKeys;
     }
+
+    static getBiasedRandomNumber(min, max, shift, n)
+    {
+        /* To whoever tries to make sense of this, please forgive me - I tried my best at explaining what goes on here.
+         * This function generates a random number based on a gaussian distribution with an option to add a bias via shifting.
+         *
+         * Here's an example graph of how the probabilities can be distributed:
+         * https://www.boost.org/doc/libs/1_49_0/libs/math/doc/sf_and_dist/graphs/normal_pdf.png
+         * Our parameter 'n' is sort of like σ (sigma) in the example graph.
+         *
+         * An 'n' of 1 means all values are equally likely. Increasing 'n' causes numbers near the edge to become less likely.
+         * By setting 'shift' to whatever 'max' is, we can make values near 'min' very likely, while values near 'max' become extremely unlikely.
+         *
+         * Here's a place where you can play around with the 'n' and 'shift' values to see how the distribution changes:
+         * http://jsfiddle.net/e08cumyx/ */
+
+        if (max < min)
+        {
+            throw {
+                name: "Invalid arguments",
+                message: `Bounded random number generation max is smaller than min (${max} < ${min})`,
+            };
+        }
+
+        if (n < 1)
+        {
+            throw {
+                name: "Invalid argument",
+                message: `'n' must be 1 or greater (received ${n})`,
+            };
+        }
+
+        if (min === max)
+        {
+            return min;
+        }
+
+        if (shift > max - min)
+        {
+            /* If a rolled number is out of bounds (due to bias being applied), we simply roll it again.
+             * As the shifting increases, the chance of rolling a number within bounds decreases.
+             * A shift that is equal to the available range only has a 50% chance of rolling correctly, theoretically halving performance.
+             * Shifting even further drops the success chance very rapidly - so we want to warn against that */
+
+            Logger.warning(
+                "Bias shift for random number generation is greater than the range of available numbers.\nThis can have a very severe performance impact!"
+            );
+            Logger.info(`min -> ${min}; max -> ${max}; shift -> ${shift}`);
+        }
+
+        const gaussianRandom = n =>
+        {
+            let rand = 0;
+
+            for (let i = 0; i < n; i += 1)
+            {
+                rand += Math.random();
+            }
+
+            return rand / n;
+        };
+
+        const boundedGaussian = (start, end, n) =>
+        {
+            return Math.round(start + gaussianRandom(n) * (end - start + 1));
+        };
+
+        const biasedMin = shift >= 0 ? min - shift : min;
+        const biasedMax = shift < 0 ? max + shift : max;
+
+        let num;
+        do
+        {
+            num = boundedGaussian(biasedMin, biasedMax, n);
+        } while (num < min || num > max);
+
+        return num;
+    }
 }
 
 module.exports = RandomUtil;

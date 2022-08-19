@@ -5,9 +5,13 @@ const semver = require("semver");
 
 class ModLoader
 {
-    static basepath = "user/mods/";
     static imported = {};
     static onLoad = {};
+
+    static get basepath()
+    {
+        return "user/mods/";
+    }
 
     static load()
     {
@@ -107,7 +111,7 @@ class ModLoader
 
     static isModCombatibleWithAki(mod)
     {
-        const akiVersion = AkiConfig.akiVersion;
+        const akiVersion = CoreConfig.akiVersion;
         const modName = `${mod.author}-${mod.name}`;
 
         // Error and prevent loading If no akiVersion property exists
@@ -146,19 +150,7 @@ class ModLoader
     static executeMods()
     {
         // sort mods load order
-        let source = [];
-
-        // if loadorder.json exists: load it, otherwise generate load order
-        if (VFS.exists(`${ModLoader.basepath}loadorder.json`))
-        {
-            source = JsonUtil.deserialize(
-                VFS.readFile(`${ModLoader.basepath}loadorder.json`)
-            );
-        }
-        else
-        {
-            source = Object.keys(ModLoader.getLoadOrder(ModLoader.imported));
-        }
+        const source = ModLoader.sortModsLoadOrder();
 
         // import mod classes
         for (const mod of source)
@@ -187,6 +179,21 @@ class ModLoader
     static getModPath(mod)
     {
         return `${ModLoader.basepath}${mod}/`;
+    }
+
+    static sortModsLoadOrder()
+    {
+        // if loadorder.json exists: load it, otherwise generate load order
+        if (VFS.exists(`${ModLoader.basepath}loadorder.json`))
+        {
+            return JsonUtil.deserialize(
+                VFS.readFile(`${ModLoader.basepath}loadorder.json`)
+            );
+        }
+        else
+        {
+            return Object.keys(ModLoader.getLoadOrder(ModLoader.imported));
+        }
     }
 
     static addMod(mod)

@@ -1,30 +1,8 @@
 {
-    "runIntervalSeconds": 900,
-    "fuelDrainRateMultipler": 0.00131,
-    "scavCase": {
-        "rewardParentBlacklist": [
-            "5485a8684bdc2da71d8b4567",
-            "543be5dd4bdc2deb348b4569"
-        ],
-        "rewardItemBlacklist": [],
-        "ammoRewards": {
-            "giveMultipleOfTen": true,
-            "minAmount": 10
-        },
-        "moneyRewards": {
-            "enabled": false,
-            "rub": {
-                "min": 1000,
-                "max": 200000
-            },
-            "usd": {
-                "min": 100,
-                "max": 2000
-            },
-            "eur": {
-                "min": 100,
-                "max": 2000
-            }
-        }
-    }
+    "runIntervalSeconds": 15,
+    "generatorSpeedWithoutFuel": 0.07,
+    "generatorFuelFlowRate": 0.0013194444444444,
+    "airFilterUnitFlowRate": 0.0047222222222222,
+    "gpuBoostRate": 0.015,
+    "hoursForSkillCrafting": 28800
 }

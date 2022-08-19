@@ -4,19 +4,13 @@ require("../Lib.js");
 
 class InsuranceCallbacks
 {
-    static onLoad(sessionID)
+    static onSaveLoad(profile)
     {
-        return InsuranceController.onLoad(sessionID);
-    }
-
-    static getInsuranceCost(url, info, sessionID)
-    {
-        return HttpResponse.getBody(InsuranceController.cost(info, sessionID));
-    }
-
-    static insure(pmcData, body, sessionID)
-    {
-        return InsuranceController.insure(pmcData, body, sessionID);
+        if (!("insurance" in profile))
+        {
+            profile.insurance = [];
+        }
+        return profile;
     }
 
     static update(timeSinceLastRun)
@@ -27,6 +21,18 @@ class InsuranceCallbacks
             return true;
         }
         return false;
+    }
+
+    static getInsuranceCost(url, info, sessionID)
+    {
+        return HttpResponseUtil.getBody(
+            InsuranceController.cost(info, sessionID)
+        );
+    }
+
+    static insure(pmcData, body, sessionID)
+    {
+        return InsuranceController.insure(pmcData, body, sessionID);
     }
 }
 

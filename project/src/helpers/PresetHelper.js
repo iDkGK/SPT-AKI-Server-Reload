@@ -13,7 +13,7 @@ class PresetHelper
 
     static isPreset(id)
     {
-        return id in DatabaseServer.tables.globals.ItemPresets;
+        return id in DatabaseServer.getTables().globals.ItemPresets;
     }
 
     static hasPreset(templateId)
@@ -23,7 +23,9 @@ class PresetHelper
 
     static getPreset(id)
     {
-        return DatabaseServer.tables.globals.ItemPresets[id];
+        return JsonUtil.clone(
+            DatabaseServer.getTables().globals.ItemPresets[id]
+        );
     }
 
     static getPresets(templateId)
@@ -32,12 +34,15 @@ class PresetHelper
         {
             return [];
         }
+
         const presets = [];
         const ids = PresetHelper.lookup[templateId];
+
         for (const id of ids)
         {
-            presets.push(DatabaseServer.tables.globals.ItemPresets[id]);
+            presets.push(PresetHelper.getPreset(id));
         }
+
         return presets;
     }
 
@@ -47,7 +52,9 @@ class PresetHelper
         {
             return null;
         }
+
         const allPresets = PresetHelper.getPresets(templateId);
+
         for (const preset of allPresets)
         {
             if ("_encyclopedia" in preset)
@@ -55,6 +62,7 @@ class PresetHelper
                 return preset;
             }
         }
+
         return allPresets[0];
     }
 
@@ -62,7 +70,8 @@ class PresetHelper
     {
         if (PresetHelper.isPreset(presetId))
         {
-            const preset = DatabaseServer.tables.globals.ItemPresets[presetId];
+            const preset = PresetHelper.getPreset(presetId);
+
             for (const item of preset._items)
             {
                 if (preset._parent === item._id)
@@ -71,6 +80,7 @@ class PresetHelper
                 }
             }
         }
+
         return "";
     }
 }

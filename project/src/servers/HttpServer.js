@@ -11,34 +11,12 @@ class HttpServer
 {
     static buffers = {};
     static onReceive = {};
-    static onRespond = require("../bindings/ServerRespond");
     static webSockets = {};
-    static mime = {
-        css: "text/css",
-        bin: "application/octet-stream",
-        html: "text/html",
-        jpg: "image/jpeg",
-        js: "text/javascript",
-        json: "application/json",
-        png: "image/png",
-        svg: "image/svg+xml",
-        txt: "text/plain",
-    };
     static websocketPingHandler = null;
 
-    static buildUrl()
+    static get onRespond()
     {
-        return `${HttpConfig.ip}:${HttpConfig.port}`;
-    }
-
-    static getBackendUrl()
-    {
-        return `http://${HttpServer.buildUrl()}`;
-    }
-
-    static getWebsocketUrl()
-    {
-        return `ws://${HttpServer.buildUrl()}`;
+        return require("../bindings/ServerRespond");
     }
 
     static getCookies(req)
@@ -93,7 +71,7 @@ class HttpServer
     static sendZlibJson(resp, output, sessionID)
     {
         resp.writeHead(200, "OK", {
-            "Content-Type": HttpServer.mime["json"],
+            "Content-Type": httpServerHelper.getMimeText("json"),
             "Set-Cookie": `PHPSESSID=${sessionID}`,
         });
 
@@ -101,12 +79,6 @@ class HttpServer
         {
             resp.end(buf);
         });
-    }
-
-    static sendTextJson(resp, output)
-    {
-        resp.writeHead(200, "OK", { "Content-Type": HttpServer.mime["json"] });
-        resp.end(output);
     }
 
     static sendMessage(sessionID, output)
@@ -135,8 +107,9 @@ class HttpServer
     {
         const pathSlic = file.split("/");
         const type =
-            HttpServer.mime[pathSlic[pathSlic.length - 1].split(".")[1]] ||
-            HttpServer.mime["txt"];
+            httpServerHelper.getMimeText(
+                pathSlic[pathSlic.length - 1].split(".")[1]
+            ) || httpServerHelper.getMimeText("txt");
         const fileStream = fs.createReadStream(file);
 
         fileStream.on("open", function ()
@@ -166,7 +139,7 @@ class HttpServer
         {
             Logger.error(`[UNHANDLED][${req.url}]`);
             Logger.log(info);
-            output = HttpResponse.getBody(
+            output = HttpResponseUtil.getBody(
                 null,
                 404,
                 `UNHANDLED RESPONSE: ${req.url}`
@@ -193,8 +166,7 @@ class HttpServer
     static handleRequest(req, resp)
     {
         const sessionID = HttpServer.getCookies(req)["PHPSESSID"];
-
-        Logger.log(`[Client Request] ${req.url}`);
+        Logger.info(`[Client Request] ${req.url}`);
 
         // request without data
         if (req.method === "GET")
@@ -264,13 +236,13 @@ class HttpServer
             HttpServer.handleRequest(req, res);
         });
 
-        HttpConfig.ip = DatabaseServer.tables.server.ip;
-        HttpConfig.port = DatabaseServer.tables.server.port;
+        HttpConfig.ip = DatabaseServer.getTables().server.ip;
+        HttpConfig.port = DatabaseServer.getTables().server.port;
 
         httpServer.listen(HttpConfig.port, HttpConfig.ip, () =>
         {
             Logger.success(
-                `Started webserver at ${HttpServer.getBackendUrl()}`
+                `Started webserver at ${HttpServerHelper.getBackendUrl()}`
             );
         });
 
@@ -303,9 +275,11 @@ class HttpServer
         webSocketServer.addListener("listening", () =>
         {
             Logger.success(
-                `Started websocket at ${HttpServer.getWebsocketUrl()}`
+                `Started websocket at ${HttpServerHelper.getWebsocketUrl()}`
             );
-            Logger.success("Server is running. Happy playing!");
+            Logger.success(
+                `Server is running. ${HttpServer.getRandomisedMessage()}!`
+            );
         });
 
         webSocketServer.addListener(
@@ -314,10 +288,32 @@ class HttpServer
         );
     }
 
+    static getRandomisedMessage()
+    {
+        if (RandomUtil.getInt(1, 100) > 99)
+        {
+            const messages = [
+                "live laugh love",
+                "anime :( ",
+                "if you can hear me, you need to wake up",
+                "dont forget to like and subscribe",
+                "have you seen our meme page?",
+                "secret co-op mode enabled - thank you for subscribing on patreon",
+                "you better not be using a fitgirl repack, i swear to god",
+                "bingos binted",
+                "its morbin time",
+            ];
+            return messages[RandomUtil.getInt(0, messages.length - 1)];
+        }
+        return globalThis.G_RELEASE_CONFIGURATION
+            ? "Happy playing!"
+            : "Happy playing";
+    }
+
     static wsOnConnection(ws, req)
     {
         // Strip request and break it into sections
-        const splitUrl = req.url.replace(/\?.*$/, "").split("/");
+        const splitUrl = req.url.substring(0, req.url.indexOf("?")).split("/");
         const sessionID = splitUrl.pop();
 
         Logger.info(`[WS] Player: ${sessionID} has connected`);
@@ -341,7 +337,9 @@ class HttpServer
 
             if (ws.readyState === WebSocket.OPEN)
             {
-                ws.send(JSON.stringify(NotifierController.defaultNotification));
+                ws.send(
+                    JSON.stringify(NotifierHelper.getDefaultNotification())
+                );
             }
             else
             {

@@ -4,6 +4,11 @@ require("../Lib.js");
 
 class FindSlotResult
 {
+    success;
+    x;
+    y;
+    rotation;
+
     constructor(success = false, x = null, y = null, rotation = false)
     {
         this.success = success;

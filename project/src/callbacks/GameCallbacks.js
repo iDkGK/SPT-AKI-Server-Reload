@@ -6,59 +6,58 @@ class GameCallbacks
 {
     static versionValidate(url, info, sessionID)
     {
-        return HttpResponse.nullResponse();
+        return HttpResponseUtil.nullResponse();
     }
 
     static gameStart(url, info, sessionID)
     {
         GameController.gameStart(url, info, sessionID);
-        return HttpResponse.getBody({
+        return HttpResponseUtil.getBody({
             utc_time: new Date().getTime() / 1000,
         });
     }
 
     static gameLogout(url, info, sessionID)
     {
-        return HttpResponse.getBody({
+        return HttpResponseUtil.getBody({
             status: "ok",
         });
     }
 
     static getGameConfig(url, info, sessionID)
     {
-        return HttpResponse.getBody(GameController.getGameConfig(sessionID));
+        return HttpResponseUtil.getBody(
+            GameController.getGameConfig(sessionID)
+        );
     }
 
     static getServer(url, info, sessionID)
     {
-        return HttpResponse.getBody([
-            {
-                ip: HttpConfig.ip,
-                port: HttpConfig.port,
-            },
-        ]);
+        return HttpResponseUtil.getBody(GameController.getServer());
     }
 
     static validateGameVersion(url, info, sessionID)
     {
-        return HttpResponse.getBody({
-            isvalid: true,
-            latestVersion: "",
-        });
+        return HttpResponseUtil.getBody(GameController.getValidGameVersion());
     }
 
     static gameKeepalive(url, info, sessionID)
     {
-        return HttpResponse.getBody({
+        return HttpResponseUtil.getBody({
             msg: "OK",
         });
     }
 
     static getVersion(url, info, sessionID)
     {
-        return HttpResponse.noBody({
-            Version: Watermark.versionLabel,
+        return HttpResponseUtil.noBody({
+            Version: Watermark.getVersionLabel(),
         });
+    }
+
+    static reportNickname(url, info, sessionID)
+    {
+        return HttpResponseUtil.nullResponse();
     }
 }
 

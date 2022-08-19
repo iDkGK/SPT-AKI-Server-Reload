@@ -6,7 +6,7 @@ class ItemEventCallbacks
 {
     static handleEvents(url, info, sessionID)
     {
-        return HttpResponse.getBody(
+        return HttpResponseUtil.getBody(
             ItemEventRouter.handleEvents(info, sessionID)
         );
     }

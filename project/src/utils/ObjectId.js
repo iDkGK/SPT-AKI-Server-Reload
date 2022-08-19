@@ -6,11 +6,15 @@ const crypto = require("crypto");
 
 class ObjectId
 {
-    static randomBytes = crypto.randomBytes(5);
     static constglobalCounter = 0;
     static consttime = 0;
     static globalCounter;
     static time;
+
+    static get randomBytes()
+    {
+        return crypto.randomBytes(5);
+    }
 
     static incGlobalCounter()
     {

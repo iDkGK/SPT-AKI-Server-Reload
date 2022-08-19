@@ -2,14 +2,29 @@
 
 require("../Lib.js");
 
+class ResponseWrapper
+{
+    output;
+
+    constructor()
+    {}
+}
+
 class HttpRouter
 {
-    static onStaticRoute = require("../bindings/StaticRoutes");
-    static onDynamicRoute = require("../bindings/DynamicRoutes");
+    static get onStaticRoute()
+    {
+        return require("../bindings/StaticRoutes");
+    }
+
+    static get onDynamicRoute()
+    {
+        return require("../bindings/DynamicRoutes");
+    }
 
     static getResponse(req, info, sessionID)
     {
-        let output = "";
+        const wrapper = new ResponseWrapper("");
         let url = req.url;
 
         // remove retry from url
@@ -17,21 +32,34 @@ class HttpRouter
         {
             url = url.split("?retry=")[0];
         }
-
-        if (HttpRouter.onStaticRoute[url])
+        const handled = HttpRouter.handleRoute(
+            url,
+            info,
+            sessionID,
+            wrapper,
+            false
+        );
+        if (!handled)
         {
-            // static route found
-            for (const callback in HttpRouter.onStaticRoute[url])
-            {
-                output = HttpRouter.onStaticRoute[url][callback](
-                    url,
-                    info,
-                    sessionID,
-                    output
-                );
-            }
+            HttpRouter.handleRoute(url, info, sessionID, wrapper, true);
         }
-        else
+
+        // TODO: Temporary hack to change ItemEventRouter response sessionID binding to what client expects
+        if (wrapper.output.includes("\"profileChanges\":{"))
+        {
+            wrapper.output = wrapper.output.replace(
+                sessionID,
+                `pmc${sessionID}`
+            );
+        }
+
+        return wrapper.output;
+    }
+
+    static handleRoute(url, info, sessionID, wrapper, dynamic)
+    {
+        let matched = false;
+        if (dynamic)
         {
             for (const route in HttpRouter.onDynamicRoute)
             {
@@ -44,23 +72,31 @@ class HttpRouter
                 // dynamic route found
                 for (const callback in HttpRouter.onDynamicRoute[route])
                 {
-                    output = HttpRouter.onDynamicRoute[route][callback](
+                    wrapper.output = HttpRouter.onDynamicRoute[route][callback](
                         url,
                         info,
                         sessionID,
-                        output
+                        wrapper.output
                     );
                 }
+                matched = true;
             }
         }
-
-        // TODO: Temporary hack to change ItemEventRouter response sessionID binding to what client expects
-        if (output.includes("\"profileChanges\":{"))
+        else
         {
-            output = output.replace(sessionID, `pmc${sessionID}`);
+            // static route found
+            for (const callback in HttpRouter.onStaticRoute[url])
+            {
+                wrapper.output = HttpRouter.onStaticRoute[url][callback](
+                    url,
+                    info,
+                    sessionID,
+                    wrapper.output
+                );
+                matched = true;
+            }
         }
-
-        return output;
+        return matched;
     }
 }
 

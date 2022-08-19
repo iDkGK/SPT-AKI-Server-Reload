@@ -6,17 +6,17 @@ class DurabilityLimitsHelper
 {
     static getRandomisedMaxWeaponDurability(itemTemplate, botRole)
     {
-        if (botRole && BotController.isBotPmc(botRole))
+        if (botRole && BotHelper.isBotPmc(botRole))
         {
             return DurabilityLimitsHelper.generateMaxWeaponDurability("pmc");
         }
 
-        if (botRole && BotController.isBotBoss(botRole))
+        if (botRole && BotHelper.isBotBoss(botRole))
         {
             return DurabilityLimitsHelper.generateMaxWeaponDurability("boss");
         }
 
-        if (botRole && BotController.isBotFollower(botRole))
+        if (botRole && BotHelper.isBotFollower(botRole))
         {
             return DurabilityLimitsHelper.generateMaxWeaponDurability(
                 "follower"
@@ -30,19 +30,19 @@ class DurabilityLimitsHelper
     {
         const itemMaxDurability = itemTemplate._props.MaxDurability;
 
-        if (botRole && BotController.isBotPmc(botRole))
+        if (botRole && BotHelper.isBotPmc(botRole))
         {
             return DurabilityLimitsHelper.generateMaxPmcArmorDurability(
                 itemMaxDurability
             );
         }
 
-        if (botRole && BotController.isBotBoss(botRole))
+        if (botRole && BotHelper.isBotBoss(botRole))
         {
             return itemMaxDurability;
         }
 
-        if (botRole && BotController.isBotFollower(botRole))
+        if (botRole && BotHelper.isBotFollower(botRole))
         {
             return itemMaxDurability;
         }
@@ -52,7 +52,7 @@ class DurabilityLimitsHelper
 
     static getRandomisedWeaponDurability(itemTemplate, botRole, maxDurability)
     {
-        if (botRole && BotController.isBotPmc(botRole))
+        if (botRole && BotHelper.isBotPmc(botRole))
         {
             return DurabilityLimitsHelper.generateWeaponDurability(
                 "pmc",
@@ -60,7 +60,7 @@ class DurabilityLimitsHelper
             );
         }
 
-        if (botRole && BotController.isBotBoss(botRole))
+        if (botRole && BotHelper.isBotBoss(botRole))
         {
             return DurabilityLimitsHelper.generateWeaponDurability(
                 "boss",
@@ -68,7 +68,7 @@ class DurabilityLimitsHelper
             );
         }
 
-        if (botRole && BotController.isBotFollower(botRole))
+        if (botRole && BotHelper.isBotFollower(botRole))
         {
             return DurabilityLimitsHelper.generateWeaponDurability(
                 "follower",
@@ -84,7 +84,7 @@ class DurabilityLimitsHelper
 
     static getRandomisedArmorDurability(itemTemplate, botRole, maxDurability)
     {
-        if (botRole && BotController.isBotPmc(botRole))
+        if (botRole && BotHelper.isBotPmc(botRole))
         {
             return DurabilityLimitsHelper.generateArmorDurability(
                 "pmc",
@@ -92,7 +92,7 @@ class DurabilityLimitsHelper
             );
         }
 
-        if (botRole && BotController.isBotBoss(botRole))
+        if (botRole && BotHelper.isBotBoss(botRole))
         {
             return DurabilityLimitsHelper.generateArmorDurability(
                 "boss",
@@ -100,7 +100,7 @@ class DurabilityLimitsHelper
             );
         }
 
-        if (botRole && BotController.isBotFollower(botRole))
+        if (botRole && BotHelper.isBotFollower(botRole))
         {
             return DurabilityLimitsHelper.generateArmorDurability(
                 "follower",

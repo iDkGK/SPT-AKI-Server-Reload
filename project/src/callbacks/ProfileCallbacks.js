@@ -4,27 +4,34 @@ require("../Lib.js");
 
 class ProfileCallbacks
 {
-    static onLoad(sessionID)
+    static onSaveLoad(profile)
     {
-        return ProfileController.onLoad(sessionID);
+        if (profile.characters === null)
+        {
+            profile.characters = {
+                pmc: {},
+                scav: {},
+            };
+        }
+        return profile;
     }
 
     static createProfile(url, info, sessionID)
     {
         ProfileController.createProfile(info, sessionID);
-        return HttpResponse.getBody({ uid: `pmc${sessionID}` });
+        return HttpResponseUtil.getBody({ uid: `pmc${sessionID}` });
     }
 
     static getProfileData(url, info, sessionID)
     {
-        return HttpResponse.getBody(
+        return HttpResponseUtil.getBody(
             ProfileController.getCompleteProfile(sessionID)
         );
     }
 
     static regenerateScav(url, info, sessionID)
     {
-        return HttpResponse.getBody([
+        return HttpResponseUtil.getBody([
             ProfileController.generatePlayerScav(sessionID),
         ]);
     }
@@ -32,7 +39,7 @@ class ProfileCallbacks
     static changeVoice(url, info, sessionID)
     {
         ProfileController.changeVoice(info, sessionID);
-        return HttpResponse.nullResponse();
+        return HttpResponseUtil.nullResponse();
     }
 
     static changeNickname(url, info, sessionID)
@@ -41,7 +48,7 @@ class ProfileCallbacks
 
         if (output === "taken")
         {
-            return HttpResponse.getBody(
+            return HttpResponseUtil.getBody(
                 null,
                 255,
                 "The nickname is already in use"
@@ -50,10 +57,14 @@ class ProfileCallbacks
 
         if (output === "tooshort")
         {
-            return HttpResponse.getBody(null, 1, "The nickname is too short");
+            return HttpResponseUtil.getBody(
+                null,
+                1,
+                "The nickname is too short"
+            );
         }
 
-        return HttpResponse.getBody({
+        return HttpResponseUtil.getBody({
             status: 0,
             nicknamechangedate: TimeUtil.getTimestamp(),
         });
@@ -65,7 +76,7 @@ class ProfileCallbacks
 
         if (output === "taken")
         {
-            return HttpResponse.getBody(
+            return HttpResponseUtil.getBody(
                 null,
                 255,
                 "The nickname is already in use"
@@ -74,42 +85,70 @@ class ProfileCallbacks
 
         if (output === "tooshort")
         {
-            return HttpResponse.getBody(null, 256, "The nickname is too short");
+            return HttpResponseUtil.getBody(
+                null,
+                256,
+                "The nickname is too short"
+            );
         }
 
-        return HttpResponse.getBody({ status: "ok" });
+        return HttpResponseUtil.getBody({ status: "ok" });
     }
 
     static getReservedNickname(url, info, sessionID)
     {
-        return HttpResponse.getBody("SPTarkov");
+        return HttpResponseUtil.getBody("SPTarkov");
     }
 
+    /**
+     * Called when creating a character, when you choose a character face/voice
+     * @param url
+     * @param info response (empty)
+     * @param sessionID
+     * @returns
+     */
     static getProfileStatus(url, info, sessionID)
     {
-        return HttpResponse.getBody([
-            {
-                profileid: `scav${sessionID}`,
-                status: "Free",
-                sid: "",
-                ip: "",
-                port: 0,
-            },
-            {
-                profileid: `pmc${sessionID}`,
-                status: "Free",
-                sid: "",
-                ip: "",
-                port: 0,
-            },
-        ]);
+        const response = {
+            maxPveCountExceeded: false,
+            profiles: [
+                {
+                    profileid: `scav${sessionID}`,
+                    status: "Free",
+                    sid: "",
+                    ip: "",
+                    port: 0,
+                },
+                {
+                    profileid: `pmc${sessionID}`,
+                    status: "Free",
+                    sid: "",
+                    ip: "",
+                    port: 0,
+                },
+            ],
+        };
+
+        return HttpResponseUtil.getBody(response);
     }
 
     static searchFriend(url, info, sessionID)
     {
-        return HttpResponse.getBody(
+        return HttpResponseUtil.getBody(
             ProfileController.getFriends(info, sessionID)
         );
+    }
+
+    static getMiniProfile(url, info, sessionID)
+    {
+        return HttpResponseUtil.noBody(
+            ProfileController.getMiniProfile(sessionID)
+        );
+    }
+
+    static getAllMiniProfiles(url, info, sessionID)
+    {
+        return HttpResponseUtil.noBody(ProfileController.getMiniProfiles());
     }
 }
 

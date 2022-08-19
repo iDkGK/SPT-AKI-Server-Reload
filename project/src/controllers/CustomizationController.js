@@ -4,31 +4,11 @@ require("../Lib.js");
 
 class CustomizationController
 {
-    static getAllTraderSuits(sessionID)
-    {
-        const traders = DatabaseServer.tables.traders;
-        let result = [];
-        for (const traderID in traders)
-        {
-            if (traders[traderID].base.customization_seller === true)
-            {
-                result = [
-                    ...result,
-                    ...CustomizationController.getTraderSuits(
-                        traderID,
-                        sessionID
-                    ),
-                ];
-            }
-            return result;
-        }
-    }
-
     static getTraderSuits(traderID, sessionID)
     {
         const pmcData = ProfileHelper.getPmcProfile(sessionID);
-        const templates = DatabaseServer.tables.templates.customization;
-        const suits = DatabaseServer.tables.traders[traderID].suits;
+        const templates = DatabaseServer.getTables().templates.customization;
+        const suits = DatabaseServer.getTables().traders[traderID].suits;
         const result = [];
 
         // get only suites from the player's side (e.g. USEC)
@@ -61,7 +41,9 @@ class CustomizationController
         for (let i = 0; i < body.suites.length; i++)
         {
             const suite =
-                DatabaseServer.tables.templates.customization[body.suites[i]];
+                DatabaseServer.getTables().templates.customization[
+                    body.suites[i]
+                ];
 
             // this parent reffers to Lower Node
             if (suite._parent === "5cd944d01388ce000a659df9")
@@ -144,7 +126,30 @@ class CustomizationController
 
         // add suit
         SaveServer.getProfile(sessionID).suits.push(offer.suiteId);
+
         return output;
+    }
+
+    static getAllTraderSuits(sessionID)
+    {
+        const traders = DatabaseServer.getTables().traders;
+        let result = [];
+
+        for (const traderID in traders)
+        {
+            if (traders[traderID].base.customization_seller === true)
+            {
+                result = [
+                    ...result,
+                    ...CustomizationController.getTraderSuits(
+                        traderID,
+                        sessionID
+                    ),
+                ];
+            }
+        }
+
+        return result;
     }
 }
 

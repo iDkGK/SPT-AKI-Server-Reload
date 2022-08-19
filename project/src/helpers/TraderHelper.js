@@ -2,26 +2,11 @@
 
 class TraderHelper
 {
-    static pristineTraderAssorts = {};
-
-    static get TRADER()
-    {
-        return {
-            Prapor: "54cb50c76803fa8b248b4571",
-            Therapist: "54cb57776803fa99248b456e",
-            Fence: "579dc571d53a0658a154fbec",
-            Skier: "58330581ace78e27b8b10cee",
-            Peacekeeper: "5935c25fb3acc3127c3d8cd9",
-            Mechanic: "5a7c2eca46aef81a7ca2145d",
-            Ragman: "5ac3b934156ae10c4430e83c",
-            Jaeger: "5c0647fdd443bc2504c2d371",
-        };
-    }
-
     static getTrader(traderID, sessionID)
     {
         const pmcData = ProfileHelper.getPmcProfile(sessionID);
-        const trader = DatabaseServer.tables.traders[traderID].base;
+        const trader = DatabaseServer.getTables().traders[traderID].base;
+
         if (!("TradersInfo" in pmcData))
         {
             // pmc profile wiped
@@ -34,55 +19,286 @@ class TraderHelper
             TraderHelper.resetTrader(sessionID, traderID);
             TraderHelper.lvlUp(traderID, sessionID);
         }
+
         return trader;
-    }
-
-    static getPristineTraderAssort(traderId)
-    {
-        return TraderHelper.pristineTraderAssorts[traderId];
-    }
-
-    static setPristineTraderAssort(traderId, assort)
-    {
-        TraderHelper.pristineTraderAssorts[traderId] = assort;
     }
 
     static getTraderAssortsById(traderId)
     {
-        return traderId === TraderHelper.TRADER.Fence
+        return traderId === Traders.FENCE
             ? FenceService.getFenceAssorts()
-            : DatabaseServer.tables.traders[traderId].assort;
+            : DatabaseServer.getTables().traders[traderId].assort;
     }
 
+    /**
+     * Reset a profiles trader data back to its initial state as seen by a level 1 player
+     * Does NOT take into account different profile levels
+     * @param sessionID session id
+     * @param traderID trader id to reset
+     */
     static resetTrader(sessionID, traderID)
     {
-        const account = LauncherController.find(sessionID);
+        const account = SaveServer.getProfile(sessionID);
         const pmcData = ProfileHelper.getPmcProfile(sessionID);
-        const traderWipe =
-            DatabaseServer.tables.templates.profiles[account.edition][
+        const rawProfileTemplate =
+            DatabaseServer.getTables().templates.profiles[account.info.edition][
                 pmcData.Info.Side.toLowerCase()
             ].trader;
+
         pmcData.TradersInfo[traderID] = {
-            loyaltyLevel: 1,
-            salesSum: traderWipe.initialSalesSum,
-            standing: traderWipe.initialStanding,
+            loyaltyLevel: rawProfileTemplate.initialLoyaltyLevel,
+            salesSum: rawProfileTemplate.initialSalesSum,
+            standing: rawProfileTemplate.initialStanding,
             nextResupply:
-                DatabaseServer.tables.traders[traderID].base.nextResupply,
+                DatabaseServer.getTables().traders[traderID].base.nextResupply,
             unlocked:
-                DatabaseServer.tables.traders[traderID].base.unlockedByDefault,
+                DatabaseServer.getTables().traders[traderID].base
+                    .unlockedByDefault,
         };
+
+        if (traderID === Traders.JAEGER)
+        {
+            pmcData.TradersInfo[traderID].unlocked =
+                rawProfileTemplate.jaegerUnlocked;
+        }
     }
 
-    static changeTraderDisplay(traderID, status, sessionID)
+    /**
+     * Alter a traders unlocked status
+     * @param traderID Trader to alter
+     * @param status New status to use
+     * @param sessionID Session id
+     */
+    static setTraderUnlockedState(traderID, status, sessionID)
     {
         const pmcData = ProfileHelper.getPmcProfile(sessionID);
         pmcData.TradersInfo[traderID].unlocked = status;
     }
 
+    /**
+     * Get a list of items and their prices from player inventory that can be sold to a trader
+     * @param traderID trader id being traded with
+     * @param sessionID session id
+     * @returns IBarterScheme[][]
+     */
+    static getPurchasesData(traderID, sessionID)
+    {
+        const pmcData = ProfileHelper.getPmcProfile(sessionID);
+        const traderBase = DatabaseServer.getTables().traders[traderID].base;
+        const buyPriceCoefficient = TraderHelper.getLoyaltyLevel(
+            traderBase._id,
+            pmcData
+        ).buy_price_coef;
+        const fenceLevel = FenceService.getFenceInfo(pmcData);
+        const currencyTpl = PaymentHelper.getCurrency(traderBase.currency);
+        const output = {};
+
+        // Iterate over player inventory items
+        for (const item of pmcData.Inventory.items)
+        {
+            if (
+                TraderHelper.isItemUnSellableToTrader(
+                    pmcData,
+                    item,
+                    traderBase.sell_category
+                )
+            )
+            {
+                // Skip item if trader cant buy
+                continue;
+            }
+
+            if (
+                TraderHelper.isWeaponAndBelowTraderBuyDurability(
+                    traderBase._id,
+                    item
+                )
+            )
+            {
+                continue;
+            }
+
+            const itemPriceTotal = TraderHelper.getAdjustedItemPrice(
+                pmcData,
+                item,
+                buyPriceCoefficient,
+                fenceLevel,
+                traderBase,
+                currencyTpl
+            );
+            const barterDetails = {
+                count: parseInt(itemPriceTotal.toFixed(0)),
+                _tpl: currencyTpl,
+            };
+            output[item._id] = [[barterDetails]];
+        }
+
+        return output;
+    }
+
+    /**
+     * Should item be skipped when selling to trader according to its sell categories and other checks
+     * @param pmcData
+     * @param item
+     * @param sellCategory
+     * @returns true if should NOT be sold to trader
+     */
+    static isItemUnSellableToTrader(pmcData, item, sellCategory)
+    {
+        return (
+            item._id === pmcData.Inventory.equipment ||
+            item._id === pmcData.Inventory.stash ||
+            item._id === pmcData.Inventory.questRaidItems ||
+            item._id === pmcData.Inventory.questStashItems ||
+            ItemHelper.isNotSellable(item._tpl) ||
+            TraderHelper.traderFilter(sellCategory, item._tpl) === false
+        );
+    }
+
+    /**
+     * Can this weapon be sold to a trader with its current durabiltiy level
+     * @param traderID
+     * @param item
+     * @returns boolean
+     */
+    static isWeaponAndBelowTraderBuyDurability(traderID, item)
+    {
+        return (
+            "upd" in item &&
+            "Repairable" in item.upd && // has durability
+            "FireMode" in item.upd && // weapon
+            item.upd.Repairable.Durability <
+                TraderConfig.minDurabilityForSale &&
+            traderID !== Traders.FENCE
+        );
+    }
+
+    /**
+     * Get the price of an item and all of its attached children
+     * Take into account bonuses/adjsutments e.g. discounts
+     * @param pmcData profile data
+     * @param item item to calculate price of
+     * @param buyPriceCoefficient
+     * @param fenceInfo fence data
+     * @param traderBase trader details
+     * @param currencyTpl Currency to get price as
+     * @returns price of item + children
+     */
+    static getAdjustedItemPrice(
+        pmcData,
+        item,
+        buyPriceCoefficient,
+        fenceInfo,
+        traderBase,
+        currencyTpl
+    )
+    {
+        // find all child of the item (including itself) and sum the price
+        let price = TraderHelper.getRawItemPrice(pmcData, item);
+
+        // dogtag calculation
+        if (
+            "upd" in item &&
+            "Dogtag" in item.upd &&
+            ItemHelper.isDogtag(item._tpl)
+        )
+        {
+            price *= item.upd.Dogtag.Level;
+        }
+
+        // meds & repairable calculation
+        price *= ItemHelper.getItemQualityModifier(item);
+
+        // Scav karma
+        const discount = TraderHelper.getTraderDiscount(
+            traderBase,
+            buyPriceCoefficient,
+            fenceInfo,
+            traderBase._id
+        );
+        if (discount > 0)
+        {
+            price -= (discount / 100) * price;
+        }
+
+        price = HandbookHelper.fromRUB(price, currencyTpl);
+        price = price > 0 ? price : 1;
+
+        return price;
+    }
+
+    /**
+     * Get the raw price of item+child items from handbook without any modification
+     * @param pmcData profile data
+     * @param item item to calculate price of
+     * @returns price as number
+     */
+    static getRawItemPrice(pmcData, item)
+    {
+        let price = 0;
+        for (const childItem of ItemHelper.findAndReturnChildrenAsItems(
+            pmcData.Inventory.items,
+            item._id
+        ))
+        {
+            const handbookItem =
+                DatabaseServer.getTables().templates.handbook.Items.find(i =>
+                {
+                    return childItem._tpl === i.Id;
+                });
+            const count =
+                "upd" in childItem && "StackObjectsCount" in childItem.upd
+                    ? childItem.upd.StackObjectsCount
+                    : 1;
+
+            price += !handbookItem ? 1 : handbookItem.Price * count;
+        }
+
+        return price;
+    }
+
+    static getTraderDiscount(trader, buyPriceCoefficient, fenceInfo, traderID)
+    {
+        let discount = trader.discount + buyPriceCoefficient;
+        if (
+            traderID ===
+            DatabaseServer.getTables().globals.config.FenceSettings.FenceId
+        )
+        {
+            discount *= fenceInfo.PriceModifier;
+        }
+
+        return discount;
+    }
+
+    /**
+     * Add standing to a trader and level them up if exp goes over level threshold
+     * @param sessionID Session id
+     * @param traderId traders id
+     * @param standingToAdd Standing value to add to trader
+     */
+    static addStandingToTrader(sessionID, traderId, standingToAdd)
+    {
+        const pmcData = ProfileHelper.getPmcProfile(sessionID);
+        pmcData.TradersInfo[traderId].standing += standingToAdd;
+
+        if (pmcData.TradersInfo[traderId].standing < 0)
+        {
+            pmcData.TradersInfo[traderId].standing = 0;
+        }
+
+        TraderHelper.lvlUp(traderId, sessionID);
+    }
+
+    /**
+     * Calculate traders level based on exp amount and increments level if over threshold
+     * @param traderID trader to process
+     * @param sessionID session id
+     */
     static lvlUp(traderID, sessionID)
     {
         const loyaltyLevels =
-            DatabaseServer.tables.traders[traderID].base.loyaltyLevels;
+            DatabaseServer.getTables().traders[traderID].base.loyaltyLevels;
         const pmcData = ProfileHelper.getPmcProfile(sessionID);
 
         // level up player
@@ -115,6 +331,23 @@ class TraderHelper
         pmcData.TradersInfo[traderID].loyaltyLevel = targetLevel;
     }
 
+    /**
+     * Get the next update timestamp for a trader
+     * @param traderID Trader to look up update value for
+     * @returns future timestamp
+     */
+    static getNextUpdateTimestamp(traderID)
+    {
+        const time = TimeUtil.getTimestamp();
+        const updateSeconds = TraderHelper.getTraderUpdateSeconds(traderID);
+        return time + updateSeconds;
+    }
+
+    /**
+     * Get the reset time between trader assort refreshes in seconds
+     * @param traderId Trader to look up
+     * @returns Time in seconds
+     */
     static getTraderUpdateSeconds(traderId)
     {
         const traderDetails = TraderConfig.updateTime.find(
@@ -139,123 +372,12 @@ class TraderHelper
         }
     }
 
-    static stripLoyaltyAssort(sessionId, traderId, assort)
-    {
-        const pmcData = ProfileHelper.getPmcProfile(sessionId);
-        // assort does not always contain loyal_level_items
-        if (!assort.loyal_level_items)
-        {
-            Logger.warning(
-                `stripQuestAssort: Assort for Trader ${traderId} does't contain "loyal_level_items"`
-            );
-        }
-        else
-        {
-            for (const itemId in assort.loyal_level_items)
-            {
-                if (
-                    assort.loyal_level_items[itemId] >
-                    pmcData.TradersInfo[traderId].loyaltyLevel
-                )
-                {
-                    assort = TraderHelper.removeItemFromAssort(assort, itemId);
-                }
-            }
-        }
-        return assort;
-    }
-
-    static stripQuestAssort(sessionId, traderId, assort)
-    {
-        const questassort = DatabaseServer.tables.traders[traderId].questassort;
-        const pmcData = ProfileHelper.getPmcProfile(sessionId);
-        // assort does not always contain loyal_level_items
-        if (!assort.loyal_level_items)
-        {
-            Logger.warning(
-                `stripQuestAssort: Assort for Trader ${traderId} does't contain "loyal_level_items"`
-            );
-        }
-        else
-        {
-            for (const assortId in assort.loyal_level_items)
-            {
-                if (
-                    assortId in questassort.started &&
-                    QuestController.questStatus(
-                        pmcData,
-                        questassort.started[assortId]
-                    ) !== "Started"
-                )
-                {
-                    assort = TraderHelper.removeItemFromAssort(
-                        assort,
-                        assortId
-                    );
-                }
-
-                if (
-                    assortId in questassort.success &&
-                    QuestController.questStatus(
-                        pmcData,
-                        questassort.success[assortId]
-                    ) !== "Success"
-                )
-                {
-                    assort = TraderHelper.removeItemFromAssort(
-                        assort,
-                        assortId
-                    );
-                }
-
-                if (
-                    assortId in questassort.fail &&
-                    QuestController.questStatus(
-                        pmcData,
-                        questassort.fail[assortId]
-                    ) !== "Fail"
-                )
-                {
-                    assort = TraderHelper.removeItemFromAssort(
-                        assort,
-                        assortId
-                    );
-                }
-            }
-        }
-        return assort;
-    }
-
-    // delete assort keys
-    static removeItemFromAssort(assort, itemID)
-    {
-        const ids_toremove = ItemHelper.findAndReturnChildrenByItems(
-            assort.items,
-            itemID
-        );
-
-        delete assort.barter_scheme[itemID];
-        delete assort.loyal_level_items[itemID];
-
-        for (const i in ids_toremove)
-        {
-            for (const a in assort.items)
-            {
-                if (assort.items[a]._id === ids_toremove[i])
-                {
-                    assort.items.splice(parseInt(a), 1);
-                }
-            }
-        }
-
-        return assort;
-    }
-
-    /*
-        check if an item is allowed to be sold to a trader
-        input : array of allowed categories, itemTpl of inventory
-        output : boolean
-    */
+    /**
+     * check if an item is allowed to be sold to a trader
+     * @param traderFilters array of allowed categories
+     * @param tplToCheck itemTpl of inventory
+     * @returns boolean
+     */
     static traderFilter(traderFilters, tplToCheck)
     {
         for (const filter of traderFilters)
@@ -268,10 +390,10 @@ class TraderHelper
                 }
             }
 
-            for (const subcateg of HandbookHelper.childrenCategories(filter))
+            for (const subCat of HandbookHelper.childrenCategories(filter))
             {
                 for (const itemFromSubcateg of HandbookHelper.templatesWithParent(
-                    subcateg
+                    subCat
                 ))
                 {
                     if (itemFromSubcateg === tplToCheck)
@@ -287,7 +409,7 @@ class TraderHelper
 
     static getLoyaltyLevel(traderID, pmcData)
     {
-        const trader = DatabaseServer.tables.traders[traderID].base;
+        const trader = DatabaseServer.getTables().traders[traderID].base;
         let loyaltyLevel = pmcData.TradersInfo[traderID].loyaltyLevel;
 
         if (!loyaltyLevel || loyaltyLevel < 1)

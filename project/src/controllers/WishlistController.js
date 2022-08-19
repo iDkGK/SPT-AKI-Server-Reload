@@ -15,13 +15,13 @@ class WishlistController
             // don't add the item
             if (pmcData.WishList[item] === body.templateId)
             {
-                return ItemEventRouter.getOutput(sessionID);
+                return ItemEvenRouter.getOutput(sessionID);
             }
         }
 
         // add the item to the wishlist
         pmcData.WishList.push(body.templateId);
-        return ItemEventRouter.getOutput(sessionID);
+        return ItemEvenRouter.getOutput(sessionID);
     }
 
     /* Removing item to wishlist
@@ -38,7 +38,7 @@ class WishlistController
             }
         }
 
-        return ItemEventRouter.getOutput(sessionID);
+        return ItemEvenRouter.getOutput(sessionID);
     }
 }
 

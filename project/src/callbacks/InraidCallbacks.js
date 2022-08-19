@@ -4,41 +4,49 @@ require("../Lib.js");
 
 class InraidCallbacks
 {
-    static onLoad(sessionID)
+    static onSaveLoad(profile)
     {
-        return InraidController.onLoad(sessionID);
+        if (!("inraid" in profile))
+        {
+            profile.inraid = {
+                location: "none",
+                character: "none",
+            };
+        }
+
+        return profile;
     }
 
     static registerPlayer(url, info, sessionID)
     {
         InraidController.addPlayer(sessionID, info);
-        return HttpResponse.nullResponse();
+        return HttpResponseUtil.nullResponse();
     }
 
     static saveProgress(url, info, sessionID)
     {
         InraidController.saveProgress(info, sessionID);
-        return HttpResponse.nullResponse();
+        return HttpResponseUtil.nullResponse();
     }
 
     static getRaidEndState()
     {
-        return HttpResponse.noBody(InraidConfig.MIAOnRaidEnd);
+        return HttpResponseUtil.noBody(InraidConfig.MIAOnRaidEnd);
     }
 
     static getRaidMenuSettings(url, info, sessionID)
     {
-        return HttpResponse.noBody(InraidConfig.raidMenuSettings);
+        return HttpResponseUtil.noBody(InraidConfig.raidMenuSettings);
     }
 
     static getWeaponDurability(url, info, sessionID)
     {
-        return HttpResponse.noBody(InraidConfig.save.durability);
+        return HttpResponseUtil.noBody(InraidConfig.save.durability);
     }
 
     static getAirdropConfig(url, info, sessionID)
     {
-        return HttpResponse.noBody(AirdropConfig);
+        return HttpResponseUtil.noBody(AirdropConfig);
     }
 }
 

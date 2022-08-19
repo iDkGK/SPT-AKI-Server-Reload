@@ -29,6 +29,7 @@ class InventoryCallbacks
         return InventoryController.transferItem(pmcData, body, sessionID);
     }
 
+    // TODO: how is this triggered
     static swapItem(pmcData, body, sessionID)
     {
         return InventoryController.swapItem(pmcData, body, sessionID);

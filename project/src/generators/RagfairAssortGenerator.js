@@ -6,6 +6,10 @@ class RagfairAssortGenerator
 {
     static generatedAssortItems = [];
 
+    /**
+     * Get an array of unique items that can be sold on the flea
+     * @returns array of unique items
+     */
     static getAssortItems()
     {
         if (!RagfairAssortGenerator.assortsAreGenerated())
@@ -22,20 +26,27 @@ class RagfairAssortGenerator
         return RagfairAssortGenerator.generatedAssortItems.length > 0;
     }
 
+    /**
+     * Generate an array of items the flea can sell
+     * @returns array of unique items
+     */
     static generateRagfairAssortItems()
     {
         const results = [];
-        const items = JsonUtil.clone(DatabaseServer.tables.templates.items);
-        const weaponPresets = JsonUtil.clone(
-            DatabaseServer.tables.globals.ItemPresets
+        const items = JsonUtil.clone(
+            DatabaseServer.getTables().templates.items
         );
+        const weaponPresets = JsonUtil.clone(
+            DatabaseServer.getTables().globals.ItemPresets
+        );
+
         const ragfairItemInvalidBaseTypes = [
-            ItemHelper.BASECLASS.LootContainer,
-            ItemHelper.BASECLASS.Stash,
-            ItemHelper.BASECLASS.SortingTable,
-            ItemHelper.BASECLASS.Inventory,
-            ItemHelper.BASECLASS.StationaryContainer,
-            ItemHelper.BASECLASS.Pockets,
+            BaseClasses.LOOT_CONTAINER, // safe, barrel cache etc
+            BaseClasses.STASH, // player inventory stash
+            BaseClasses.SORTING_TABLE,
+            BaseClasses.INVENTORY,
+            BaseClasses.STATIONARY_CONTAINER,
+            BaseClasses.POCKETS,
         ];
 
         for (const item of Object.values(items))

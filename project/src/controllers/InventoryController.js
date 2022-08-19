@@ -5,228 +5,30 @@ require("../Lib.js");
 class InventoryController
 {
     /**
-     * Based on the item action, determine whose inventories we should be looking at for from and to.
-     *
-     * @param {Object} body - request Body
-     * @param {string} sessionID - Session id
-     * @returns response as JSON object
-     */
-    static getOwnerInventoryItems(body, sessionID)
-    {
-        let isSameInventory = false;
-        const pmcItems = ProfileHelper.getPmcProfile(sessionID).Inventory.items;
-        const scavData = ProfileHelper.getScavProfile(sessionID);
-        let fromInventoryItems = pmcItems;
-        let fromType = "pmc";
-
-        if ("fromOwner" in body)
-        {
-            if (body.fromOwner.id === scavData._id)
-            {
-                fromInventoryItems = scavData.Inventory.items;
-                fromType = "scav";
-            }
-            else if (body.fromOwner.type.toLocaleLowerCase() === "mail")
-            {
-                fromInventoryItems = DialogueHelper.getMessageItemContents(
-                    body.fromOwner.id,
-                    sessionID
-                );
-                fromType = "mail";
-            }
-        }
-
-        // Don't need to worry about mail for destination because client doesn't allow
-        // users to move items back into the mail stash.
-        let toInventoryItems = pmcItems;
-        let toType = "pmc";
-
-        if ("toOwner" in body && body.toOwner.id === scavData._id)
-        {
-            toInventoryItems = scavData.Inventory.items;
-            toType = "scav";
-        }
-
-        if (fromType === toType)
-        {
-            isSameInventory = true;
-        }
-
-        return {
-            from: fromInventoryItems,
-            to: toInventoryItems,
-            sameInventory: isSameInventory,
-            isMail: fromType === "mail",
-        };
-    }
-
-    /**
      * Move Item
      * change location of item with parentId and slotId
      * transfers items from one profile to another if fromOwner/toOwner is set in the body.
      * otherwise, move is contained within the same profile_f.
-     *
-     * @param {Object} pmcData
-     * @param {Object} body
-     * @param {string} sessionID
-     * @returns
      */
     static moveItem(pmcData, body, sessionID)
     {
         const output = ItemEventRouter.getOutput(sessionID);
-        const items = InventoryController.getOwnerInventoryItems(
-            body,
-            sessionID
-        );
+        const items = InventoryHelper.getOwnerInventoryItems(body, sessionID);
 
         if (items.sameInventory)
         {
-            InventoryController.moveItemInternal(items.from, body);
+            InventoryHelper.moveItemInternal(items.from, body);
         }
         else
         {
-            InventoryController.moveItemToProfile(items.from, items.to, body);
+            InventoryHelper.moveItemToProfile(items.from, items.to, body);
         }
         return output;
     }
 
     /**
-     * Internal helper function to transfer an item from one profile to another.
-     * fromProfileData: Profile of the source.
-     * toProfileData: Profile of the destination.
-     * body: Move request
-     *
-     * @param {Array} fromItems
-     * @param {Array} toItems
-     * @param {Object} body
-     */
-    static moveItemToProfile(fromItems, toItems, body)
-    {
-        InventoryController.handleCartridges(fromItems, body);
-
-        const idsToMove = ItemHelper.findAndReturnChildrenByItems(
-            fromItems,
-            body.item
-        );
-
-        for (const itemId of idsToMove)
-        {
-            for (const itemIndex in fromItems)
-            {
-                if (
-                    fromItems[itemIndex]._id &&
-                    fromItems[itemIndex]._id === itemId
-                )
-                {
-                    if (itemId === body.item)
-                    {
-                        fromItems[itemIndex].parentId = body.to.id;
-                        fromItems[itemIndex].slotId = body.to.container;
-
-                        if ("location" in body.to)
-                        {
-                            fromItems[itemIndex].location = body.to.location;
-                        }
-                        else
-                        {
-                            if (fromItems[itemIndex].location)
-                            {
-                                delete fromItems[itemIndex].location;
-                            }
-                        }
-                    }
-                    toItems.push(fromItems[itemIndex]);
-                    fromItems.splice(parseInt(itemIndex), 1);
-                }
-            }
-        }
-    }
-
-    /**
-     * Internal helper function to move item within the same profile_f.
-     *
-     * @param {Object} inventoryItems - Inventory items
-     * @param {Object} body - Request body
-     */
-    static moveItemInternal(inventoryItems, body)
-    {
-        InventoryController.handleCartridges(inventoryItems, body);
-
-        for (const inventoryItem of inventoryItems)
-        {
-            // Find item we want to 'move'
-            if (inventoryItem._id && inventoryItem._id === body.item)
-            {
-                Logger.debug(
-                    `${body.Action} item: ${body.item} from slotid: ${inventoryItem.slotId} to container: ${body.to.container}`
-                );
-
-                // don't move shells from camora to cartridges (happens when loading shells into mts-255 revolver shotgun)
-                if (
-                    inventoryItem.slotId.includes("camora_") &&
-                    body.to.container === "cartridges"
-                )
-                {
-                    Logger.warning(
-                        `tried to update item with slotid: ${inventoryItem.slotId} to ${body.to.container}, profile corruption prevented`
-                    );
-                    return;
-                }
-
-                // Edit items details to match its new location
-                inventoryItem.parentId = body.to.id;
-                inventoryItem.slotId = body.to.container;
-
-                if ("location" in body.to)
-                {
-                    inventoryItem.location = body.to.location;
-                }
-                else
-                {
-                    if (inventoryItem.location)
-                    {
-                        delete inventoryItem.location;
-                    }
-                }
-                return;
-            }
-        }
-    }
-
-    /**
-     * Internal helper function to handle cartridges in inventory if any of them exist.
-     *
-     * @param {Object} Items - Cartridges in question
-     * @param {Object} body  - Body of the Move request
-     */
-    static handleCartridges(items, body)
-    {
-        // -> Move item to different place - counts with equiping filling magazine etc
-        if (body.to.container === "cartridges")
-        {
-            let tmpCounter = 0;
-
-            for (const itemAmmo in items)
-            {
-                if (body.to.id === items[itemAmmo].parentId)
-                {
-                    tmpCounter++;
-                }
-            }
-            // wrong location for first cartrige
-            body.to.location = tmpCounter;
-        }
-    }
-
-    /**
      * Remove Item from Profile
      * Deep tree item deletion, also removes items from insurance list
-     *
-     * @param {Object} pmcData   - PMC Profile data as JSON Object
-     * @param {string} itemId    - ID of the inventory Item to be removed
-     * @param {string} sessionID - Session ID
-     * @param {Object} [output=undefined]  - output object
-     * @returns {Object} - returns output object
      */
     static removeItem(pmcData, itemId, sessionID, output = undefined)
     {
@@ -236,11 +38,6 @@ class InventoryController
     /**
      * Implements functionality "Discard" from Main menu (Stash etc.)
      * Removes item from PMC Profile
-     *
-     * @param {Object} pmcData - PMC Data portion of Profile Object
-     * @param {Object} body - rquest body
-     * @param {string} sessionID - session it
-     * @returns response object
      */
     static discardItem(pmcData, body, sessionID)
     {
@@ -255,21 +52,13 @@ class InventoryController
     /**
      * Split Item
      * spliting 1 item-stack into 2 separate items ...
-     *
-     * @param {Object} pmcData
-     * @param {Object} body
-     * @param {string} sessionID
-     * @returns
      */
     static splitItem(pmcData, body, sessionID)
     {
         const output = ItemEventRouter.getOutput(sessionID);
         let location = body.container.location;
 
-        const items = InventoryController.getOwnerInventoryItems(
-            body,
-            sessionID
-        );
+        const items = InventoryHelper.getOwnerInventoryItems(body, sessionID);
 
         if (
             !("location" in body.container) &&
@@ -326,19 +115,11 @@ class InventoryController
     /**
      * Merge Item
      * merges 2 items into one, deletes item from `body.item` and adding number of stacks into `body.with`
-     *
-     * @param {Object} pmcData      - PMC Part of profile
-     * @param {Object} body         - Request Body
-     * @param {string} sessionID    - Session ID
-     * @returns response
      */
     static mergeItem(pmcData, body, sessionID)
     {
         const output = ItemEventRouter.getOutput(sessionID);
-        const items = InventoryController.getOwnerInventoryItems(
-            body,
-            sessionID
-        );
+        const items = InventoryHelper.getOwnerInventoryItems(body, sessionID);
 
         for (const key in items.to)
         {
@@ -411,11 +192,6 @@ class InventoryController
     /**
      * Transfer item
      * Used to take items from scav inventory into stash or to insert ammo into mags (shotgun ones) and reloading weapon by clicking "Reload"
-     *
-     * @param {Object} pmcData
-     * @param {Object} body
-     * @param {string} sessionID
-     * @returns
      */
     static transferItem(pmcData, body, sessionID)
     {
@@ -483,11 +259,6 @@ class InventoryController
     /**
      * Swap Item
      * its used for "reload" if you have weapon in hands and magazine is somewhere else in rig or backpack in equipment
-     *
-     * @param {Object} pmcData
-     * @param {Object} body
-     * @param {string} sessionID
-     * @returns response object
      */
     static swapItem(pmcData, body, sessionID)
     {
@@ -515,15 +286,6 @@ class InventoryController
     /**
      * Give Item
      * its used for "add" item like gifts etc.
-     *
-     * @param {Object} pmcData   - PMC Part of profile as JSON object
-     * @param {Object} body      - request body
-     * @param {Object} output    - response body
-     * @param {string} sessionID     - Session ID
-     * @param {function} callback    - callback function
-     * @param {bool} [foundInRaid=false] - Found in Raid tag for given item
-     * @param {*} addUpd     - @Incomplete: ???
-     * @returns
      */
     static addItem(
         pmcData,
@@ -548,11 +310,6 @@ class InventoryController
 
     /**
      * Handles folding of Weapons
-     *
-     * @param {Object} pmcData
-     * @param {Object} body
-     * @param {string} sessionID
-     * @returns
      */
     static foldItem(pmcData, body, sessionID)
     {
@@ -583,11 +340,6 @@ class InventoryController
 
     /**
      * Toggles "Toggleable" items like night vision goggles and face shields.
-     *
-     * @param {Object} pmcData
-     * @param {Object} body
-     * @param {string} sessionID
-     * @returns
      */
     static toggleItem(pmcData, body, sessionID)
     {
@@ -619,11 +371,6 @@ class InventoryController
 
     /**
      * Handles Tagging of items (primary Containers).
-     *
-     * @param {Object} pmcData
-     * @param {Object} body
-     * @param {string} sessionID
-     * @returns
      */
     static tagItem(pmcData, body, sessionID)
     {
@@ -648,21 +395,12 @@ class InventoryController
             }
         }
 
-        //return "";
         return {
             warnings: [],
             profileChanges: {},
         };
     }
 
-    /**
-     * @Incomplete: ???
-     *
-     * @param {Object} pmcData
-     * @param {Object} body
-     * @param {string} sessionID
-     * @returns
-     */
     static bindItem(pmcData, body, sessionID)
     {
         for (const index in pmcData.Inventory.fastPanel)
@@ -678,67 +416,43 @@ class InventoryController
     }
 
     /**
-     * Handles examining of the item
-     *
-     * @param {Object} pmcData
-     * @param {Object} body
-     * @param {string} sessionID
-     * @returns
+     * Handles examining an item
+     * @param pmcData player profile
+     * @param body request object
+     * @param sessionID session id
+     * @returns response
      */
     static examineItem(pmcData, body, sessionID)
     {
-        let itemID = "";
-
+        let itemId = "";
         if ("fromOwner" in body)
         {
-            // scan ragfair as a trader
-            if (body.fromOwner.type === "RagFair")
+            try
             {
-                body.fromOwner.type = "Trader";
+                itemId = InventoryController.getExaminedItemTpl(body);
             }
-
-            // get trader assort
-            if (body.fromOwner.type === "Trader")
+            catch
             {
-                try
-                {
-                    const traderItems =
-                        DatabaseServer.tables.traders[body.fromOwner.id].assort
-                            .items;
-                    const examinedItem = traderItems.find(
-                        item => item._id === body.item
-                    );
-                    itemID = examinedItem._tpl;
-                }
-                catch
-                {
-                    console.log(`No id with ${body.item} found.`);
-                }
+                Logger.error(`examineItem() - No id with ${body.item} found.`);
             }
 
             // get hideout item
             if (body.fromOwner.type === "HideoutProduction")
             {
-                itemID = body.item;
+                itemId = body.item;
             }
         }
 
-        if (PresetHelper.isPreset(itemID))
-        {
-            // item preset
-            itemID = PresetHelper.getBaseItemTpl(itemID);
-        }
-
-        if (!itemID)
+        if (!itemId)
         {
             // item template
-            if (body.item in DatabaseServer.tables.templates.items)
+            if (body.item in DatabaseServer.getTables().templates.items)
             {
-                itemID = body.item;
+                itemId = body.item;
             }
         }
 
-        if (!itemID)
+        if (!itemId)
         {
             // player inventory
             const target = pmcData.Inventory.items.find(item =>
@@ -748,20 +462,76 @@ class InventoryController
 
             if (target)
             {
-                itemID = target._tpl;
+                itemId = target._tpl;
             }
         }
 
-        if (itemID)
+        if (itemId)
         {
             // item found
-            const item = DatabaseServer.tables.templates.items[itemID];
+            const item = DatabaseServer.getTables().templates.items[itemId];
 
             pmcData.Info.Experience += item._props.ExamineExperience;
-            pmcData.Encyclopedia[itemID] = true;
+            pmcData.Encyclopedia[itemId] = true;
         }
 
         return ItemEventRouter.getOutput(sessionID);
+    }
+
+    /**
+     * Get the tplid of an item from the examine request object
+     * @param body response request
+     * @returns tplid
+     */
+    static getExaminedItemTpl(body)
+    {
+        if (PresetHelper.isPreset(body.item))
+        {
+            return PresetHelper.getBaseItemTpl(body.item);
+        }
+        else if (body.fromOwner.id === Traders.FENCE)
+        {
+            // get tpl from fence assorts
+            return FenceService.getFenceAssorts().items.find(
+                x => x._id === body.item
+            )._tpl;
+        }
+        else if (body.fromOwner.type === "Trader")
+        {
+            // not fence
+            // get tpl from trader assort
+            return DatabaseServer.getTables().traders[
+                body.fromOwner.id
+            ].assort.items.find(item => item._id === body.item)._tpl;
+        }
+        else if (body.fromOwner.type === "RagFair")
+        {
+            // try to get tplid from items.json first
+            const item = DatabaseServer.getTables().templates.items[body.item];
+            if (item)
+            {
+                return item._id;
+            }
+
+            // try alternate way of getting offer if first approach fails
+            let offer = RagfairOfferService.getOfferByOfferId(body.item);
+            if (!offer)
+            {
+                offer = RagfairOfferService.getOfferByOfferId(
+                    body.fromOwner.id
+                );
+            }
+
+            // try find examine item inside offer items array
+            const matchingItem = offer.items.find(x => x._id === body.item);
+            if (matchingItem)
+            {
+                return matchingItem._tpl;
+            }
+
+            // unable to find item in database or ragfair
+            throw new Error(`Unable to find item: ${body.item}`);
+        }
     }
 
     static readEncyclopedia(pmcData, body, sessionID)
@@ -776,11 +546,6 @@ class InventoryController
 
     /**
      * Handles sorting of Inventory.
-     *
-     * @param {Object} pmcData
-     * @param {Object} body
-     * @param {string} sessionID
-     * @returns
      */
     static sortInventory(pmcData, body, sessionID)
     {

@@ -4,6 +4,9 @@ require("../Lib.js");
 
 class LookupItem
 {
+    byId;
+    byParent;
+
     constructor()
     {
         this.byId = {};
@@ -13,6 +16,9 @@ class LookupItem
 
 class LookupCollection
 {
+    items;
+    categories;
+
     constructor()
     {
         this.items = new LookupItem();
@@ -26,27 +32,29 @@ class HandbookController
     {
         const lookup = new LookupCollection();
 
-        for (const handbookItem of DatabaseServer.tables.templates.handbook
+        for (const handbookItem of DatabaseServer.getTables().templates.handbook
             .Items)
         {
             lookup.items.byId[handbookItem.Id] = handbookItem.Price;
-            lookup.items.byParent[handbookItem.ParentId] ||
-                (lookup.items.byParent[handbookItem.ParentId] = []);
+            if (!lookup.items.byParent[handbookItem.ParentId])
+            {
+                lookup.items.byParent[handbookItem.ParentId] = [];
+            }
             lookup.items.byParent[handbookItem.ParentId].push(handbookItem.Id);
         }
 
-        for (const handbookCategory of DatabaseServer.tables.templates.handbook
-            .Categories)
+        for (const handbookCategory of DatabaseServer.getTables().templates
+            .handbook.Categories)
         {
             lookup.categories.byId[handbookCategory.Id] =
                 handbookCategory.ParentId ? handbookCategory.ParentId : null;
 
             if (handbookCategory.ParentId)
             {
-                // root as no parent
-                lookup.categories.byParent[handbookCategory.ParentId] ||
-                    (lookup.categories.byParent[handbookCategory.ParentId] =
-                        []);
+                if (!lookup.categories.byParent[handbookCategory.ParentId])
+                {
+                    lookup.categories.byParent[handbookCategory.ParentId] = [];
+                }
                 lookup.categories.byParent[handbookCategory.ParentId].push(
                     handbookCategory.Id
                 );

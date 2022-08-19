@@ -22,7 +22,7 @@ class App
             App.onLoad[callback]();
         }
 
-        setInterval(App.update, 1000);
+        setInterval(App.update, 5000);
     }
 
     static update()
@@ -40,10 +40,7 @@ class App
             }
             catch (err)
             {
-                Logger.error(
-                    `Scheduled event: '${taskId}' failed to run successfully.`
-                );
-                console.log(err);
+                App.logUpdateException(err, taskId);
             }
 
             if (success)
@@ -62,6 +59,22 @@ class App
                     );
                 }
             }
+        }
+    }
+
+    static logUpdateException(err, taskId)
+    {
+        Logger.error(
+            `Scheduled event: '${taskId.getRoute()}' failed to run successfully.`
+        );
+        if (err.message)
+        {
+            Logger.error(err.message);
+        }
+
+        if (err.stack)
+        {
+            Logger.error(err.stack);
         }
     }
 }

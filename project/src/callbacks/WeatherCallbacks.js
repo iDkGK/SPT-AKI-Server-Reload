@@ -6,7 +6,7 @@ class WeatherCallbacks
 {
     static getWeather(url, info, sessionID)
     {
-        return HttpResponse.getBody(WeatherController.generate());
+        return HttpResponseUtil.getBody(WeatherController.generate());
     }
 }
 

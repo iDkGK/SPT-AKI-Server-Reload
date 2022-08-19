@@ -11,7 +11,7 @@ class RepairCallbacks
 
     static repair(pmcData, body, sessionID)
     {
-        return RepairController.repair(pmcData, body, sessionID);
+        return RepairController.repairWithKit(pmcData, body, sessionID);
     }
 }
 

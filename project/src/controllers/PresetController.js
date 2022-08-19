@@ -7,7 +7,7 @@ class PresetController
     static initialize()
     {
         const presets = Object.values(
-            DatabaseServer.tables.globals.ItemPresets
+            DatabaseServer.getTables().globals.ItemPresets
         );
         const reverse = {};
 

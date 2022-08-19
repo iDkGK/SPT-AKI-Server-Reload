@@ -8,7 +8,7 @@ class HashUtil
 {
     static generate()
     {
-        const shasum = crypto.createHash("sha1");
+        const shasum = crypto.createHash("sha256");
         const time = Math.random() * TimeUtil.getTimestamp();
 
         shasum.update(time.toString());

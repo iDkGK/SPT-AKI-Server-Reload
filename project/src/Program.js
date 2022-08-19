@@ -15,9 +15,6 @@ class Program
         // enable exception logging
         Logger.initialize();
 
-        // load all configs
-        ConfigServer.initialize();
-
         // show watermark
         Watermark.initialize();
         Watermark.setTitle();

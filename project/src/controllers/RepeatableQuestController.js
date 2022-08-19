@@ -29,7 +29,7 @@ class RepeatableQuestController
      * @param   {string}    sessionId       Player's session id
      * @returns  {array}                    array of "repeatableQuestObjects" as descibed above
      */
-    static getClientRepeatableQuests(info, sessionID)
+    static getClientRepeatableQuests(_info, sessionID)
     {
         const returnData = [];
         const pmcData = ProfileHelper.getPmcProfile(sessionID);
@@ -59,46 +59,41 @@ class RepeatableQuestController
                     currentRepeatable.endTime =
                         time + repeatableConfig.resetTime;
                     currentRepeatable.inactiveQuests = [];
-                    console.log(`Generating new ${repeatableConfig.name}`);
+                    Logger.debug(`Generating new ${repeatableConfig.name}`);
 
                     // put old quests to inactive (this is required since only then the client makes them fail due to non-completion)
                     // we also need to push them to the "inactiveQuests" list since we need to remove them from offraidData.profile.Quests
                     // after a raid (the client seems to keep quests internally and we want to get rid of old repeatable quests)
                     // and remove them from the PMC's Quests and RepeatableQuests[i].activeQuests
                     const questsToKeep = [];
-                    for (
-                        let i = 0;
-                        i < currentRepeatable.activeQuests.length;
-                        i++
-                    )
+                    //for (let i = 0; i < currentRepeatable.activeQuests.length; i++)
+                    for (const activeQuest of currentRepeatable.activeQuests)
                     {
-                        const qid = currentRepeatable.activeQuests[i]._id;
-
                         // check if the quest is ready to be completed, if so, don't remove it
-                        const quest = pmcData.Quests.filter(q => q.qid === qid);
+                        const quest = pmcData.Quests.filter(
+                            q => q.qid === activeQuest._id
+                        );
                         if (quest.length > 0)
                         {
-                            if (quest[0].status === "AvailableForFinish")
+                            if (
+                                quest[0].status ===
+                                QuestStatus.AvailableForFinish
+                            )
                             {
-                                questsToKeep.push(
-                                    currentRepeatable.activeQuests[i]
-                                );
+                                questsToKeep.push(activeQuest);
                                 Logger.debug(
-                                    `Keeping repeatable quest ${qid} in activeQuests since it is available to AvailableForFinish`
+                                    `Keeping repeatable quest ${activeQuest._id} in activeQuests since it is available to AvailableForFinish`
                                 );
                                 continue;
                             }
                         }
-                        pmcData.ConditionCounters.Counters =
-                            pmcData.ConditionCounters.Counters.filter(
-                                c => c.qid !== qid
-                            );
+                        ProfileFixerService.removeDanglingConditionCounters(
+                            pmcData
+                        );
                         pmcData.Quests = pmcData.Quests.filter(
-                            q => q.qid !== qid
+                            q => q.qid !== activeQuest._id
                         );
-                        currentRepeatable.inactiveQuests.push(
-                            currentRepeatable.activeQuests[i]
-                        );
+                        currentRepeatable.inactiveQuests.push(activeQuest);
                     }
                     currentRepeatable.activeQuests = questsToKeep;
 
@@ -141,7 +136,7 @@ class RepeatableQuestController
                 }
                 else
                 {
-                    console.log(
+                    Logger.debug(
                         `[Quest Check] ${repeatableConfig.name} quests are still valid.`
                     );
                 }
@@ -172,12 +167,6 @@ class RepeatableQuestController
     /**
      * This method is called by GetClientRepeatableQuests and creates one element of quest type format (see assets/database/templates/repeatableQuests.json).
      * It randomly draws a quest type (currently Elimination, Completion or Exploration) as well as a trader who is providing the quest
-     *
-     * @param   {string}    pmcLevel            Player's level which is used for reward generation (and can in the future be used for quest difficulty)
-     * @param   {object}    pmcTraderInfo       List of traders with unlocked information for current pmc
-     * @param   {object}    questPoolType       The quest pool to draw from
-     * @param   {object}    repeatableConfig    The configuration for the repeatably kind (daily, weekly) as configured in QuestConfig for the requestd quest
-     * @returns {object}                        object of quest type format (see assets/database/templates/repeatableQuests.json)
      */
     static generateRepeatableQuest(
         pmcLevel,
@@ -219,17 +208,14 @@ class RepeatableQuestController
                     repeatableConfig
                 );
             default:
-                throw "Unknown mission type. Should never be here!";
+                throw new Error(
+                    `Unknown mission type ${questType}. Should never be here!`
+                );
         }
     }
 
     /**
      * Just for debug reasons. Draws dailies a random assort of dailies extracted from dumps
-     *
-     * @param   {array}     dailiesPool     array of dailies, for format see assets/database/templates/repeatableQuests.json
-     * @param   {boolean}   factory         if set, a factory extaction quest will always be added (fast completion possible for debugging)
-     * @param   {integer}   number               amount of quests to draw
-     * @returns {object}                    array of objects of quest type format (see assets/database/templates/repeatableQuests.json)
      */
     static generateDebugDailies(dailiesPool, factory, number)
     {
@@ -242,18 +228,18 @@ class RepeatableQuestController
         }
 
         randomQuests = randomQuests.concat(
-            RandomUtil.drawRandomFromList(dailiesPool, 3, false)
+            RandomUtil.drawRandomFromList(dailiesPool, number, false)
         );
 
         for (let i = 0; i < randomQuests.length; i++)
         {
             randomQuests[i]._id = ObjectId.generate();
             const conditions = randomQuests[i].conditions.AvailableForFinish;
-            for (let i = 0; i < conditions.length; i++)
+            for (let j = 0; j < conditions.length; j++)
             {
-                if ("counter" in conditions[i]._props)
+                if ("counter" in conditions[j]._props)
                 {
-                    conditions[i]._props.counter.id = ObjectId.generate();
+                    conditions[j]._props.counter.id = ObjectId.generate();
                 }
             }
         }
@@ -269,10 +255,13 @@ class RepeatableQuestController
      * @returns {object}                    a object which contains the base elements for repeatable quests of the requests type
      *                                      (needs to be filled with reward and conditions by called to make a valid quest)
      */
+    // @Incomplete: define Type for "type".
     static generateRepeatableTemplate(type, traderId)
     {
         const quest = JsonUtil.clone(
-            DatabaseServer.tables.templates.repeatableQuests.templates[type]
+            DatabaseServer.getTables().templates.repeatableQuests.templates[
+                type
+            ]
         );
         quest._id = ObjectId.generate();
         quest.traderId = traderId;
@@ -295,6 +284,7 @@ class RepeatableQuestController
             "{traderId}",
             traderId
         );
+
         return quest;
     }
 
@@ -334,10 +324,6 @@ class RepeatableQuestController
         )[0];
         const locationTarget =
             questTypePool.pool.Exploration.locations[locationKey];
-        // if (locationKey === "factory4_day")
-        // {
-        //     locationTarget = RandomUtil.DrawRandomFromList(LOCATIONS["factory4_day"], RandomUtil.RandInt(1, 3), false);
-        // }
 
         // remove the location from the available pool
         delete questTypePool.pool.Exploration.locations[locationKey];
@@ -368,6 +354,7 @@ class RepeatableQuestController
                 target: locationTarget,
             },
         };
+
         quest.conditions.AvailableForFinish[0]._props.counter.id =
             ObjectId.generate();
         quest.conditions.AvailableForFinish[0]._props.counter.conditions = [
@@ -385,7 +372,7 @@ class RepeatableQuestController
         {
             // filter by whitelist, it's also possible that the field "PassageRequirement" does not exist (e.g. shoreline)
             // scav exits are not listed at all in locations.base currently. If that changes at some point, additional filtering will be required
-            const possibleExists = DatabaseServer.tables.locations[
+            const possibleExists = DatabaseServer.getTables().locations[
                 locationKey.toLowerCase()
             ].base.exits.filter(
                 x =>
@@ -468,8 +455,8 @@ class RepeatableQuestController
         if (repeatableConfig.questConfig.Completion.useWhitelist)
         {
             const itemWhitelist =
-                DatabaseServer.tables.templates.repeatableQuests.data.Completion
-                    .itemsWhitelist;
+                DatabaseServer.getTables().templates.repeatableQuests.data
+                    .Completion.itemsWhitelist;
             // we filter and concatenate the arrays according to current player level
             const itemIdsWhitelisted = itemWhitelist
                 .filter(p => p.minPlayerLevel <= pmcLevel)
@@ -488,8 +475,8 @@ class RepeatableQuestController
         if (repeatableConfig.questConfig.Completion.useBlacklist)
         {
             const itemBlacklist =
-                DatabaseServer.tables.templates.repeatableQuests.data.Completion
-                    .itemsBlacklist;
+                DatabaseServer.getTables().templates.repeatableQuests.data
+                    .Completion.itemsBlacklist;
             // we filter and concatenate the arrays according to current player level
             const itemIdsBlacklisted = itemBlacklist
                 .filter(p => p.minPlayerLevel <= pmcLevel)
@@ -505,7 +492,7 @@ class RepeatableQuestController
         if (itemSelection.length === 0)
         {
             Logger.error(
-                "Generate Completion Quest: No items remain. Either Whitelist is too small or Blacklist to restrictive."
+                "Generate Completion Quest: No items remain. Either Whitelist is too small or Blacklist too restrictive."
             );
             return null;
         }
@@ -518,12 +505,7 @@ class RepeatableQuestController
             const itemUnitPrice = ItemHelper.getItemPrice(itemSelected[0]);
             let minValue = completionConfig.minRequestedAmount;
             let maxValue = completionConfig.maxRequestedAmount;
-            if (
-                ItemHelper.isOfBaseclass(
-                    itemSelected[0],
-                    ItemHelper.BASECLASS.Ammo
-                )
-            )
+            if (ItemHelper.isOfBaseclass(itemSelected[0], BaseClasses.AMMO))
             {
                 minValue = completionConfig.minRequestedBulletAmount;
                 maxValue = completionConfig.maxRequestedBulletAmount;
@@ -612,7 +594,7 @@ class RepeatableQuestController
         // - from what distance they should be killed
         // a random combination of listed conditions can be required
         // possible conditions elements and their relative probability can be defined in QuestConfig.js
-        // We use RandomUtil.ProbabilityObjectArray to draw by relative probability. e.g. for targets:
+        // We use ProbabilityObjectArray to draw by relative probability. e.g. for targets:
         // "targets": {
         //    "Savage": 7,
         //    "AnyPmc": 2,
@@ -739,7 +721,9 @@ class RepeatableQuestController
         if (targetsConfig.data(targetKey).isBoss)
         {
             // get all boss spawn information
-            const bossSpawns = Object.values(DatabaseServer.tables.locations)
+            const bossSpawns = Object.values(
+                DatabaseServer.getTables().locations
+            )
                 .filter(x => "base" in x && "Id" in x.base)
                 .map(x => ({
                     Id: x.base.Id,
@@ -859,12 +843,12 @@ class RepeatableQuestController
     static generateExplorationExitCondition(exit)
     {
         return {
+            _parent: "ExitName",
             _props: {
                 exitName: exit.Name,
                 id: ObjectId.generate(),
                 dynamicLocale: true,
             },
-            _parent: "ExitName",
         };
     }
 
@@ -881,25 +865,16 @@ class RepeatableQuestController
         let minDurability = 0;
         let onlyFoundInRaid = true;
         if (
-            ItemHelper.isOfBaseclass(
-                targetItemId,
-                ItemHelper.BASECLASS.Weapon
-            ) ||
-            ItemHelper.isOfBaseclass(targetItemId, ItemHelper.BASECLASS.Armor)
+            ItemHelper.isOfBaseclass(targetItemId, BaseClasses.WEAPON) ||
+            ItemHelper.isOfBaseclass(targetItemId, BaseClasses.ARMOR)
         )
         {
             minDurability = 80;
         }
 
         if (
-            ItemHelper.isOfBaseclass(
-                targetItemId,
-                ItemHelper.BASECLASS.DogTagUsec
-            ) ||
-            ItemHelper.isOfBaseclass(
-                targetItemId,
-                ItemHelper.BASECLASS.DogTagBear
-            )
+            ItemHelper.isOfBaseclass(targetItemId, BaseClasses.DOG_TAG_USEC) ||
+            ItemHelper.isOfBaseclass(targetItemId, BaseClasses.DOG_TAG_BEAR)
         )
         {
             onlyFoundInRaid = false;
@@ -998,7 +973,9 @@ class RepeatableQuestController
         const questPool = {
             types: repeatableConfig.types.slice(),
             pool: {
-                Exploration: {},
+                Exploration: {
+                    locations: {},
+                },
                 Elimination: {
                     targets: {},
                 },
@@ -1006,7 +983,7 @@ class RepeatableQuestController
         };
         for (const location in repeatableConfig.locations)
         {
-            if (location !== "any")
+            if (location !== ELocationName.ANY)
             {
                 questPool.pool.Exploration.locations[location] =
                     repeatableConfig.locations[location];
@@ -1114,15 +1091,9 @@ class RepeatableQuestController
         // blacklist
         let itemSelection = rewardableItems.filter(
             x =>
-                !ItemHelper.isOfBaseclass(
-                    x[0],
-                    ItemHelper.BASECLASS.DogTagUsec
-                ) &&
-                !ItemHelper.isOfBaseclass(
-                    x[0],
-                    ItemHelper.BASECLASS.DogTagBear
-                ) &&
-                !ItemHelper.isOfBaseclass(x[0], ItemHelper.BASECLASS.Mount)
+                !ItemHelper.isOfBaseclass(x[0], BaseClasses.DOG_TAG_USEC) &&
+                !ItemHelper.isOfBaseclass(x[0], BaseClasses.DOG_TAG_BEAR) &&
+                !ItemHelper.isOfBaseclass(x[0], BaseClasses.MOUNT)
         );
         const minPrice = Math.min(25000, 0.5 * roublesBudget);
         itemSelection = itemSelection.filter(
@@ -1138,18 +1109,9 @@ class RepeatableQuestController
             // in case we don't find any items in the price range
             itemSelection = rewardableItems.filter(
                 x =>
-                    !ItemHelper.isOfBaseclass(
-                        x[0],
-                        ItemHelper.BASECLASS.DogTagUsec
-                    ) &&
-                    !ItemHelper.isOfBaseclass(
-                        x[0],
-                        ItemHelper.BASECLASS.DogTagBear
-                    ) &&
-                    !ItemHelper.isOfBaseclass(
-                        x[0],
-                        ItemHelper.BASECLASS.Mount
-                    ) &&
+                    !ItemHelper.isOfBaseclass(x[0], BaseClasses.DOG_TAG_USEC) &&
+                    !ItemHelper.isOfBaseclass(x[0], BaseClasses.DOG_TAG_BEAR) &&
+                    !ItemHelper.isOfBaseclass(x[0], BaseClasses.MOUNT) &&
                     ItemHelper.getItemPrice(x[0]) < roublesBudget
             );
         }
@@ -1166,11 +1128,11 @@ class RepeatableQuestController
             Fail: [],
         };
 
-        if (traderId !== TraderHelper.TRADER.Peacekeeper)
+        if (traderId !== Traders.PEACEKEEPER)
         {
             rewards.Success.push(
                 RepeatableQuestController.generateRewardItem(
-                    ItemHelper.MONEY.Roubles,
+                    Money.ROUBLES,
                     rewardRoubles,
                     1
                 )
@@ -1181,7 +1143,7 @@ class RepeatableQuestController
             // convert to equivalent dollars
             rewards.Success.push(
                 RepeatableQuestController.generateRewardItem(
-                    ItemHelper.MONEY.Dollars,
+                    Money.DOLLARS,
                     Math.floor(rewardRoubles / 142.86),
                     1
                 )
@@ -1198,10 +1160,7 @@ class RepeatableQuestController
                 const itemSelected =
                     itemSelection[RandomUtil.randInt(itemSelection.length)];
                 if (
-                    ItemHelper.isOfBaseclass(
-                        itemSelected[0],
-                        ItemHelper.BASECLASS.Ammo
-                    )
+                    ItemHelper.isOfBaseclass(itemSelected[0], BaseClasses.AMMO)
                 )
                 {
                     // if we provide ammo we don't to provide just one bullet
@@ -1213,7 +1172,7 @@ class RepeatableQuestController
                 else if (
                     ItemHelper.isOfBaseclass(
                         itemSelected[0],
-                        ItemHelper.BASECLASS.Weapon
+                        BaseClasses.WEAPON
                     )
                 )
                 {
@@ -1221,7 +1180,7 @@ class RepeatableQuestController
                     const defaultPreset = presets.find(x => x._encyclopedia);
                     if (defaultPreset)
                     {
-                        children = RagfairServer.reparentPresets(
+                        children = RagfairServerHelper.reparentPresets(
                             defaultPreset._items[0],
                             defaultPreset._items
                         );
@@ -1302,7 +1261,10 @@ class RepeatableQuestController
 
         if (preset)
         {
-            rewardItem.items = RagfairServer.reparentPresets(rootItem, preset);
+            rewardItem.items = RagfairServerHelper.reparentPresets(
+                rootItem,
+                preset
+            );
         }
         else
         {
@@ -1429,9 +1391,11 @@ class RepeatableQuestController
                 return output;
             }
         }
+
         output.profileChanges[sessionID].repeatableQuests = [
             repeatableToChange,
         ];
+
         return output;
     }
 }

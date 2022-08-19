@@ -30,10 +30,7 @@ class LocationGenerator
             .itemcountDistribution)
         {
             itemCountArray.push(
-                new RandomUtil.ProbabilityObject(
-                    icd.count,
-                    icd.relativeProbability
-                )
+                new ProbabilityObject(icd.count, icd.relativeProbability)
             );
         }
         const numberItems = Math.round(
@@ -45,10 +42,7 @@ class LocationGenerator
         for (const icd of staticLootDist[containerTypeId].itemDistribution)
         {
             itemDistribution.push(
-                new RandomUtil.ProbabilityObject(
-                    icd.tpl,
-                    icd.relativeProbability
-                )
+                new ProbabilityObject(icd.tpl, icd.relativeProbability)
             );
         }
 
@@ -59,11 +53,7 @@ class LocationGenerator
 
         // Draw random loot
         // money spawn more than once in container
-        const locklist = [
-            ItemHelper.MONEY.Roubles,
-            ItemHelper.MONEY.Dollars,
-            ItemHelper.MONEY.Euros,
-        ];
+        const locklist = [Money.ROUBLES, Money.DOLLARS, Money.EUROS];
         const tplsDraw = itemDistribution.draw(numberItems, false, locklist);
         const tpls = tplsForced.concat(tplsDraw);
         for (const tpl of tpls)
@@ -154,11 +144,7 @@ class LocationGenerator
         for (const si of dynamicDist)
         {
             spawnpointArray.push(
-                new RandomUtil.ProbabilityObject(
-                    si.template.Id,
-                    si.probability,
-                    si
-                )
+                new ProbabilityObject(si.template.Id, si.probability, si)
             );
         }
 
@@ -186,7 +172,7 @@ class LocationGenerator
             for (const itemDist of spi.itemDistribution)
             {
                 itemArray.push(
-                    new RandomUtil.ProbabilityObject(
+                    new ProbabilityObject(
                         itemDist.tpl,
                         itemDist.relativeProbability
                     )
@@ -219,10 +205,6 @@ class LocationGenerator
             {
                 _id: ObjectId.generate(),
                 _tpl: tpl,
-                parentId: undefined,
-                slotId: undefined,
-                location: undefined,
-                upd: undefined,
             },
         ];
 
@@ -234,7 +216,7 @@ class LocationGenerator
 
         let width = itemTemplate._props.Width;
         let height = itemTemplate._props.Height;
-        if (ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Weapon))
+        if (ItemHelper.isOfBaseclass(tpl, BaseClasses.WEAPON))
         {
             let children = [];
             const defaultPreset = JsonUtil.clone(
@@ -244,7 +226,7 @@ class LocationGenerator
             {
                 try
                 {
-                    children = RagfairServer.reparentPresets(
+                    children = RagfairServerHelper.reparentPresets(
                         defaultPreset._items[0],
                         defaultPreset._items
                     );
@@ -262,9 +244,38 @@ class LocationGenerator
                     throw error;
                 }
             }
+            else
+            {
+                // RSP30 (62178be9d0050232da3485d9) doesnt have any default presets and kills this code below as it has no chidren to reparent
+                Logger.debug(`createItem() No preset found for weapon: ${tpl}`);
+            }
 
             const rootItem = items[0];
-            items = RagfairServer.reparentPresets(rootItem, children);
+            if (!rootItem)
+            {
+                Logger.error(
+                    `createItem() failed, root item is null, tpl: ${tpl}, parentId: ${parentId}`
+                );
+                throw new Error();
+            }
+
+            try
+            {
+                if (children?.length > 0)
+                {
+                    items = RagfairServerHelper.reparentPresets(
+                        rootItem,
+                        children
+                    );
+                }
+            }
+            catch (error)
+            {
+                Logger.error(
+                    `createItem() failed, unable to reparent ${rootItem._tpl}, parentId: ${parentId}`
+                );
+                throw error;
+            }
 
             // Here we should use generalized BotGenerators functions e.g. fillExistingMagazines in the future since
             // it can handle revolver ammo (it's not restructured to be used here yet.)
@@ -297,8 +308,8 @@ class LocationGenerator
         }
 
         if (
-            ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Money) ||
-            ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Ammo)
+            ItemHelper.isOfBaseclass(tpl, BaseClasses.MONEY) ||
+            ItemHelper.isOfBaseclass(tpl, BaseClasses.AMMO)
         )
         {
             const stackCount = RandomUtil.getInt(
@@ -307,9 +318,7 @@ class LocationGenerator
             );
             items[0].upd = { StackObjectsCount: stackCount };
         }
-        else if (
-            ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.AmmoBox)
-        )
+        else if (ItemHelper.isOfBaseclass(tpl, BaseClasses.AMMO_BOX))
         {
             const tpl =
                 itemTemplate._props.StackSlots[0]._props.filters[0].Filter[0];
@@ -321,9 +330,7 @@ class LocationGenerator
                 )
             );
         }
-        else if (
-            ItemHelper.isOfBaseclass(tpl, ItemHelper.BASECLASS.Magazine)
-        )
+        else if (ItemHelper.isOfBaseclass(tpl, BaseClasses.MAGAZINE))
         {
             items.push(
                 LocationGenerator.createRandomMagCartridges(
@@ -371,10 +378,7 @@ class LocationGenerator
         for (const icd of staticAmmoDist[caliber])
         {
             ammoArray.push(
-                new RandomUtil.ProbabilityObject(
-                    icd.tpl,
-                    icd.relativeProbability
-                )
+                new ProbabilityObject(icd.tpl, icd.relativeProbability)
             );
         }
         return ammoArray.draw(1)[0];

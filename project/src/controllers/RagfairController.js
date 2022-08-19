@@ -4,54 +4,84 @@ require("../Lib.js");
 
 class RagfairController
 {
+    static update()
+    {
+        for (const sessionID in SaveServer.getProfiles())
+        {
+            if (
+                SaveServer.getProfile(sessionID).characters.pmc.RagfairInfo !==
+                undefined
+            )
+            {
+                RagfairOfferHelper.processOffersOnProfile(sessionID);
+            }
+        }
+    }
+
     static getOffers(sessionID, info)
     {
         const itemsToAdd = RagfairHelper.filterCategories(sessionID, info);
         const assorts = RagfairHelper.getDisplayableAssorts(sessionID);
         const result = {
-            categories: {},
             offers: [],
             offersCount: info.limit,
-            selectedCategory: "5b5f78dc86f77409407a7f8e",
+            selectedCategory: info.handbookId,
         };
 
         // force all trader types in weapon preset build purchase
         if (info.buildCount)
         {
-            info.offerOwnerType =
-                RagfairServerHelper.offerOwnerType.anyOwnerType;
+            info.offerOwnerType = OfferOwnerType.ANYOWNERTYPE;
             info.onlyFunctional = false;
         }
 
-        // get offer categories
-        if (!info.linkedSearchId && !info.neededSearchId)
-        {
-            result.categories = RagfairServer.getCategories();
-        }
-
         const pmcProfile = ProfileHelper.getPmcProfile(sessionID);
-        result.offers = info.buildCount
-            ? RagfairHelper.getOffersForBuild(
-                info,
-                itemsToAdd,
-                assorts,
-                pmcProfile
-            )
-            : RagfairHelper.getValidOffers(
+
+        if (info.buildCount)
+        {
+            result.offers = RagfairOfferHelper.getOffersForBuild(
                 info,
                 itemsToAdd,
                 assorts,
                 pmcProfile
             );
+        }
+        else
+        {
+            result.offers = RagfairOfferHelper.getValidOffers(
+                info,
+                itemsToAdd,
+                assorts,
+                pmcProfile
+            );
+        }
 
+        // get offer categories
+        if (
+            RagfairController.isLinkedSearch(info) ||
+            RagfairController.isRequiredSearch(info)
+        )
+        {
+            result.categories = RagfairServer.getBespokeCategories(
+                result.offers
+            );
+        }
+
+        if (info.linkedSearchId === "" && info.neededSearchId === "")
+        {
+            result.categories = RagfairServer.getAllCategories();
+        }
+
+        // if this is true client request "required search"
         if (info.neededSearchId)
         {
-            const requiredOffers =
-                RagfairServer.requiredItemsCache[info.neededSearchId] || [];
+            const requiredOffers = RagfairRequiredItemsService.getRequiredItems(
+                info.neededSearchId
+            );
             for (const offer of requiredOffers)
             {
                 if (
-                    RagfairHelper.isDisplayableOffer(
+                    RagfairOfferHelper.isDisplayableOffer(
                         info,
                         null,
                         assorts,
@@ -75,7 +105,7 @@ class RagfairController
         }
 
         // sort offers
-        result.offers = RagfairHelper.sortOffers(
+        result.offers = RagfairSortHelper.sortOffers(
             result.offers,
             info.sortType,
             info.sortDirection
@@ -87,37 +117,31 @@ class RagfairController
         return result;
     }
 
-    static update()
+    static isLinkedSearch(info)
     {
-        for (const sessionID in SaveServer.getProfiles())
-        {
-            if (
-                SaveServer.getProfile(sessionID).characters.pmc.RagfairInfo !==
-                undefined
-            )
-            {
-                RagfairHelper.processOffers(sessionID);
-            }
-        }
+        return info.linkedSearchId !== "";
+    }
+
+    static isRequiredSearch(info)
+    {
+        return info.neededSearchId !== "";
     }
 
     static getItemPrice(info)
     {
         // get all items of tpl (sort by price)
-        let offers = RagfairServer.offers.filter(offer =>
-        {
-            return offer.items[0]._tpl === info.templateId;
-        });
+        let offers = RagfairOfferService.getOffersOfType(info.templateId);
 
         if (typeof offers === "object" && offers.length > 0)
         {
-            offers = RagfairHelper.sortOffers(offers, 5);
+            offers = RagfairSortHelper.sortOffers(offers, 5);
             // average
             let avg = 0;
             for (const offer of offers)
             {
                 avg += offer.itemsCost;
             }
+
             return {
                 avg: avg / offers.length,
                 min: offers[0].itemsCost,
@@ -127,7 +151,8 @@ class RagfairController
         else
         {
             const tplPrice =
-                DatabaseServer.tables.templates.prices[info.templateId];
+                DatabaseServer.getTables().templates.prices[info.templateId];
+
             return {
                 avg: tplPrice,
                 min: tplPrice,
@@ -145,12 +170,12 @@ class RagfairController
         if (!info || !info.items || info.items.length === 0)
         {
             Logger.error("Invalid addOffer request");
-            return HttpResponse.appendErrorToOutput(output);
+            return HttpResponseUtil.appendErrorToOutput(output);
         }
 
         if (!info.requirements)
         {
-            return HttpResponse.appendErrorToOutput(
+            return HttpResponseUtil.appendErrorToOutput(
                 output,
                 "How did you place the offer with no requirements?"
             );
@@ -170,7 +195,7 @@ class RagfairController
             else
             {
                 requirementsPriceInRub +=
-                    RagfairServer.getDynamicPrice(requestedItemTpl) *
+                    RagfairPriceService.getDynamicPrice(requestedItemTpl) *
                     item.count;
             }
         }
@@ -185,7 +210,7 @@ class RagfairController
                 Logger.error(
                     `Failed to find item with _id: ${itemId} in inventory!`
                 );
-                return HttpResponse.appendErrorToOutput(output);
+                return HttpResponseUtil.appendErrorToOutput(output);
             }
 
             item = ItemHelper.fixItemStackCount(item);
@@ -200,11 +225,11 @@ class RagfairController
         if (!invItems || !invItems.length)
         {
             Logger.error("Could not find any requested items in the inventory");
-            return HttpResponse.appendErrorToOutput(output);
+            return HttpResponseUtil.appendErrorToOutput(output);
         }
 
         // Preparations are done, create the offer
-        const offer = RagfairHelper.createPlayerOffer(
+        const offer = RagfairController.createPlayerOffer(
             SaveServer.getProfile(sessionID),
             info.requirements,
             RagfairHelper.mergeStackable(invItems),
@@ -213,22 +238,22 @@ class RagfairController
         );
         const rootItem = offer.items[0];
         const qualityMultiplier = ItemHelper.getItemQualityModifier(rootItem);
-        const offerPrice =
-            RagfairServer.getDynamicPrice(rootItem._tpl) *
+        const averageOfferPrice =
+            RagfairPriceService.getFleaPriceForItem(rootItem._tpl) *
             rootItem.upd.StackObjectsCount *
             qualityMultiplier;
         const itemStackCount = !info.sellInOnePiece
             ? offer.items[0].upd.StackObjectsCount
             : 1;
-        const offerValue = offerPrice / itemStackCount;
+        const singleOfferValue = averageOfferPrice / itemStackCount;
         let sellChance = RagfairConfig.sell.chance.base * qualityMultiplier;
 
-        sellChance = RagfairHelper.calculateSellChance(
+        sellChance = RagfairSellHelper.calculateSellChance(
             sellChance,
-            offerValue,
+            singleOfferValue,
             requirementsPriceInRub
         );
-        offer.sellResult = RagfairHelper.rollForSale(
+        offer.sellResult = RagfairSellHelper.rollForSale(
             sellChance,
             itemStackCount
         );
@@ -236,14 +261,13 @@ class RagfairController
         // Subtract flea market fee from stash
         if (RagfairConfig.sell.fees)
         {
-            const tax = RagfairHelper.calculateTax(
+            const tax = RagfairTaxHelper.calculateTax(
                 rootItem,
                 pmcData,
                 requirementsPriceInRub,
                 itemStackCount,
                 info.sellInOnePiece
             );
-            Logger.debug(`Tax Calculated to be: ${tax}`);
 
             const request = {
                 tid: "ragfair",
@@ -268,7 +292,7 @@ class RagfairController
             );
             if (output.warnings.length > 0)
             {
-                return HttpResponse.appendErrorToOutput(
+                return HttpResponseUtil.appendErrorToOutput(
                     output,
                     "Couldn't pay commission fee",
                     "Transaction failed"
@@ -295,176 +319,51 @@ class RagfairController
         return output;
     }
 
-    // This method, along with calculateItemWorth, is trying to mirror the client-side code found in the method "CalculateTaxPrice".
-    // It's structured to resemble the client-side code as closely as possible - avoid making any big structure changes if it's not necessary.
-    static calculateTax(
-        item,
-        pmcData,
-        requirementsValue,
-        offerItemCount,
-        sellInOnePiece
+    static createPlayerOffer(
+        profile,
+        requirements,
+        items,
+        sellInOnePiece,
+        amountToSend
     )
     {
-        if (!requirementsValue)
+        const loyalLevel = 1;
+        const formattedItems = items.map(item =>
         {
-            return 0;
-        }
+            const isChild = items.find(it => it._id === item.parentId);
 
-        if (!offerItemCount)
+            return {
+                _id: item._id,
+                _tpl: item._tpl,
+                parentId: isChild ? item.parentId : "hideout",
+                slotId: isChild ? item.slotId : "hideout",
+                upd: item.upd,
+            };
+        });
+
+        const formattedRequirements = requirements.map(item =>
         {
-            return 0;
-        }
+            return {
+                _tpl: item._tpl,
+                count: item.count,
+                onlyFunctional: item.onlyFunctional,
+            };
+        });
 
-        const itemTemplate = ItemHelper.getItem(item._tpl)[1];
-        const itemWorth = RagfairController.calculateItemWorth(
-            item,
-            itemTemplate,
-            offerItemCount,
-            pmcData
+        return RagfairOfferGenerator.createFleaOffer(
+            profile.characters.pmc.aid,
+            TimeUtil.getTimestamp(),
+            formattedItems,
+            formattedRequirements,
+            loyalLevel,
+            amountToSend,
+            sellInOnePiece
         );
-        const requirementsPrice =
-            requirementsValue * (sellInOnePiece ? 1 : offerItemCount);
-
-        const itemTaxMult =
-            DatabaseServer.tables.globals.config.RagFair.communityItemTax /
-            100.0;
-        const requirementTaxMult =
-            DatabaseServer.tables.globals.config.RagFair
-                .communityRequirementTax / 100.0;
-
-        let itemPriceMult = Math.log10(itemWorth / requirementsPrice);
-        let requirementPriceMult = Math.log10(requirementsPrice / itemWorth);
-
-        if (requirementsPrice >= itemWorth)
-        {
-            requirementPriceMult = Math.pow(requirementPriceMult, 1.08);
-        }
-        else
-        {
-            itemPriceMult = Math.pow(itemPriceMult, 1.08);
-        }
-
-        itemPriceMult = Math.pow(4, itemPriceMult);
-        requirementPriceMult = Math.pow(4, requirementPriceMult);
-
-        const hideoutFleaTaxDiscountBonus = pmcData.Bonuses.find(
-            b => b.type === "RagfairCommission"
-        );
-        const taxDiscountPercent = hideoutFleaTaxDiscountBonus
-            ? Math.abs(hideoutFleaTaxDiscountBonus.value)
-            : 0;
-
-        const tax =
-            itemWorth * itemTaxMult * itemPriceMult +
-            requirementsPrice * requirementTaxMult * requirementPriceMult;
-        const discountedTax = tax * (1.0 - taxDiscountPercent / 100.0);
-        const itemComissionMult = itemTemplate._props.RagFairCommissionModifier
-            ? itemTemplate._props.RagFairCommissionModifier
-            : 1;
-
-        return Math.round(discountedTax * itemComissionMult);
     }
 
-    // This method is trying to replicate the item worth calculation method found in the client code.
-    // Any inefficiencies or style issues are intentional and should not be fixed, to preserve the client-side code mirroring.
-    static calculateItemWorth(
-        item,
-        itemTemplate,
-        itemCount,
-        pmcData,
-        isRootItem = true
-    )
+    static getAllFleaPrices()
     {
-        let worth = RagfairServer.getDynamicPrice(item._tpl);
-
-        // In client, all item slots are traversed and any items contained within have their values added
-        if (isRootItem)
-        {
-            // Since we get a flat list of all child items, we only want to recurse from parent item
-            const itemChildren = ItemHelper.findAndReturnChildrenAsItems(
-                pmcData.Inventory.items,
-                item._id
-            );
-            if (itemChildren.length > 1)
-            {
-                for (const child of itemChildren)
-                {
-                    if (child._id === item._id)
-                    {
-                        continue;
-                    }
-
-                    worth += RagfairController.calculateItemWorth(
-                        child,
-                        ItemHelper.getItem(child._tpl)[1],
-                        child.upd.StackObjectsCount,
-                        pmcData,
-                        false
-                    );
-                }
-            }
-        }
-
-        if ("Dogtag" in item.upd)
-        {
-            worth *= item.upd.Dogtag.Level;
-        }
-
-        if ("Key" in item.upd && itemTemplate._props.MaximumNumberOfUsage > 0)
-        {
-            worth =
-                (worth / itemTemplate._props.MaximumNumberOfUsage) *
-                (itemTemplate._props.MaximumNumberOfUsage -
-                    item.upd.Key.NumberOfUsages);
-        }
-
-        if ("Resource" in item.upd && itemTemplate._props.MaxResource > 0)
-        {
-            worth =
-                worth * 0.1 +
-                ((worth * 0.9) / itemTemplate._props.MaxResource) *
-                    item.upd.Resource.Value;
-        }
-
-        if ("SideEffect" in item.upd && itemTemplate._props.MaxResource > 0)
-        {
-            worth =
-                worth * 0.1 +
-                ((worth * 0.9) / itemTemplate._props.MaxResource) *
-                    item.upd.SideEffect.Value;
-        }
-
-        if ("MedKit" in item.upd && itemTemplate._props.MaxHpResource > 0)
-        {
-            worth =
-                (worth / itemTemplate._props.MaxHpResource) *
-                item.upd.MedKit.HpResource;
-        }
-
-        if ("FoodDrink" in item.upd && itemTemplate._props.MaxResource > 0)
-        {
-            worth =
-                (worth / itemTemplate._props.MaxResource) *
-                item.upd.FoodDrink.HpPercent;
-        }
-
-        if ("Repairable" in item.upd && itemTemplate._props.armorClass > 0)
-        {
-            const num2 =
-                0.01 * Math.pow(0.0, item.upd.Repairable.MaxDurability);
-            worth =
-                worth *
-                    (item.upd.Repairable.MaxDurability /
-                        itemTemplate._props.Durability -
-                        num2) -
-                Math.floor(
-                    itemTemplate._props.RepairCost *
-                        (item.upd.Repairable.MaxDurability -
-                            item.upd.Repairable.Durability)
-                );
-        }
-
-        return worth * itemCount;
+        return RagfairPriceService.getAllFleaPrices();
     }
 
     /*
@@ -482,7 +381,7 @@ class RagfairController
             Logger.warning(
                 `Could not find offer to remove with offerId -> ${offerId}`
             );
-            return HttpResponse.appendErrorToOutput(
+            return HttpResponseUtil.appendErrorToOutput(
                 ItemEventRouter.getOutput(sessionID),
                 "Offer not found in profile"
             );
@@ -513,7 +412,7 @@ class RagfairController
             Logger.warning(
                 `Could not find offer to remove with offerId -> ${info.offerId}`
             );
-            return HttpResponse.appendErrorToOutput(
+            return HttpResponseUtil.appendErrorToOutput(
                 ItemEventRouter.getOutput(sessionID),
                 "Offer not found in profile"
             );
@@ -528,15 +427,13 @@ class RagfairController
                     (sum, item) => (sum += item.upd.StackObjectsCount),
                     0
                 );
-            const tax = RagfairHelper.calculateTax(
+            const tax = RagfairTaxHelper.calculateTax(
                 offers[index].items[0],
                 ProfileHelper.getPmcProfile(sessionID),
                 offers[index].requirementsCost,
                 count,
                 offers[index].sellInOnePiece
             );
-
-            Logger.debug(`Tax Calculated to be: ${tax}`);
 
             const request = {
                 tid: "ragfair",
@@ -561,7 +458,7 @@ class RagfairController
             );
             if (output.warnings.length > 0)
             {
-                return HttpResponse.appendErrorToOutput(
+                return HttpResponseUtil.appendErrorToOutput(
                     output,
                     "Couldn't pay commission fee",
                     "Transaction failed"
@@ -570,6 +467,7 @@ class RagfairController
         }
 
         offers[index].endTime += Math.round(secondsToAdd);
+
         return ItemEventRouter.getOutput(sessionID);
     }
 }

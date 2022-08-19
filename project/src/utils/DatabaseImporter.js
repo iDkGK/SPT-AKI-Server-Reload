@@ -10,11 +10,23 @@ class DatabaseImporter
             ? "Aki_Data/Server/"
             : "./assets/";
 
+        DatabaseImporter.hydrateDatabase(filepath);
+        DatabaseImporter.loadImages(`${filepath}images/`);
+    }
+
+    /**
+     * Read all json files in database folder and map into a json object
+     * @param filepath path to database folder
+     */
+    static hydrateDatabase(filepath)
+    {
         Logger.info("Importing database...");
-        DatabaseServer.tables = DatabaseImporter.loadRecursive(
+
+        const dataToImport = DatabaseImporter.loadRecursive(
             `${filepath}database/`
         );
-        DatabaseImporter.loadImages(`${filepath}images/`);
+
+        DatabaseServer.setTables(dataToImport);
     }
 
     static loadRecursive(filepath)
@@ -67,13 +79,14 @@ class DatabaseImporter
             for (const file of files)
             {
                 const filename = VFS.stripExtension(file);
-                ImageRouter.onRoute[
-                    `${routes[i]}${filename}`
-                ] = `${filepath}${dirs[i]}/${file}`;
+                ImageRouter.addRoute(
+                    `${routes[i]}${filename}`,
+                    `${filepath}${dirs[i]}/${file}`
+                );
             }
         }
 
-        ImageRouter.onRoute["/favicon.ico"] = `${filepath}icon.ico`;
+        ImageRouter.addRoute("/favicon.ico", `${filepath}icon.ico`);
     }
 }
 

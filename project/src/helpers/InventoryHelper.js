@@ -16,13 +16,18 @@ class InventoryHelper
     {
         const itemLib = [];
         const itemsToAdd = [];
+
         for (const baseItem of body.items)
         {
-            if (baseItem.item_id in DatabaseServer.tables.globals.ItemPresets)
+            if (
+                baseItem.item_id in
+                DatabaseServer.getTables().globals.ItemPresets
+            )
             {
                 const presetItems = JsonUtil.clone(
-                    DatabaseServer.tables.globals.ItemPresets[baseItem.item_id]
-                        ._items
+                    DatabaseServer.getTables().globals.ItemPresets[
+                        baseItem.item_id
+                    ]._items
                 );
                 itemLib.push(...presetItems);
                 baseItem.isPreset = true;
@@ -32,18 +37,19 @@ class InventoryHelper
             {
                 itemLib.push({ _id: baseItem.item_id, _tpl: baseItem.item_id });
             }
-            else if (body.tid === TraderHelper.TRADER.Fence)
+            else if (body.tid === Traders.FENCE)
             {
                 const fenceItem = FenceService.getFenceAssorts().items;
                 const item =
                     fenceItem[
                         fenceItem.findIndex(i => i._id === baseItem.item_id)
                     ];
+
                 // handle when item being bought is preset
                 if (item.upd.sptPresetId)
                 {
                     const presetItems = JsonUtil.clone(
-                        DatabaseServer.tables.globals.ItemPresets[
+                        DatabaseServer.getTables().globals.ItemPresets[
                             item.upd.sptPresetId
                         ]._items
                     );
@@ -59,7 +65,7 @@ class InventoryHelper
             else
             {
                 // Only grab the relevant trader items and add unique values
-                const traderItems = TraderController.getAssort(
+                const traderItems = TraderAssortHelper.getAssort(
                     sessionID,
                     body.tid
                 ).items;
@@ -84,7 +90,8 @@ class InventoryHelper
                         count: baseItem.count,
                         isPreset: baseItem.isPreset,
                     };
-                    let MaxStacks = 1;
+                    let maxStacks = 1;
+
                     // split stacks if the size is higher than allowed by StackMaxSize
                     if (baseItem.count > tmpItem._props.StackMaxSize)
                     {
@@ -95,16 +102,18 @@ class InventoryHelper
                                 baseItem.count / tmpItem._props.StackMaxSize
                             ) *
                                 tmpItem._props.StackMaxSize;
-                        MaxStacks =
+
+                        maxStacks =
                             calc > 0
-                                ? MaxStacks +
+                                ? maxStacks +
                                   Math.floor(
                                       count / tmpItem._props.StackMaxSize
                                   )
                                 : Math.floor(
                                     count / tmpItem._props.StackMaxSize
                                 );
-                        for (let sv = 0; sv < MaxStacks; sv++)
+
+                        for (let sv = 0; sv < maxStacks; sv++)
                         {
                             if (count > 0)
                             {
@@ -131,8 +140,10 @@ class InventoryHelper
                 }
             }
         }
+
         // Find an empty slot in stash for each of the items being added
-        let StashFS_2D = PlayerService.getStashSlotMap(pmcData, sessionID);
+        let stashFS2D = InventoryHelper.getStashSlotMap(pmcData, sessionID);
+
         for (const itemToAdd of itemsToAdd)
         {
             const itemSize = InventoryHelper.getItemSize(
@@ -141,10 +152,11 @@ class InventoryHelper
                 itemLib
             );
             const findSlotResult = ContainerHelper.findSlotForItem(
-                StashFS_2D,
+                stashFS2D,
                 itemSize[0],
                 itemSize[1]
             );
+
             if (findSlotResult.success)
             {
                 /* Fill in the StashFS_2D with an imaginary item, to simulate it already being added
@@ -155,10 +167,11 @@ class InventoryHelper
                 const itemSizeY = findSlotResult.rotation
                     ? itemSize[0]
                     : itemSize[1];
+
                 try
                 {
-                    StashFS_2D = ContainerHelper.fillContainerMapWithItem(
-                        StashFS_2D,
+                    stashFS2D = ContainerHelper.fillContainerMapWithItem(
+                        stashFS2D,
                         findSlotResult.x,
                         findSlotResult.y,
                         itemSizeX,
@@ -173,11 +186,12 @@ class InventoryHelper
                             typeof err === "string" ? ` -> ${err}` : ""
                         }`
                     );
-                    return HttpResponse.appendErrorToOutput(
+                    return HttpResponseUtil.appendErrorToOutput(
                         output,
                         "Not enough stash space"
                     );
                 }
+
                 itemToAdd.location = {
                     x: findSlotResult.x,
                     y: findSlotResult.y,
@@ -186,7 +200,7 @@ class InventoryHelper
             }
             else
             {
-                return HttpResponse.appendErrorToOutput(
+                return HttpResponseUtil.appendErrorToOutput(
                     output,
                     "Not enough stash space"
                 );
@@ -205,7 +219,7 @@ class InventoryHelper
         {
             const message =
                 typeof err === "string" ? err : "An unknown error occurred";
-            return HttpResponse.appendErrorToOutput(output, message);
+            return HttpResponseUtil.appendErrorToOutput(output, message);
         }
 
         for (const itemToAdd of itemsToAdd)
@@ -213,6 +227,7 @@ class InventoryHelper
             let newItem = HashUtil.generate();
             const toDo = [[itemToAdd.itemRef._id, newItem]];
             let upd = { StackObjectsCount: itemToAdd.count };
+
             //if it is from ItemPreset, load preset's upd data too.
             if (itemToAdd.isPreset)
             {
@@ -239,6 +254,7 @@ class InventoryHelper
             {
                 delete upd.UnlimitedCount;
             }
+
             output.profileChanges[sessionID].items.new.push({
                 _id: newItem,
                 _tpl: itemToAdd.itemRef._tpl,
@@ -251,6 +267,7 @@ class InventoryHelper
                 },
                 upd: upd,
             });
+
             pmcData.Inventory.items.push({
                 _id: newItem,
                 _tpl: itemToAdd.itemRef._tpl,
@@ -263,10 +280,12 @@ class InventoryHelper
                 },
                 upd: upd,
             });
+
             // If this is an ammobox, add cartridges to it.
             // Damaged ammo box are not loaded.
             const itemInfo = ItemHelper.getItem(itemToAdd.itemRef._tpl)[1];
             const ammoBoxInfo = itemInfo._props.StackSlots;
+
             if (
                 ammoBoxInfo !== undefined &&
                 itemInfo._name.indexOf("_damaged") < 0
@@ -279,6 +298,7 @@ class InventoryHelper
                     ItemHelper.getItem(ammoTmplId)[1]._props.StackMaxSize;
                 const ammos = [];
                 let location = 0;
+
                 while (maxCount > 0)
                 {
                     const ammoStackSize =
@@ -293,6 +313,7 @@ class InventoryHelper
                         location: location,
                         upd: { StackObjectsCount: ammoStackSize },
                     });
+
                     location++;
                     maxCount -= ammoStackMaxSize;
                 }
@@ -316,10 +337,14 @@ class InventoryHelper
                     )
                     {
                         newItem = HashUtil.generate();
-                        const SlotID = itemLib[tmpKey].slotId;
-                        // if it is from ItemPreset, load preset's upd data too.if (itemToAdd.isPreset)
+
+                        const slotID = itemLib[tmpKey].slotId;
+
+                        // if it is from ItemPreset, load preset's upd data too.
+                        if (itemToAdd.isPreset)
                         {
                             upd = { StackObjectsCount: itemToAdd.count };
+
                             for (const updID in itemLib[tmpKey].upd)
                             {
                                 upd[updID] = itemLib[tmpKey].upd[updID];
@@ -334,13 +359,13 @@ class InventoryHelper
                             }
                         }
 
-                        if (SlotID === "hideout")
+                        if (slotID === "hideout")
                         {
                             output.profileChanges[sessionID].items.new.push({
                                 _id: newItem,
                                 _tpl: itemLib[tmpKey]._tpl,
                                 parentId: toDo[0][1],
-                                slotId: SlotID,
+                                slotId: slotID,
                                 location: {
                                     x: itemToAdd.location.x,
                                     y: itemToAdd.location.y,
@@ -348,6 +373,7 @@ class InventoryHelper
                                 },
                                 upd: upd,
                             });
+
                             pmcData.Inventory.items.push({
                                 _id: newItem,
                                 _tpl: itemLib[tmpKey]._tpl,
@@ -364,19 +390,22 @@ class InventoryHelper
                         else
                         {
                             const itemLocation = {};
+
                             if (itemLib[tmpKey]["location"] !== undefined)
                             {
                                 itemLocation["location"] =
                                     itemLib[tmpKey]["location"];
                             }
+
                             output.profileChanges[sessionID].items.new.push({
                                 _id: newItem,
                                 _tpl: itemLib[tmpKey]._tpl,
                                 parentId: toDo[0][1],
-                                slotId: SlotID,
+                                slotId: slotID,
                                 ...itemLocation,
                                 upd: upd,
                             });
+
                             pmcData.Inventory.items.push({
                                 _id: newItem,
                                 _tpl: itemLib[tmpKey]._tpl,
@@ -386,29 +415,31 @@ class InventoryHelper
                                 upd: upd,
                             });
                         }
+
                         toDo.push([itemLib[tmpKey]._id, newItem]);
                     }
                 }
+
                 toDo.splice(0, 1);
             }
         }
+
         return output;
     }
 
     static removeItem(pmcData, itemId, sessionID, output = undefined)
     {
-        if (!itemId)
-        {
-            return output;
-        }
-        const childIds = InventoryHelper.findAndReturnChildren(pmcData, itemId);
+        if (!itemId) return output;
+
+        const childIds = ItemHelper.findAndReturnChildrenByItems(
+            pmcData.Inventory.items,
+            itemId
+        );
         const inventoryItems = pmcData.Inventory.items;
         const insuredItems = pmcData.InsuredItems;
+
         if (output)
-        {
-            // client only needs to know the root item is deleted
             output.profileChanges[sessionID].items.del.push({ _id: itemId });
-        }
 
         for (const childId of childIds)
         {
@@ -421,6 +452,7 @@ class InventoryHelper
             {
                 inventoryItems.splice(inventoryIndex, 1);
             }
+
             const insuredIndex = insuredItems.findIndex(
                 item => item.itemId === childId
             );
@@ -429,133 +461,68 @@ class InventoryHelper
                 insuredItems.splice(insuredIndex, 1);
             }
         }
+
         return output;
     }
 
-    static getSecureContainerItems(items)
+    static removeItemByCount(
+        pmcData,
+        itemId,
+        count,
+        sessionID,
+        output = undefined
+    )
     {
-        const secureContainer = items.find(
-            x => x.slotId === "SecuredContainer"
+        if (!itemId) return output;
+
+        const itemsToReduce = ItemHelper.findAndReturnChildrenAsItems(
+            pmcData.Inventory.items,
+            itemId
         );
-
-        // No container found, drop out
-        if (!secureContainer)
+        let remainingCount = count;
+        for (const itemToReduce of itemsToReduce)
         {
-            return [];
-        }
+            let itemAmount;
+            if (!itemToReduce.upd.StackObjectsCount) itemAmount = 1;
+            else itemAmount = itemToReduce.upd.StackObjectsCount;
 
-        const itemsInSecureContainer = ItemHelper.findAndReturnChildrenByItems(
-            items,
-            secureContainer._id
-        );
-
-        // Return all items returned and exclude the secure container item itself
-        return itemsInSecureContainer.filter(x => x !== secureContainer._id);
-    }
-
-    static removeSecureContainer(profile)
-    {
-        const items = profile.Inventory.items;
-
-        // Remove secured container
-        for (const item of items)
-        {
-            if (item.slotId === "SecuredContainer")
+            if (remainingCount >= itemAmount)
             {
-                const toRemove = ItemHelper.findAndReturnChildrenByItems(
-                    items,
-                    item._id
+                remainingCount -= itemAmount;
+                InventoryHelper.removeItem(
+                    pmcData,
+                    itemToReduce._id,
+                    sessionID,
+                    output
                 );
-                let n = items.length;
-
-                while (n-- > 0)
-                {
-                    if (toRemove.includes(items[n]._id))
-                    {
-                        items.splice(n, 1);
-                    }
-                }
-                break;
             }
+            else
+            {
+                itemToReduce.upd.StackObjectsCount -= remainingCount;
+                remainingCount = 0;
+                if (output)
+                    output.profileChanges[sessionID].items.change.push(
+                        itemToReduce
+                    );
+            }
+
+            if (remainingCount === 0) break;
         }
 
-        profile.Inventory.items = items;
-        return profile;
-    }
-
-    static getStashType(sessionID)
-    {
-        const pmcData = ProfileHelper.getPmcProfile(sessionID);
-        const stashObj = pmcData.Inventory.items.find(
-            item => item._id === pmcData.Inventory.stash
-        );
-        if (!stashObj)
-        {
-            Logger.error("No stash found");
-            return "";
-        }
-        return stashObj._tpl;
-    }
-
-    static generateInventoryID(profile)
-    {
-        const defaultInventory = "55d7217a4bdc2d86028b456d";
-        const itemsByParentHash = {};
-        const inventoryItemHash = {};
-        let inventoryId = "";
-
-        // Generate inventoryItem list
-        for (const item of profile.Inventory.items)
-        {
-            inventoryItemHash[item._id] = item;
-
-            if (item._tpl === defaultInventory)
-            {
-                inventoryId = item._id;
-                continue;
-            }
-
-            if (!("parentId" in item))
-            {
-                continue;
-            }
-
-            if (!(item.parentId in itemsByParentHash))
-            {
-                itemsByParentHash[item.parentId] = [];
-            }
-
-            itemsByParentHash[item.parentId].push(item);
-        }
-
-        // update inventoryId
-        const newInventoryId = HashUtil.generate();
-        inventoryItemHash[inventoryId]._id = newInventoryId;
-        profile.Inventory.equipment = newInventoryId;
-
-        // update inventoryItem id
-        if (inventoryId in itemsByParentHash)
-        {
-            for (const item of itemsByParentHash[inventoryId])
-            {
-                item.parentId = newInventoryId;
-            }
-        }
-
-        return profile;
+        return output;
     }
 
     /* Calculate Size of item inputed
      * inputs Item template ID, Item Id, InventoryItem (item from inventory having _id and _tpl)
      * outputs [width, height]
      */
-    static getItemSize(itemTpl, itemID, InventoryItem)
+    static getItemSize(itemTpl, itemID, inventoryItem)
     {
         // -> Prepares item Width and height returns [sizeX, sizeY]
         return InventoryHelper.getSizeByInventoryItemHash(
             itemTpl,
             itemID,
-            InventoryHelper.getInventoryItemHash(InventoryItem)
+            InventoryHelper.getInventoryItemHash(inventoryItem)
         );
     }
 
@@ -566,24 +533,24 @@ class InventoryHelper
         const toDo = [itemID];
         const tmpItem = ItemHelper.getItem(itemTpl)[1];
         const rootItem = inventoryItemHash.byItemId[itemID];
-        const FoldableWeapon = tmpItem._props.Foldable || false;
-        const FoldedSlot = tmpItem._props.FoldedSlot;
+        const foldableWeapon = tmpItem._props.Foldable || false;
+        const foldedSlot = tmpItem._props.FoldedSlot;
 
-        let SizeUp = 0;
-        let SizeDown = 0;
-        let SizeLeft = 0;
-        let SizeRight = 0;
+        let sizeUp = 0;
+        let sizeDown = 0;
+        let sizeLeft = 0;
+        let sizeRight = 0;
 
-        let ForcedUp = 0;
-        let ForcedDown = 0;
-        let ForcedLeft = 0;
-        let ForcedRight = 0;
+        let forcedUp = 0;
+        let forcedDown = 0;
+        let forcedLeft = 0;
+        let forcedRight = 0;
         let outX = tmpItem._props.Width;
         const outY = tmpItem._props.Height;
         const skipThisItems = [
-            ItemHelper.BASECLASS.Backpack,
-            ItemHelper.BASECLASS.SearchableItem,
-            ItemHelper.BASECLASS.SimpleContainer,
+            BaseClasses.BACKPACK,
+            BaseClasses.SEARCHABLE_ITEM,
+            BaseClasses.SIMPLE_CONTAINER,
         ];
         const rootFolded =
             rootItem.upd &&
@@ -592,8 +559,8 @@ class InventoryHelper
 
         //The item itself is collapsible
         if (
-            FoldableWeapon &&
-            (FoldedSlot === undefined || FoldedSlot === "") &&
+            foldableWeapon &&
+            (foldedSlot === undefined || foldedSlot === "") &&
             rootFolded
         )
         {
@@ -625,8 +592,8 @@ class InventoryHelper
                             item.upd.Foldable.Folded === true;
 
                         if (
-                            FoldableWeapon &&
-                            FoldedSlot === item.slotId &&
+                            foldableWeapon &&
+                            foldedSlot === item.slotId &&
                             (rootFolded || childFolded)
                         )
                         {
@@ -640,29 +607,29 @@ class InventoryHelper
                         // Calculating child ExtraSize
                         if (itm._props.ExtraSizeForceAdd === true)
                         {
-                            ForcedUp += itm._props.ExtraSizeUp;
-                            ForcedDown += itm._props.ExtraSizeDown;
-                            ForcedLeft += itm._props.ExtraSizeLeft;
-                            ForcedRight += itm._props.ExtraSizeRight;
+                            forcedUp += itm._props.ExtraSizeUp;
+                            forcedDown += itm._props.ExtraSizeDown;
+                            forcedLeft += itm._props.ExtraSizeLeft;
+                            forcedRight += itm._props.ExtraSizeRight;
                         }
                         else
                         {
-                            SizeUp =
-                                SizeUp < itm._props.ExtraSizeUp
+                            sizeUp =
+                                sizeUp < itm._props.ExtraSizeUp
                                     ? itm._props.ExtraSizeUp
-                                    : SizeUp;
-                            SizeDown =
-                                SizeDown < itm._props.ExtraSizeDown
+                                    : sizeUp;
+                            sizeDown =
+                                sizeDown < itm._props.ExtraSizeDown
                                     ? itm._props.ExtraSizeDown
-                                    : SizeDown;
-                            SizeLeft =
-                                SizeLeft < itm._props.ExtraSizeLeft
+                                    : sizeDown;
+                            sizeLeft =
+                                sizeLeft < itm._props.ExtraSizeLeft
                                     ? itm._props.ExtraSizeLeft
-                                    : SizeLeft;
-                            SizeRight =
-                                SizeRight < itm._props.ExtraSizeRight
+                                    : sizeLeft;
+                            sizeRight =
+                                sizeRight < itm._props.ExtraSizeRight
                                     ? itm._props.ExtraSizeRight
-                                    : SizeRight;
+                                    : sizeRight;
                         }
                     }
                 }
@@ -672,57 +639,21 @@ class InventoryHelper
         }
 
         return [
-            outX + SizeLeft + SizeRight + ForcedLeft + ForcedRight,
-            outY + SizeUp + SizeDown + ForcedUp + ForcedDown,
+            outX + sizeLeft + sizeRight + forcedLeft + forcedRight,
+            outY + sizeUp + sizeDown + forcedUp + forcedDown,
         ];
     }
 
-    /* Find And Return Children (TRegular)
-     * input: PlayerData, InitialItem._id
-     * output: list of item._id
-     * List is backward first item is the furthest child and last item is main item
-     * returns all child items ids in array, includes itself and children
-     * */
-    static findAndReturnChildren(pmcData, itemID)
-    {
-        return ItemHelper.findAndReturnChildrenByItems(
-            pmcData.Inventory.items,
-            itemID
-        );
-    }
-
-    /* Get Player Stash Proper Size
-     * input: null
-     * output: [stashSizeWidth, stashSizeHeight]
-     * */
-    static getPlayerStashSize(sessionID)
-    {
-        //this sets automaticly a stash size from items.json (its not added anywhere yet cause we still use base stash)
-        const stashX =
-            DatabaseServer.tables.templates.items[stashTPL]._props.Grids[0]
-                ._props.cellsH !== 0
-                ? DatabaseServer.tables.templates.items[stashTPL]._props
-                    .Grids[0]._props.cellsH
-                : 10;
-        const stashY =
-            DatabaseServer.tables.templates.items[stashTPL]._props.Grids[0]
-                ._props.cellsV !== 0
-                ? DatabaseServer.tables.templates.items[stashTPL]._props
-                    .Grids[0]._props.cellsV
-                : 66;
-        return [stashX, stashY];
-    }
-
-    static getInventoryItemHash(InventoryItem)
+    static getInventoryItemHash(inventoryItem)
     {
         const inventoryItemHash = {
             byItemId: {},
             byParentId: {},
         };
 
-        for (let i = 0; i < InventoryItem.length; i++)
+        for (let i = 0; i < inventoryItem.length; i++)
         {
-            const item = InventoryItem[i];
+            const item = inventoryItem[i];
             inventoryItemHash.byItemId[item._id] = item;
 
             if (!("parentId" in item))
@@ -737,36 +668,6 @@ class InventoryHelper
             inventoryItemHash.byParentId[item.parentId].push(item);
         }
         return inventoryItemHash;
-    }
-
-    /**
-     * Recursively checks if the given item is
-     * inside the stash, that is it has the stash as
-     * ancestor with slotId=hideout
-     */
-    static isItemInStash(pmcData, item)
-    {
-        let container = item;
-
-        while ("parentId" in container)
-        {
-            if (
-                container.parentId === pmcData.Inventory.stash &&
-                container.slotId === "hideout"
-            )
-            {
-                return true;
-            }
-
-            container = pmcData.Inventory.items.find(
-                i => i._id === container.parentId
-            );
-            if (!container)
-            {
-                break;
-            }
-        }
-        return false;
     }
 
     static getContainerMap(containerW, containerH, itemList, containerId)
@@ -832,6 +733,230 @@ class InventoryHelper
         }
 
         return container2D;
+    }
+
+    /**
+     * Based on the item action, determine whose inventories we should be looking at for from and to.
+     */
+    static getOwnerInventoryItems(body, sessionID)
+    {
+        let isSameInventory = false;
+        const pmcItems = ProfileHelper.getPmcProfile(sessionID).Inventory.items;
+        const scavData = ProfileHelper.getScavProfile(sessionID);
+        let fromInventoryItems = pmcItems;
+        let fromType = "pmc";
+
+        if ("fromOwner" in body)
+        {
+            if (body.fromOwner.id === scavData._id)
+            {
+                fromInventoryItems = scavData.Inventory.items;
+                fromType = "scav";
+            }
+            else if (body.fromOwner.type.toLocaleLowerCase() === "mail")
+            {
+                fromInventoryItems = DialogueHelper.getMessageItemContents(
+                    body.fromOwner.id,
+                    sessionID
+                );
+                fromType = "mail";
+            }
+        }
+
+        // Don't need to worry about mail for destination because client doesn't allow
+        // users to move items back into the mail stash.
+        let toInventoryItems = pmcItems;
+        let toType = "pmc";
+
+        if ("toOwner" in body && body.toOwner.id === scavData._id)
+        {
+            toInventoryItems = scavData.Inventory.items;
+            toType = "scav";
+        }
+
+        if (fromType === toType)
+        {
+            isSameInventory = true;
+        }
+
+        return {
+            from: fromInventoryItems,
+            to: toInventoryItems,
+            sameInventory: isSameInventory,
+            isMail: fromType === "mail",
+        };
+    }
+
+    /**
+     * Made a 2d array table with 0 - free slot and 1 - used slot
+     * @param {Object} pmcData
+     * @param {string} sessionID
+     * @returns Array
+     */
+    static getStashSlotMap(pmcData, sessionID)
+    {
+        const playerStashSize = InventoryHelper.getPlayerStashSize(sessionID);
+        return InventoryHelper.getContainerMap(
+            playerStashSize[0],
+            playerStashSize[1],
+            pmcData.Inventory.items,
+            pmcData.Inventory.stash
+        );
+    }
+
+    static getStashType(sessionID)
+    {
+        const pmcData = ProfileHelper.getPmcProfile(sessionID);
+        const stashObj = pmcData.Inventory.items.find(
+            item => item._id === pmcData.Inventory.stash
+        );
+        if (!stashObj)
+        {
+            Logger.error("No stash found");
+            return "";
+        }
+        return stashObj._tpl;
+    }
+
+    /* Get Player Stash Proper Size
+     * input: null
+     * output: [stashSizeWidth, stashSizeHeight]
+     * */
+    static getPlayerStashSize(sessionID)
+    {
+        //this sets automaticly a stash size from items.json (its not added anywhere yet cause we still use base stash)
+        const stashTPL = InventoryHelper.getStashType(sessionID);
+        const stashX =
+            DatabaseServer.getTables().templates.items[stashTPL]._props.Grids[0]
+                ._props.cellsH !== 0
+                ? DatabaseServer.getTables().templates.items[stashTPL]._props
+                    .Grids[0]._props.cellsH
+                : 10;
+        const stashY =
+            DatabaseServer.getTables().templates.items[stashTPL]._props.Grids[0]
+                ._props.cellsV !== 0
+                ? DatabaseServer.getTables().templates.items[stashTPL]._props
+                    .Grids[0]._props.cellsV
+                : 66;
+        return [stashX, stashY];
+    }
+
+    /**
+     * Internal helper function to transfer an item from one profile to another.
+     * fromProfileData: Profile of the source.
+     * toProfileData: Profile of the destination.
+     * body: Move request
+     */
+    static moveItemToProfile(fromItems, toItems, body)
+    {
+        InventoryHelper.handleCartridges(fromItems, body);
+
+        const idsToMove = ItemHelper.findAndReturnChildrenByItems(
+            fromItems,
+            body.item
+        );
+
+        for (const itemId of idsToMove)
+        {
+            for (const itemIndex in fromItems)
+            {
+                if (
+                    fromItems[itemIndex]._id &&
+                    fromItems[itemIndex]._id === itemId
+                )
+                {
+                    if (itemId === body.item)
+                    {
+                        fromItems[itemIndex].parentId = body.to.id;
+                        fromItems[itemIndex].slotId = body.to.container;
+
+                        if ("location" in body.to)
+                        {
+                            fromItems[itemIndex].location = body.to.location;
+                        }
+                        else
+                        {
+                            if (fromItems[itemIndex].location)
+                            {
+                                delete fromItems[itemIndex].location;
+                            }
+                        }
+                    }
+                    toItems.push(fromItems[itemIndex]);
+                    fromItems.splice(parseInt(itemIndex), 1);
+                }
+            }
+        }
+    }
+
+    /**
+     * Internal helper function to move item within the same profile_f.
+     */
+    static moveItemInternal(inventoryItems, body)
+    {
+        InventoryHelper.handleCartridges(inventoryItems, body);
+
+        for (const inventoryItem of inventoryItems)
+        {
+            // Find item we want to 'move'
+            if (inventoryItem._id && inventoryItem._id === body.item)
+            {
+                Logger.debug(
+                    `${body.Action} item: ${body.item} from slotid: ${inventoryItem.slotId} to container: ${body.to.container}`
+                );
+
+                // don't move shells from camora to cartridges (happens when loading shells into mts-255 revolver shotgun)
+                if (
+                    inventoryItem.slotId.includes("camora_") &&
+                    body.to.container === "cartridges"
+                )
+                {
+                    Logger.warning(
+                        `tried to update item with slotid: ${inventoryItem.slotId} to ${body.to.container}, profile corruption prevented`
+                    );
+                    return;
+                }
+
+                // Edit items details to match its new location
+                inventoryItem.parentId = body.to.id;
+                inventoryItem.slotId = body.to.container;
+
+                if ("location" in body.to)
+                {
+                    inventoryItem.location = body.to.location;
+                }
+                else
+                {
+                    if (inventoryItem.location)
+                    {
+                        delete inventoryItem.location;
+                    }
+                }
+                return;
+            }
+        }
+    }
+
+    /**
+     * Internal helper function to handle cartridges in inventory if any of them exist.
+     */
+    static handleCartridges(items, body)
+    {
+        // -> Move item to different place - counts with equiping filling magazine etc
+        if (body.to.container === "cartridges")
+        {
+            let tmpCounter = 0;
+
+            for (const itemAmmo in items)
+            {
+                if (body.to.id === items[itemAmmo].parentId)
+                {
+                    tmpCounter++;
+                }
+            }
+            // wrong location for first cartrige
+            body.to.location = tmpCounter;
+        }
     }
 }
 

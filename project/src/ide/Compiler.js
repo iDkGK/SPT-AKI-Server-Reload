@@ -6,7 +6,6 @@ const VFS = require("../utils/VFS.js");
 require("./CheckVersion.js");
 
 class Compiler {
-    static pkgjson = JsonUtil.deserialize(VFS.readFile("package.json"));
     static buildOptions = {
         tmp: {
             dir: "obj/",
@@ -23,12 +22,26 @@ class Compiler {
     static nexeOptions = {
         input: Compiler.buildOptions.entry,
         output: `${Compiler.buildOptions.tmp.dir}${Compiler.buildOptions.tmp.exe}`,
+        target: "win32-x64-14.15.3",
         build: false,
         plugins: [Compiler.rcedit],
     };
 
     static async rcedit(compiler, next) {
-        if (!compiler.options.build) {
+        if (!compiler?.options?.build) {
+            const buildOptions = {
+                tmp: {
+                    dir: "obj/",
+                    exe: "Server-Tmp.exe",
+                },
+                build: {
+                    dir: "build/",
+                    exe: "Aki.Server.exe",
+                },
+                icon: "assets/images/icon.ico",
+                entry: "obj/bundle.js",
+                license: "../LICENSE.md",
+            };
             const rceditExe =
                 process.arch === "x64" ? "rcedit-x64.exe" : "rcedit.exe";
             const rcedit = path.resolve(
@@ -41,7 +54,7 @@ class Compiler {
             );
             const command = `"${rcedit}" "${filepath}" --set-icon "${Compiler.buildOptions.icon}"`;
 
-            console.log(`\n- Setting icon`);
+            console.debug(`\n- Setting icon`);
             process.execSync(command);
         }
 
@@ -50,7 +63,7 @@ class Compiler {
 
     static preBuild() {
         if (VFS.exists(Compiler.buildOptions.build.dir)) {
-            console.log("Old build detected, removing the file");
+            Logger.debug("Old build detected, removing the file");
             VFS.removeDir(Compiler.buildOptions.build.dir);
         }
     }

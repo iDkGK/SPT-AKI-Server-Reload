@@ -6,25 +6,45 @@ const oslocale = require("os-locale");
 
 class WatermarkLocale
 {
-    static locales = {
-        "en-US": {
-            description: [
-                "https://discord.sp-tarkov.com",
-                "",
-                "This work is free of charge",
-                "Commercial use is prohibited",
-            ],
-            warning: ["", "NO SUPPORT FOR THIS BUILD", "USE AT YOUR OWN RISK"],
-        },
-        "zh-CN": {
-            description: [
-                "https://sns.oddba.cn",
-                "",
-                "本作品完全免费，禁止用于商业用途",
-            ],
-            warning: ["", "当前版本无可用技术支持", "请自行承担使用风险"],
-        },
-    };
+    static get locales()
+    {
+        return {
+            "en-US": {
+                description: [
+                    "https://discord.sp-tarkov.com",
+                    "",
+                    "This work is free of charge",
+                    "Commercial use is prohibited",
+                ],
+                warning: [
+                    "",
+                    "THIS IS A TESTING BUILD",
+                    "NO SUPPORT WILL BE GIVEN",
+                    "",
+                    "REPORT ISSUES TO:",
+                    "https://dev.sp-tarkov.com/SPT-AKI/Server/issues",
+                    "",
+                    "USE AT YOUR OWN RISK",
+                ],
+                modding: [
+                    "",
+                    "THIS BUILD HAS SERVER MODDING DISABLED",
+                    "",
+                    "THIS IS NOT AN ISSUE",
+                    "DO NOT REPORT IT",
+                ],
+            },
+            "zh-CN": {
+                description: [
+                    "https://sns.oddba.cn",
+                    "",
+                    "本作品完全免费，禁止用于商业用途",
+                ],
+                warning: ["", "当前版本无可用技术支持", "请自行承担使用风险"],
+                modding: [""],
+            },
+        };
+    }
 
     static getLocale()
     {
@@ -43,6 +63,12 @@ class WatermarkLocale
         const locale = WatermarkLocale.getLocale();
         return WatermarkLocale.locales[locale].warning;
     }
+
+    static getModding()
+    {
+        const locale = WatermarkLocale.getLocale();
+        return WatermarkLocale.locales[locale].modding;
+    }
 }
 
 class Watermark
@@ -54,29 +80,45 @@ class Watermark
     {
         const description = WatermarkLocale.getDescription();
         const warning = WatermarkLocale.getWarning();
+        const modding = WatermarkLocale.getModding();
         const versionTag = Watermark.getVersionTag();
 
-        Watermark.versionLabel = `${AkiConfig.projectName} ${versionTag}`;
+        Watermark.versionLabel = `${CoreConfig.projectName} ${versionTag}`;
 
         Watermark.text = [Watermark.versionLabel];
         Watermark.text = [...Watermark.text, ...description];
 
         if (globalThis.G_DEBUG_CONFIGURATION)
         {
-            Watermark.text = [...Watermark.text, ...warning];
+            Watermark.text = Watermark.text.concat([...warning]);
+        }
+
+        if (!globalThis.G_MODS_ENABLED)
+        {
+            Watermark.text = Watermark.text.concat([...modding]);
         }
     }
 
-    static getVersionTag()
+    static getVersionTag(withEftVersion = false)
     {
-        let versionTag = AkiConfig.akiVersion;
+        const versionTag = globalThis.G_DEBUG_CONFIGURATION
+            ? `${CoreConfig.akiVersion}-BLEEDINGEDGE`
+            : CoreConfig.akiVersion;
 
-        if (globalThis.G_DEBUG_CONFIGURATION)
+        if (withEftVersion)
         {
-            versionTag = `${versionTag}-BLEEDINGEDGE`;
+            const tarkovVersion = CoreConfig.compatibleTarkovVersion
+                .split(".")
+                .pop();
+            return `${versionTag} (${tarkovVersion})`;
         }
 
         return versionTag;
+    }
+
+    static getVersionLabel()
+    {
+        return Watermark.versionLabel;
     }
 
     /** Set window title */
@@ -133,7 +175,7 @@ class Watermark
         // draw the watermark
         for (const text of result)
         {
-            Logger.log(text, "yellow");
+            Logger.logWithColor(text, LogTextColor.YELLOW);
         }
     }
 

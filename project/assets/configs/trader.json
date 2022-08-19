@@ -38,19 +38,30 @@
         }
     ],
     "updateTimeDefault": 3600,
-    "fenceAssortSize": 100,
-    "fenceMaxPresetsCount": 5,
-    "fencePresetPriceMult": 2.5,
-    "minDurabilityForSale": 60,
-    "fenceItemIgnoreList": [
-        "58ac60eb86f77401897560ff",
-        "59e8936686f77467ce798647",
-        "56e294cdd2720b603a8b4575",
-        "5661632d4bdc2d903d8b456b",
-        "543be5e94bdc2df1348b4568",
-        "543be6674bdc2df1348b4569",
-        "5448bf274bdc2dfc2f8b456a",
-        "543be5664bdc2dd4348b4569",
-        "5447bedf4bdc2d87278b4568"
+	"traderPriceMultipler": 1,
+	"minDurabilityForSale": 60,
+	"fence": {
+		"assortSize": 100,
+		"maxPresetsCount": 5,
+		"presetPriceMult": 2.5,
+		"blacklist": [
+			"58ac60eb86f77401897560ff",
+			"59e8936686f77467ce798647",
+			"56e294cdd2720b603a8b4575",
+			"5661632d4bdc2d903d8b456b",
+			"543be5e94bdc2df1348b4568",
+			"543be6674bdc2df1348b4569",
+			"5448bf274bdc2dfc2f8b456a",
+			"543be5664bdc2dd4348b4569",
+			"5447bedf4bdc2d87278b4568",
+			"544a3f024bdc2d1d388b4568",
+			"5648b62b4bdc2d9d488b4585",
+			"590de52486f774226a0c24c2",
+			"54490a4d4bdc2dbc018b4573",
+            "544a3d0a4bdc2d1b388b4567",
+            "590de4a286f77423d9312a32",
+            "5751961824597720a31c09ac"
     ]
+	}
+    
 }

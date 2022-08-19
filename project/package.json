@@ -1,6 +1,6 @@
 {
     "name": "aki-server",
-	"version": "2.3.1",
+	"version": "3.2.1",
     "main": "src/ide/ReleaseEntry.js",
     "author": "SPT-AKI",
     "contributors": [
@@ -21,20 +21,26 @@
         "lint:verify": "eslint \"./src/**/*.js\"",
         "test:debug": "node --trace-warnings src/ide/TestEntry.js",
         "test:release": "node --trace-warnings src/ide/ReleaseEntry.js",
+        "test:bleeding": "node --trace-warnings src/ide/BleedingEdgeEntry.js",
         "gen:types": "npx babel src --out-dir obj",
         "gen:bundle-release": "npx browserify --debug --node obj/ide/ReleaseEntry.js > obj/bundle.js",
         "gen:bundle-debug": "npx browserify --debug --node obj/ide/DebugEntry.js > obj/bundle.js",
+        "gen:bundle-bleeding": "npx browserify --debug --node obj/ide/BleedingEdgeEntry.js > obj/bundle.js",
         "gen:exe": "node src/ide/Compiler.js",
         "build:release": "npm run gen:types && npm run gen:bundle-release && npm run gen:exe",
-        "build:debug": "npm run gen:types && npm run gen:bundle-debug && npm run gen:exe"
+        "build:debug": "npm run gen:types && npm run gen:bundle-debug && npm run gen:exe",
+        "build:bleeding": "npm run gen:types && npm run gen:bundle-bleeding && npm run gen:exe"
     },
     "dependencies": {
         "atomically": "^1.7.0",
         "json-fixer": "1.6.10",
         "os-locale": "^5.0.0",
         "proper-lockfile": "^4.1.2",
-        "ws": "^7.4.6",
-        "source-map-support": "^0.5.0"
+        "semver": "^7.3.7",
+        "source-map-support": "^0.5.0",
+        "winston": "^3.7.2",
+        "winston-daily-rotate-file": "^4.7.1",
+        "ws": "^7.4.6"
     },
     "devDependencies": {
         "@babel/cli": "^7.13.16",

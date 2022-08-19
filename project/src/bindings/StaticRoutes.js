@@ -6,6 +6,9 @@ module.exports = {
     "/client/game/bot/generate": {
         aki: BotCallbacks.generateBots,
     },
+    "/singleplayer/bundles": {
+        aki: BundleCallbacks.getBundles,
+    },
     "/client/trading/customization/storage": {
         aki: CustomizationCallbacks.getSuits,
     },
@@ -105,6 +108,12 @@ module.exports = {
     "/client/game/keepalive": {
         aki: GameCallbacks.gameKeepalive,
     },
+    "/singleplayer/settings/version": {
+        aki: GameCallbacks.getVersion,
+    },
+    "/client/reports/lobby/send": {
+        aki: GameCallbacks.reportNickname,
+    },
     "/player/health/sync": {
         aki: HealthCallbacks.syncHealth,
     },
@@ -123,14 +132,14 @@ module.exports = {
     "/singleplayer/airdrop/config": {
         aki: InraidCallbacks.getAirdropConfig,
     },
-    "/singleplayer/settings/version": {
-        aki: GameCallbacks.getVersion,
-    },
     "/client/insurance/items/list/cost": {
         aki: InsuranceCallbacks.getInsuranceCost,
     },
     "/client/game/profile/items/moving": {
         aki: ItemEventCallbacks.handleEvents,
+    },
+    "/launcher/ping": {
+        aki: LauncherCallbacks.ping,
     },
     "/launcher/server/connect": {
         aki: LauncherCallbacks.connect,
@@ -153,23 +162,14 @@ module.exports = {
     "/launcher/profile/change/wipe": {
         aki: LauncherCallbacks.wipe,
     },
-    "/launcher/profile/info": {
-        aki: LauncherCallbacks.getMiniProfile,
-    },
     "/launcher/profile/remove": {
         aki: LauncherCallbacks.removeProfile,
     },
     "/launcher/profile/compatibleTarkovVersion": {
         aki: LauncherCallbacks.getCompatibleTarkovVersion,
     },
-    "/launcher/profiles": {
-        aki: LauncherCallbacks.getAllMiniProfiles,
-    },
     "/launcher/server/version": {
         aki: LauncherCallbacks.getServerVersion,
-    },
-    "/launcher/ping": {
-        aki: LauncherCallbacks.ping,
     },
     "/client/locations": {
         aki: LocationCallbacks.getLocationData,
@@ -231,9 +231,6 @@ module.exports = {
     "/client/getMetricsConfig": {
         aki: MatchCallbacks.getMetrics,
     },
-    "/singleplayer/bundles": {
-        aki: BundleCallbacks.getBundles,
-    },
     "/client/notifier/channel/create": {
         aki: NotifierCallbacks.createNotifierChannel,
     },
@@ -270,6 +267,12 @@ module.exports = {
     "/client/game/profile/search": {
         aki: ProfileCallbacks.searchFriend,
     },
+    "/launcher/profile/info": {
+        aki: ProfileCallbacks.getMiniProfile,
+    },
+    "/launcher/profiles": {
+        aki: ProfileCallbacks.getAllMiniProfiles,
+    },
     "/client/quest/list": {
         aki: QuestCallbacks.listQuests,
     },
@@ -287,6 +290,9 @@ module.exports = {
     },
     "/client/items/prices": {
         aki: RagfairCallbacks.getItemPrices,
+    },
+    "/client/reports/ragfair/send": {
+        aki: RagfairCallbacks.sendReport,
     },
     "/client/trading/api/traderSettings": {
         aki: TraderCallbacks.getTraderSettings,

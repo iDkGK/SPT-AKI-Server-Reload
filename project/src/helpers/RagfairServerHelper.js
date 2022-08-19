@@ -2,26 +2,16 @@
 
 class RagfairServerHelper
 {
-    static offerOwnerType = {
-        anyOwnerType: 0,
-        traderOwnerType: 1,
-        playerOwnerType: 2,
-    };
+    static get goodsReturnedTemplate()
+    {
+        return "5bdac06e86f774296f5a19c5";
+    }
 
-    static memberCategory = {
-        default: 0,
-        developer: 1,
-        uniqueId: 2,
-        trader: 4,
-        group: 8,
-        system: 16,
-        chatModerator: 32,
-        chatModeratorWithPermanentBan: 64,
-        unitTest: 28,
-        sherpa: 56,
-        emissary: 12,
-    };
-
+    /**
+     * Is item valid / on blacklist / quest item
+     * @param itemDetails
+     * @returns boolean
+     */
     static isItemValidRagfairItem(itemDetails)
     {
         const blacklistConfig = RagfairConfig.dynamic.blacklist;
@@ -71,19 +61,39 @@ class RagfairServerHelper
 
     static isTrader(userID)
     {
-        return userID in DatabaseServer.tables.traders;
+        return userID in DatabaseServer.getTables().traders;
     }
 
     static isPlayer(userID)
     {
-        if (ProfileController.getPmcProfile(userID) !== undefined)
+        if (ProfileHelper.getPmcProfile(userID) !== undefined)
         {
             return true;
         }
         return false;
     }
 
-    static CalculateDynamicStackCount(tplId, isWeaponPreset)
+    static returnItems(sessionID, items)
+    {
+        const messageContent = DialogueHelper.createMessageContext(
+            undefined,
+            MessageType.MESSAGE_WITH_ITEMS,
+            QuestConfig.redeemTime
+        );
+        messageContent.text =
+            DatabaseServer.getTables().locales.global[
+                LocaleService.getDesiredLocale()
+            ].mail[RagfairServerHelper.goodsReturnedTemplate];
+
+        DialogueHelper.addDialogueMessage(
+            Traders.RAGMAN,
+            messageContent,
+            sessionID,
+            items
+        );
+    }
+
+    static calculateDynamicStackCount(tplId, isWeaponPreset)
     {
         const config = RagfairConfig.dynamic;
 
@@ -160,11 +170,11 @@ class RagfairServerHelper
         if (RagfairServerHelper.isTrader(userID))
         {
             // trader offer
-            return RagfairServerHelper.memberCategory.trader;
+            return MemberCategory.TRADER;
         }
 
         // generated offer
-        return RagfairServerHelper.memberCategory.default;
+        return MemberCategory.DEFAULT;
     }
 
     static getNickname(userID)
@@ -178,18 +188,86 @@ class RagfairServerHelper
         if (RagfairServerHelper.isTrader(userID))
         {
             // trader offer
-            return DatabaseServer.tables.traders[userID].base.nickname;
+            return DatabaseServer.getTables().traders[userID].base.nickname;
         }
 
         // generated offer
         // recurse if name is longer than max characters allowed (15 characters)
         const type = RandomUtil.getInt(0, 1) === 0 ? "usec" : "bear";
         const name = RandomUtil.getStringArrayValue(
-            DatabaseServer.tables.bots.types[type].firstName
+            DatabaseServer.getTables().bots.types[type].firstName
         );
         return name.length > 15
             ? RagfairServerHelper.getNickname(userID)
             : name;
+    }
+
+    static getPresetItems(item)
+    {
+        const preset = JsonUtil.clone(
+            DatabaseServer.getTables().globals.ItemPresets[item._id]._items
+        );
+        return RagfairServerHelper.reparentPresets(item, preset);
+    }
+
+    static getPresetItemsByTpl(item)
+    {
+        const presets = [];
+
+        for (const itemId in DatabaseServer.getTables().globals.ItemPresets)
+        {
+            if (
+                DatabaseServer.getTables().globals.ItemPresets[itemId]._items[0]
+                    ._tpl === item._tpl
+            )
+            {
+                const presetItems = JsonUtil.clone(
+                    DatabaseServer.getTables().globals.ItemPresets[itemId]
+                        ._items
+                );
+                presets.push(
+                    RagfairServerHelper.reparentPresets(item, presetItems)
+                );
+            }
+        }
+
+        return presets;
+    }
+
+    static reparentPresets(item, preset)
+    {
+        const oldRootId = preset[0]._id;
+        const idMappings = {};
+
+        idMappings[oldRootId] = item._id;
+
+        for (const mod of preset)
+        {
+            if (idMappings[mod._id] === undefined)
+            {
+                idMappings[mod._id] = HashUtil.generate();
+            }
+
+            if (
+                mod.parentId !== undefined &&
+                idMappings[mod.parentId] === undefined
+            )
+            {
+                idMappings[mod.parentId] = HashUtil.generate();
+            }
+
+            mod._id = idMappings[mod._id];
+
+            if (mod.parentId !== undefined)
+            {
+                mod.parentId = idMappings[mod.parentId];
+            }
+        }
+
+        // force item's details into first location of presetItems
+        preset[0] = item;
+
+        return preset;
     }
 }
 

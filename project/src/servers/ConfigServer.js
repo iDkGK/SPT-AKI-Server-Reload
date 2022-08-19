@@ -6,6 +6,11 @@ class ConfigServer
 {
     static configs = {};
 
+    static getConfig(configType)
+    {
+        return ConfigServer.configs[configType];
+    }
+
     static initialize()
     {
         Logger.info("Importing configs...");
@@ -32,21 +37,35 @@ class ConfigServer
         }
 
         // configs
-        globalThis.AkiConfig = ConfigServer.configs["aki-core"];
-        globalThis.BotConfig = ConfigServer.configs["aki-bot"];
-        globalThis.HealthConfig = ConfigServer.configs["aki-health"];
-        globalThis.HideoutConfig = ConfigServer.configs["aki-hideout"];
-        globalThis.HttpConfig = ConfigServer.configs["aki-http"];
-        globalThis.InraidConfig = ConfigServer.configs["aki-inraid"];
-        globalThis.InsuranceConfig = ConfigServer.configs["aki-insurance"];
-        globalThis.InventoryConfig = ConfigServer.configs["aki-inventory"];
-        globalThis.LocationConfig = ConfigServer.configs["aki-location"];
-        globalThis.MatchConfig = ConfigServer.configs["aki-match"];
-        globalThis.QuestConfig = ConfigServer.configs["aki-quest"];
-        globalThis.RagfairConfig = ConfigServer.configs["aki-ragfair"];
-        globalThis.RepairConfig = ConfigServer.configs["aki-repair"];
-        globalThis.TraderConfig = ConfigServer.configs["aki-trader"];
-        globalThis.WeatherConfig = ConfigServer.configs["aki-weather"];
+        globalThis.AirdropConfig = ConfigServer.getConfig(ConfigTypes.AIRDROP);
+        globalThis.BotConfig = ConfigServer.getConfig(ConfigTypes.BOT);
+        globalThis.CoreConfig = ConfigServer.getConfig(ConfigTypes.CORE);
+        globalThis.HealthConfig = ConfigServer.getConfig(ConfigTypes.HEALTH);
+        globalThis.HideoutConfig = ConfigServer.getConfig(ConfigTypes.HIDEOUT);
+        globalThis.HttpConfig = ConfigServer.getConfig(ConfigTypes.HTTP);
+        globalThis.InraidConfig = ConfigServer.getConfig(ConfigTypes.IN_RAID);
+        globalThis.InsuranceConfig = ConfigServer.getConfig(
+            ConfigTypes.INSURANCE
+        );
+        globalThis.InventoryConfig = ConfigServer.getConfig(
+            ConfigTypes.INVENTORY
+        );
+        globalThis.LocaleConfig = ConfigServer.getConfig(ConfigTypes.LOCALE);
+        globalThis.LocationConfig = ConfigServer.getConfig(
+            ConfigTypes.LOCATION
+        );
+        globalThis.MatchConfig = ConfigServer.getConfig(ConfigTypes.MATCH);
+        globalThis.PlayerScavConfig = ConfigServer.getConfig(
+            ConfigTypes.PLAYERSCAV
+        );
+        globalThis.QuestConfig = ConfigServer.getConfig(ConfigTypes.QUEST);
+        globalThis.RagfairConfig = ConfigServer.getConfig(ConfigTypes.RAGFAIR);
+        globalThis.RepairConfig = ConfigServer.getConfig(ConfigTypes.REPAIR);
+        globalThis.ScavCaseConfig = ConfigServer.getConfig(
+            ConfigTypes.SCAVCASE
+        );
+        globalThis.TraderConfig = ConfigServer.getConfig(ConfigTypes.TRADER);
+        globalThis.WeatherConfig = ConfigServer.getConfig(ConfigTypes.WEATHER);
     }
 }
 

@@ -4,6 +4,15 @@ require("../Lib.js");
 
 class DialogueController
 {
+    static update()
+    {
+        const profiles = SaveServer.getProfiles();
+        for (const sessionID in profiles)
+        {
+            DialogueController.removeExpiredItems(sessionID);
+        }
+    }
+
     static getFriendList(sessionID)
     {
         return {
@@ -18,14 +27,14 @@ class DialogueController
     {
         const data = [];
 
-        for (const dialogueID in SaveServer.getProfile(sessionID).dialogues)
+        for (const dialogueId in SaveServer.getProfile(sessionID).dialogues)
         {
             data.push(
-                DialogueController.getDialogueInfo(dialogueID, sessionID)
+                DialogueController.getDialogueInfo(dialogueId, sessionID)
             );
         }
 
-        return HttpResponse.getBody(data);
+        return HttpResponseUtil.getBody(data);
     }
 
     /* Get the content of a dialogue. */
@@ -35,7 +44,7 @@ class DialogueController
 
         return {
             _id: dialogueID,
-            type: DialogueHelper.getMessageTypeValue("npcTrader"), // Type npcTrader.
+            type: MessageType.NPC_TRADER, // Type npcTrader.
             message: DialogueHelper.getMessagePreview(dialogue),
             new: dialogue.new,
             attachmentsNew: dialogue.attachmentsNew,
@@ -75,7 +84,8 @@ class DialogueController
         return {
             messages: messages,
             profiles: [],
-            hasMessagesWithRewards: messages.some(x => x.hasRewards),
+            hasMessagesWithRewards:
+                DialogueController.messagesHaveUncollectedRewards(messages),
         };
     }
 
@@ -103,36 +113,49 @@ class DialogueController
 
     static getAllAttachments(dialogueID, sessionID)
     {
-        const output = [];
+        const messages = [];
         const timeNow = Date.now() / 1000;
 
         for (const message of SaveServer.getProfile(sessionID).dialogues[
             dialogueID
         ].messages)
         {
-            if (timeNow < message.dt + message.maxStorageTime)
+            if (
+                timeNow < message.dt + message.maxStorageTime &&
+                !message.rewardCollected &&
+                message.hasRewards
+            )
             {
-                output.push(message);
+                messages.push(message);
             }
         }
 
         SaveServer.getProfile(sessionID).dialogues[
             dialogueID
         ].attachmentsNew = 0;
+
         return {
-            messages: output,
+            messages: messages,
             profiles: [],
-            hasMessagesWithRewards: output.some(x => x.hasRewards),
+            hasMessagesWithRewards:
+                DialogueController.messagesHaveUncollectedRewards(messages),
         };
+    }
+
+    static messagesHaveUncollectedRewards(messages)
+    {
+        return messages.some(
+            x => x.hasRewards && x.items?.data?.length > 0 && !x.rewardCollected
+        );
     }
 
     // deletion of items that has been expired. triggers when updating traders.
     static removeExpiredItems(sessionID)
     {
-        for (const dialogueID in SaveServer.getProfile(sessionID).dialogues)
+        for (const dialogueId in SaveServer.getProfile(sessionID).dialogues)
         {
             for (const message of SaveServer.getProfile(sessionID).dialogues[
-                dialogueID
+                dialogueId
             ].messages)
             {
                 if (Date.now() / 1000 > message.dt + message.maxStorageTime)
@@ -143,14 +166,15 @@ class DialogueController
         }
     }
 
-    static update()
-    {
-        const profiles = SaveServer.getProfiles();
-        for (const sessionID in profiles)
-        {
-            DialogueController.removeExpiredItems(sessionID);
-        }
-    }
+    /*
+     * Return the int value associated with the messageType, for readability.
+     */
+    /* @Cleanup: Not really needed anymore sinde we use Enum
+     static getMessageTypeValue(messageType)
+     {
+         return DialogueController.messageTypes[messageType];
+     }
+     */
 }
 
 module.exports = DialogueController;

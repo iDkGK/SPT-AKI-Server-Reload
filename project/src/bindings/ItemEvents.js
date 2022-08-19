@@ -87,6 +87,15 @@ module.exports = {
     ApplyInventoryChanges: {
         aki: InventoryCallbacks.sortInventory,
     },
+    CreateMapMarker: {
+        aki: InventoryCallbacks.createMapMarker,
+    },
+    DeleteMapMarker: {
+        aki: InventoryCallbacks.deleteMapMarker,
+    },
+    EditMapMarker: {
+        aki: InventoryCallbacks.editMapMarker,
+    },
     AddNote: {
         aki: NoteCallbacks.addNote,
     },
@@ -111,6 +120,9 @@ module.exports = {
     QuestHandover: {
         aki: QuestCallbacks.handoverQuest,
     },
+    RepeatableQuestChange: {
+        aki: QuestCallbacks.changeRepeatableQuest,
+    },
     RagFairAddOffer: {
         aki: RagfairCallbacks.addOffer,
     },
@@ -122,9 +134,6 @@ module.exports = {
     },
     Repair: {
         aki: RepairCallbacks.repair,
-    },
-    RepeatableQuestChange: {
-        aki: QuestCallbacks.changeRepeatableQuest,
     },
     TraderRepair: {
         aki: RepairCallbacks.traderRepair,
@@ -140,14 +149,5 @@ module.exports = {
     },
     RemoveFromWishList: {
         aki: WishlistCallbacks.removeFromWishlist,
-    },
-    CreateMapMarker: {
-        aki: InventoryCallbacks.createMapMarker,
-    },
-    DeleteMapMarker: {
-        aki: InventoryCallbacks.deleteMapMarker,
-    },
-    EditMapMarker: {
-        aki: InventoryCallbacks.editMapMarker,
     },
 };

@@ -4,18 +4,22 @@ require("../Lib.js");
 
 class DialogueCallbacks
 {
+    static update()
+    {
+        DialogueController.update();
+        return true;
+    }
+
     static getFriendList(url, info, sessionID)
     {
-        return HttpResponse.getBody({
-            Friends: [],
-            Ignore: [],
-            InIgnoreList: [],
-        });
+        return HttpResponseUtil.getBody(
+            DialogueController.getFriendList(sessionID)
+        );
     }
 
     static getChatServerList(url, info, sessionID)
     {
-        return HttpResponse.getBody([
+        return HttpResponseUtil.getBody([
             {
                 _id: HashUtil.generate(),
                 RegistrationId: 20,
@@ -42,14 +46,14 @@ class DialogueCallbacks
 
     static getMailDialogView(url, info, sessionID)
     {
-        return HttpResponse.getBody(
+        return HttpResponseUtil.getBody(
             DialogueController.generateDialogueView(info.dialogId, sessionID)
         );
     }
 
     static getMailDialogInfo(url, info, sessionID)
     {
-        return HttpResponse.getBody(
+        return HttpResponseUtil.getBody(
             DialogueController.getDialogueInfo(info.dialogId, sessionID)
         );
     }
@@ -57,58 +61,52 @@ class DialogueCallbacks
     static removeDialog(url, info, sessionID)
     {
         DialogueController.removeDialogue(info.dialogId, sessionID);
-        return HttpResponse.getBody([]);
+        return HttpResponseUtil.emptyArrayResponse();
     }
 
     static pinDialog(url, info, sessionID)
     {
         DialogueController.setDialoguePin(info.dialogId, true, sessionID);
-        return HttpResponse.getBody([]);
+        return HttpResponseUtil.emptyArrayResponse();
     }
 
     static unpinDialog(url, info, sessionID)
     {
         DialogueController.setDialoguePin(info.dialogId, false, sessionID);
-        return HttpResponse.emptyArrayResponse();
+        return HttpResponseUtil.emptyArrayResponse();
     }
 
     static setRead(url, info, sessionID)
     {
         DialogueController.setRead(info.dialogs, sessionID);
-        return HttpResponse.emptyArrayResponse();
+        return HttpResponseUtil.emptyArrayResponse();
     }
 
     static getAllAttachments(url, info, sessionID)
     {
-        return HttpResponse.getBody(
+        return HttpResponseUtil.getBody(
             DialogueController.getAllAttachments(info.dialogId, sessionID)
         );
     }
 
     static listOutbox(url, info, sessionID)
     {
-        return HttpResponse.emptyArrayResponse();
+        return HttpResponseUtil.getBody([]);
     }
 
     static listInbox(url, info, sessionID)
     {
-        return HttpResponse.emptyArrayResponse();
+        return HttpResponseUtil.getBody([]);
     }
 
     static friendRequest(url, request, sessionID)
     {
-        return HttpResponse.nullResponse();
+        return HttpResponseUtil.nullResponse();
     }
 
     static sendMessage(url, request, sessionID)
     {
-        return HttpResponse.getBody(1);
-    }
-
-    static update()
-    {
-        DialogueController.update();
-        return true;
+        return HttpResponseUtil.getBody(1);
     }
 }
 

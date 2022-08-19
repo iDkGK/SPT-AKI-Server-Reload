@@ -4,7 +4,7 @@ require("../Lib.js");
 
 class GameEventHelper
 {
-    static get EVENT()
+    static get events()
     {
         return {
             None: "None",
@@ -32,8 +32,8 @@ class GameEventHelper
 
     static christmasEventEnabled()
     {
-        return DatabaseServer.tables.globals.config.EventType.includes(
-            GameEventHelper.EVENT.Christmas
+        return DatabaseServer.getTables().globals.config.EventType.includes(
+            GameEventHelper.events.Christmas
         );
     }
 }

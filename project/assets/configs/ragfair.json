@@ -1,6 +1,7 @@
 {
     "runIntervalSeconds": 45,
     "sell": {
+		"simulatedSellHours": 12,
         "fees": true,
         "chance": {
             "base": 50,
@@ -29,6 +30,11 @@
         "ragfair": false
     },
     "dynamic": {
+		"offerAdjustment":{
+			"maxPriceDifferenceBelowHandbookPercent": 64,
+			"handbookPriceMultipier": 1.1,
+			"priceThreshholdRub": 20000
+		},
         "expiredOfferThreshold": 1500,
         "offerItemCount": {
             "min": 8,
@@ -37,6 +43,10 @@
         "price": {
             "min": 0.8,
             "max": 1.2
+        },
+        "presetPrice": {
+            "min": 0.95,
+            "max": 1.05
         },
         "endTimeSeconds": {
             "min": 180,
@@ -81,7 +91,16 @@
                 "5943d9c186f7745a13413ac9",
                 "5996f6fc86f7745e585b4de3",
                 "5cde8864d7f00c0010373be1",
-                "5d2f2ab648f03550091993ca"
+                "5d2f2ab648f03550091993ca",
+                "5ae083b25acfc4001a5fc702",
+                "544a3d0a4bdc2d1b388b4567",
+                "54490a4d4bdc2dbc018b4573",
+                "590de52486f774226a0c24c2",
+                "58ac60eb86f77401897560ff",
+                "5648b62b4bdc2d9d488b4585",
+                "544a3f024bdc2d1d388b4568",
+                "590de4a286f77423d9312a32",
+                "5751961824597720a31c09ac"
             ],
             "enableBsgList": true,
             "enableQuestList": true,

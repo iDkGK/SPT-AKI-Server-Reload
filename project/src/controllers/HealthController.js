@@ -4,17 +4,25 @@ require("../Lib.js");
 
 class HealthController
 {
-    static resetVitality(sessionID)
+    /**
+     * stores in-raid player health
+     * @param pmcData Player profile
+     * @param info Request data
+     * @param sessionID
+     * @param addEffects Should effects found be added or removed from profile
+     */
+    static saveVitality(pmcData, info, sessionID, addEffects = true)
     {
-        return HealthHelper.resetVitality(sessionID);
+        HealthHelper.saveVitality(pmcData, info, sessionID, addEffects);
     }
 
-    /* stores in-raid player health */
-    static saveVitality(pmcData, info, sessionID)
-    {
-        HealthHelper.saveVitality(pmcData, info, sessionID);
-    }
-
+    /**
+     * When healing in menu
+     * @param pmcData
+     * @param body
+     * @param sessionID
+     * @returns
+     */
     static offraidHeal(pmcData, body, sessionID)
     {
         const output = ItemEventRouter.getOutput(sessionID);
@@ -101,12 +109,19 @@ class HealthController
         return output;
     }
 
+    /**
+     * Occurs on post-raid healing page
+     * @param pmcData player profile
+     * @param info Request data from client
+     * @param sessionID Session id
+     * @returns
+     */
     static healthTreatment(pmcData, info, sessionID)
     {
         let output = ItemEventRouter.getOutput(sessionID);
-        const body = {
+        const payMoneyRequest = {
             Action: "RestoreHealth",
-            tid: TraderHelper.TRADER.Therapist,
+            tid: Traders.THERAPIST,
             scheme_items: info.items,
             type: "",
             item_id: "",
@@ -114,37 +129,46 @@ class HealthController
             scheme_id: 0,
         };
 
-        output = PaymentService.payMoney(pmcData, body, sessionID, output);
+        output = PaymentService.payMoney(
+            pmcData,
+            payMoneyRequest,
+            sessionID,
+            output
+        );
         if (output.warnings.length > 0)
         {
             return output;
         }
 
         const bodyParts = info.difference.BodyParts;
-        const healthInfo = { IsAlive: true, Health: {} };
+        const healthRequest = {
+            IsAlive: true,
+            Health: {},
+        };
 
-        for (const key in bodyParts)
+        for (const bodyPartKey in bodyParts)
         {
-            const bodyPart = info.difference.BodyParts[key];
+            const bodyPart = info.difference.BodyParts[bodyPartKey];
 
-            healthInfo.Health[key] = {};
-            healthInfo.Health[key].Current = Math.round(
-                pmcData.Health.BodyParts[key].Health.Current + bodyPart.Health
+            healthRequest.Health[bodyPartKey] = {};
+            healthRequest.Health[bodyPartKey].Current = Math.round(
+                pmcData.Health.BodyParts[bodyPartKey].Health.Current +
+                    bodyPart.Health
             );
 
             if ("Effects" in bodyPart && bodyPart.Effects)
             {
-                healthInfo.Health[key].Effects = bodyPart.Effects;
+                healthRequest.Health[bodyPartKey].Effects = bodyPart.Effects;
             }
         }
 
-        healthInfo.Hydration =
+        healthRequest.Hydration =
             pmcData.Health.Hydration.Current + info.difference.Hydration;
-        healthInfo.Energy =
+        healthRequest.Energy =
             pmcData.Health.Energy.Current + info.difference.Energy;
-        healthInfo.Temperature = pmcData.Health.Temperature.Current;
+        healthRequest.Temperature = pmcData.Health.Temperature.Current;
 
-        HealthController.saveVitality(pmcData, healthInfo, sessionID);
+        HealthController.saveVitality(pmcData, healthRequest, sessionID, false);
         return output;
     }
 }

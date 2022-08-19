@@ -14,8 +14,9 @@ class LocationController
     /* generates a random location preset to use for local session */
     static generate(name)
     {
-        const location = DatabaseServer.tables.locations[name];
+        const location = DatabaseServer.getTables().locations[name];
         const output = location.base;
+        // const ids = {};
 
         output.UnixDateTime = TimeUtil.getTimestamp();
 
@@ -29,22 +30,22 @@ class LocationController
 
         // generate loot
         const staticWeapons = JsonUtil.clone(
-            DatabaseServer.tables.loot.staticContainers[locationName]
+            DatabaseServer.getTables().loot.staticContainers[locationName]
                 .staticWeapons
         );
         const staticContainers = JsonUtil.clone(
-            DatabaseServer.tables.loot.staticContainers[locationName]
+            DatabaseServer.getTables().loot.staticContainers[locationName]
                 .staticContainers
         );
         const staticForced = JsonUtil.clone(
-            DatabaseServer.tables.loot.staticContainers[locationName]
+            DatabaseServer.getTables().loot.staticContainers[locationName]
                 .staticForced
         );
         const staticLootDist = JsonUtil.clone(
-            DatabaseServer.tables.loot.staticLoot
+            DatabaseServer.getTables().loot.staticLoot
         );
         const staticAmmoDist = JsonUtil.clone(
-            DatabaseServer.tables.loot.staticAmmo
+            DatabaseServer.getTables().loot.staticAmmo
         );
 
         output.Loot = [];
@@ -69,6 +70,7 @@ class LocationController
             output.Loot.push(container);
             count++;
         }
+
         Logger.success(`A total of ${count} containers generated`);
 
         // dyanmic loot
@@ -95,12 +97,12 @@ class LocationController
     /* get all locations without loot data */
     static generateAll()
     {
-        const locations = DatabaseServer.tables.locations;
+        const locations = DatabaseServer.getTables().locations;
+
         const returnResult = {
             locations: undefined,
             paths: [],
         };
-
         // use right id's and strip loot
         const data = {};
         for (const name in locations)

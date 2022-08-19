@@ -2,108 +2,249 @@
 
 require("../Lib.js");
 
+const fs = require("fs");
 const util = require("util");
+const winston = require("winston");
+const dailyrotatefile = require("winston-daily-rotate-file");
 
 class Logger
 {
     static showDebugInConsole = false;
-    static filepath = "user/logs/server.log";
-    static colors = {
-        front: {
-            black: "\x1b[30m",
-            red: "\x1b[31m",
-            green: "\x1b[32m",
-            yellow: "\x1b[33m",
-            blue: "\x1b[34m",
-            magenta: "\x1b[35m",
-            cyan: "\x1b[36m",
-            white: "\x1b[37m",
-        },
-        back: {
-            black: "\x1b[40m",
-            red: "\x1b[41m",
-            green: "\x1b[42m",
-            yellow: "\x1b[43m",
-            blue: "\x1b[44m",
-            magenta: "\x1b[45m",
-            cyan: "\x1b[46m",
-            white: "\x1b[47m",
-        },
-    };
+
+    static get folderPath()
+    {
+        return "./user/logs/";
+    }
+
+    static get file()
+    {
+        return "server-%DATE%.log";
+    }
+
+    static get filePath()
+    {
+        return `${Logger.folderPath}${Logger.file}`;
+    }
+
+    static get logLevels()
+    {
+        return {
+            levels: {
+                error: 0,
+                warn: 1,
+                succ: 2,
+                info: 3,
+                custom: 4,
+                debug: 5,
+            },
+            colors: {
+                error: "red",
+                warn: "yellow",
+                succ: "green",
+                info: "white",
+                custom: "black",
+                debug: "gray",
+            },
+            bgColors: {
+                default: "",
+                blackBG: "blackBG",
+                redBG: "redBG",
+                greenBG: "greenBG",
+                yellowBG: "yellowBG",
+                blueBG: "blueBG",
+                magentaBG: "magentaBG",
+                cyanBG: "cyanBG",
+                whiteBG: "whiteBG",
+            },
+        };
+    }
+
+    static get writeFilePromisify()
+    {
+        return promisify(fs.writeFile);
+    }
+
+    static logger = winston.createLogger({
+        levels: Logger.logLevels.levels,
+        transports: [
+            new dailyrotatefile({
+                level: "debug",
+                filename: Logger.filePath,
+                datePattern: "YYYY-MM-DD-HH",
+                zippedArchive: true,
+                maxSize: "5m",
+                maxFiles: "14d",
+                format: winston.format.combine(
+                    winston.format.timestamp(),
+                    winston.format.align(),
+                    winston.format.json(),
+                    winston.format.printf(({ timestamp, level, message }) =>
+                    {
+                        return `[${timestamp}] ${level}: ${message}`;
+                    })
+                ),
+            }),
+            new winston.transports.Console({
+                level: Logger.showDebugInConsole ? "debug" : "custom",
+                format: winston.format.combine(
+                    winston.format.colorize({
+                        all: true,
+                        colors: Logger.logLevels.colors,
+                    }),
+                    winston.format.printf(({ message }) =>
+                    {
+                        return `${message}`;
+                    })
+                ),
+            }),
+        ],
+    });
 
     static initialize()
     {
         Logger.showDebugInConsole = globalThis.G_DEBUG_CONFIGURATION;
 
-        if (VFS.exists(Logger.filepath))
+        if (!fs.existsSync(Logger.folderPath))
         {
-            VFS.writeFile(Logger.filepath, "");
+            fs.mkdirSync(Logger.folderPath, { recursive: true });
         }
+
+        winston.addColors(Logger.logLevels.colors);
 
         process.on("uncaughtException", (error, promise) =>
         {
-            Logger.error("Trace:");
-            Logger.log(error);
+            Logger.error(`${error.name}: ${error.message}`);
+            Logger.error(error.stack);
         });
     }
 
-    static writeToLogFile(data)
+    static async writeToLogFile(data)
     {
-        VFS.writeFile(Logger.filepath, `${data}\n`, true);
+        const command = {
+            uuid: UUidGenerator.generate(),
+            cmd: async () =>
+                await Logger.writeFilePromisify(
+                    Logger.filePath,
+                    `${data}\n`,
+                    true
+                ),
+        };
+        await AsyncQueue.waitFor(command);
     }
 
-    static log(data, front = "", back = "")
+    static async log(data, color, backgroundColor = "")
     {
-        // set colors
-        const colors = `${Logger.colors.front[front] || ""}${
-            Logger.colors.back[back] || ""
-        }`;
-
-        // show logged message
-        if (colors)
+        const textColor = `${color} ${backgroundColor}`.trimEnd();
+        const tmpLogger = winston.createLogger({
+            levels: { custom: 0 },
+            level: "custom",
+            transports: [
+                new winston.transports.Console({
+                    format: winston.format.combine(
+                        winston.format.colorize({
+                            all: true,
+                            colors: { custom: textColor },
+                        }),
+                        winston.format.printf(({ message }) => message)
+                    ),
+                }),
+            ],
+        });
+        let command;
+        if (typeof data === "string")
         {
-            console.log(`${colors}${data}\x1b[0m`);
+            command = {
+                uuid: UUidGenerator.generate(),
+                cmd: async () => await tmpLogger.log("custom", data),
+            };
         }
         else
         {
-            console.log(data);
+            command = {
+                uuid: UUidGenerator.generate(),
+                cmd: async () =>
+                    await tmpLogger.log(
+                        "custom",
+                        JSON.stringify(data, null, 4)
+                    ),
+            };
         }
-
-        // save logged message
-        Logger.writeToLogFile(util.format(data));
+        await AsyncQueue.waitFor(command);
     }
 
-    static error(data)
+    static async error(data)
     {
-        Logger.log(`[ERROR] ${data}`, "white", "red");
+        const command = {
+            uuid: UUidGenerator.generate(),
+            cmd: async () => await Logger.logger.error(data),
+        };
+        await AsyncQueue.waitFor(command);
     }
 
-    static warning(data)
+    static async warning(data)
     {
-        Logger.log(`[WARNING] ${data}`, "black", "yellow");
+        const command = {
+            uuid: UUidGenerator.generate(),
+            cmd: async () => await Logger.logger.warn(data),
+        };
+        await AsyncQueue.waitFor(command);
     }
 
-    static success(data)
+    static async success(data)
     {
-        Logger.log(`[SUCCESS] ${data}`, "white", "green");
+        const command = {
+            uuid: UUidGenerator.generate(),
+            cmd: async () => await Logger.logger.succ(data),
+        };
+        await AsyncQueue.waitFor(command);
     }
 
-    static info(data)
+    static async info(data)
     {
-        Logger.log(`[INFO] ${data}`, "cyan", "black");
+        const command = {
+            uuid: UUidGenerator.generate(),
+            cmd: async () => await Logger.logger.info(data),
+        };
+        await AsyncQueue.waitFor(command);
     }
 
-    static debug(data, isError = false, onlyShowInConsole = false)
+    static async logWithColor(
+        data,
+        textColor,
+        backgroundColor = LogBackgroundColor.DEFAULT
+    )
     {
-        if (Logger.showDebugInConsole)
+        const command = {
+            uuid: UUidGenerator.generate(),
+            cmd: async () =>
+                await Logger.log(
+                    data,
+                    textColor.toString(),
+                    backgroundColor.toString()
+                ),
+        };
+        await AsyncQueue.waitFor(command);
+    }
+
+    static async debug(data, isError = false, onlyShowInConsole = false)
+    {
+        let command;
+        if (onlyShowInConsole)
         {
-            Logger.log(`[DEBUG] ${data}`, isError ? "red" : "green", "black");
+            command = {
+                uuid: UUidGenerator.generate(),
+                cmd: async () =>
+                    await Logger.log(data, Logger.logLevels.colors.debug),
+            };
         }
-
-        if (!onlyShowInConsole)
+        else
         {
-            Logger.writeToLogFile(util.format(`[DEBUG] ${data}`));
+            command = {
+                uuid: UUidGenerator.generate(),
+                cmd: async () => await Logger.logger.debug(data),
+            };
         }
+        await AsyncQueue.waitFor(command);
     }
 }
 

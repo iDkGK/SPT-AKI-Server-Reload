@@ -13,17 +13,18 @@ class NotifierCallbacks
     static sendNotification(sessionID, req, resp, data)
     {
         const splittedUrl = req.url.split("/");
-        sessionID = splittedUrl[splittedUrl.length - 1].split("?last_id")[0];
+        const tmpSessionID =
+            splittedUrl[splittedUrl.length - 1].split("?last_id")[0];
 
         /**
          * Take our array of JSON message objects and cast them to JSON strings, so that they can then
          *  be sent to client as NEWLINE separated strings... yup.
          */
-        NotifierController.notifyAsync(sessionID)
+        NotifierController.notifyAsync(tmpSessionID)
             .then(messages =>
                 messages.map(message => JSON.stringify(message)).join("\n")
             )
-            .then(text => HttpServer.sendTextJson(resp, text));
+            .then(text => HttpServerHelper.sendTextJson(resp, text));
     }
 
     static getNotifier(url, info, sessionID)

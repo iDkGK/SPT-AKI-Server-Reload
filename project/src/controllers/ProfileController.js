@@ -4,21 +4,55 @@ require("../Lib.js");
 
 class ProfileController
 {
-    static sessionId = "";
-
-    static onLoad(sessionID)
+    static getMiniProfiles()
     {
-        const profile = SaveServer.getProfile(sessionID);
+        const miniProfiles = [];
 
-        if (profile.characters === null)
+        for (const sessionIdKey in SaveServer.getProfiles())
         {
-            profile.characters = {
-                pmc: {},
-                scav: {},
+            miniProfiles.push(ProfileController.getMiniProfile(sessionIdKey));
+        }
+
+        return miniProfiles;
+    }
+
+    static getMiniProfile(sessionID)
+    {
+        const maxlvl = ProfileHelper.getMaxLevel();
+        const profile = SaveServer.getProfile(sessionID);
+        const pmc = profile.characters.pmc;
+
+        // make sure character completed creation
+        if (!("Info" in pmc) || !("Level" in pmc.Info))
+        {
+            return {
+                username: profile.info.username,
+                nickname: "unknown",
+                side: "unknown",
+                currlvl: 0,
+                currexp: 0,
+                prevexp: 0,
+                nextlvl: 0,
+                maxlvl: maxlvl,
+                akiData: ProfileHelper.getDefaultAkiDataObject(),
             };
         }
 
-        return profile;
+        const currlvl = pmc.Info.Level;
+        const nextlvl = ProfileHelper.getExperience(currlvl + 1);
+        const result = {
+            username: profile.info.username,
+            nickname: pmc.Info.Nickname,
+            side: pmc.Info.Side,
+            currlvl: pmc.Info.Level,
+            currexp: pmc.Info.Experience,
+            prevexp: currlvl === 0 ? 0 : ProfileHelper.getExperience(currlvl),
+            nextlvl: nextlvl,
+            maxlvl: maxlvl,
+            akiData: profile.aki,
+        };
+
+        return result;
     }
 
     static getCompleteProfile(sessionID)
@@ -28,9 +62,9 @@ class ProfileController
 
     static createProfile(info, sessionID)
     {
-        const account = LauncherController.find(sessionID);
+        const account = SaveServer.getProfile(sessionID).info;
         const profile =
-            DatabaseServer.tables.templates.profiles[account.edition][
+            DatabaseServer.getTables().templates.profiles[account.edition][
                 info.side.toLowerCase()
             ];
         const pmcData = profile.character;
@@ -49,7 +83,9 @@ class ProfileController
         pmcData.Info.LowerNickname = info.nickname.toLowerCase();
         pmcData.Info.RegistrationDate = TimeUtil.getTimestamp();
         pmcData.Info.Voice =
-            DatabaseServer.tables.templates.customization[info.voiceId]._name;
+            DatabaseServer.getTables().templates.customization[
+                info.voiceId
+            ]._name;
         pmcData.Stats = ProfileHelper.getDefaultCounters();
         pmcData.Customization.Head = info.headId;
         pmcData.Health.UpdateTime = TimeUtil.getTimestamp();
@@ -76,14 +112,21 @@ class ProfileController
             weaponbuilds: profile.weaponbuilds,
             dialogues: profile.dialogues,
             aki: ProfileHelper.getDefaultAkiDataObject(),
+            vitality: {},
+            inraid: {},
+            insurance: [],
         };
+
+        ProfileFixerService.checkForAndFixPmcProfileIssues(
+            profileDetails.characters.pmc
+        );
+
         SaveServer.addProfile(profileDetails);
 
-        // pmc profile needs to exist first
         SaveServer.getProfile(sessionID).characters.scav =
             ProfileController.generatePlayerScav(sessionID);
 
-        for (const traderID in DatabaseServer.tables.traders)
+        for (const traderID in DatabaseServer.getTables().traders)
         {
             TraderHelper.resetTrader(sessionID, traderID);
         }
@@ -97,9 +140,15 @@ class ProfileController
         SaveServer.saveProfile(sessionID);
     }
 
+    /**
+     * Generate a player scav object
+     * pmc profile MUST exist first before pscav can be generated
+     * @param sessionID
+     * @returns IPmcData object
+     */
     static generatePlayerScav(sessionID)
     {
-        return ProfileHelper.generatePlayerScav(sessionID);
+        return PlayerScavGenerator.generate(sessionID);
     }
 
     static validateNickname(info, sessionID)
@@ -136,20 +185,6 @@ class ProfileController
     {
         const pmcData = ProfileHelper.getPmcProfile(sessionID);
         pmcData.Info.Voice = info.voice;
-    }
-
-    static getProfileByPmcId(pmcId)
-    {
-        for (const sessionID in SaveServer.getProfiles())
-        {
-            const profile = SaveServer.getProfile(sessionID);
-            if (profile.characters.pmc._id === pmcId)
-            {
-                return profile.characters.pmc;
-            }
-        }
-
-        return undefined;
     }
 
     static getFriends(info, sessionID)

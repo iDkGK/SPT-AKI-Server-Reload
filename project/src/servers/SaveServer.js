@@ -4,11 +4,19 @@ require("../Lib.js");
 
 class SaveServer
 {
-    static profileFilepath = "user/profiles/";
     static profiles = {};
-    static onLoad = require("../bindings/SaveLoad");
     static onSave = {};
-    static SaveMd5 = {};
+    static saveMd5 = {};
+
+    static get profileFilepath()
+    {
+        return "user/profiles/";
+    }
+
+    static get onLoad()
+    {
+        return require("../bindings/SaveLoad");
+    }
 
     static load()
     {
@@ -28,9 +36,6 @@ class SaveServer
         {
             SaveServer.loadProfile(VFS.stripExtension(file));
         }
-
-        RagfairServer.addPlayerOffers();
-        RagfairServer.update();
     }
 
     static save()
@@ -74,6 +79,7 @@ class SaveServer
             delete SaveServer.profiles[sessionID];
             return true;
         }
+
         return false;
     }
 
@@ -81,13 +87,14 @@ class SaveServer
     {
         if (SaveServer.profiles[profileInfo.id] !== null)
         {
-            throw new console.error(
+            throw new Error(
                 `profile already exists for sessionId: ${profileInfo.id}`
             );
         }
 
         SaveServer.profiles[profileInfo.id] = {
             info: profileInfo,
+            characters: { pmc: {}, scav: {} },
         };
     }
 
@@ -114,8 +121,9 @@ class SaveServer
         // run callbacks
         for (const callback in SaveServer.onLoad)
         {
-            SaveServer.profiles[sessionID] =
-                SaveServer.onLoad[callback](sessionID);
+            SaveServer.profiles[sessionID] = SaveServer.onLoad[callback](
+                SaveServer.getProfile(sessionID)
+            );
         }
     }
 
@@ -130,19 +138,19 @@ class SaveServer
                 SaveServer.onSave[callback](sessionID);
         }
 
-        const JsonProfile = JsonUtil.serialize(
+        const jsonProfile = JsonUtil.serialize(
             SaveServer.profiles[sessionID],
             true
         );
-        const fmd5 = HashUtil.generateMd5ForData(JsonProfile);
+        const fmd5 = HashUtil.generateMd5ForData(jsonProfile);
         if (
-            typeof SaveServer.SaveMd5[sessionID] !== "string" ||
-            SaveServer.SaveMd5[sessionID] !== fmd5
+            typeof SaveServer.saveMd5[sessionID] !== "string" ||
+            SaveServer.saveMd5[sessionID] !== fmd5
         )
         {
-            SaveServer.SaveMd5[sessionID] = String(fmd5);
+            SaveServer.saveMd5[sessionID] = String(fmd5);
             // save profile
-            VFS.writeFile(filePath, JsonProfile);
+            VFS.writeFile(filePath, jsonProfile);
             Logger.debug("Profile updated");
         }
     }

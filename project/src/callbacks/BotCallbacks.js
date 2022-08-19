@@ -8,7 +8,9 @@ class BotCallbacks
     {
         const splittedUrl = url.split("/");
         const type = splittedUrl[splittedUrl.length - 1];
-        return HttpResponse.noBody(BotController.getBotLimit(type));
+        return HttpResponseUtil.noBody(
+            BotController.getBotPresetGenerationLimit(type)
+        );
     }
 
     static getBotDifficulty(url, info, sessionID)
@@ -16,19 +18,28 @@ class BotCallbacks
         const splittedUrl = url.split("/");
         const type = splittedUrl[splittedUrl.length - 2].toLowerCase();
         const difficulty = splittedUrl[splittedUrl.length - 1];
-        return HttpResponse.noBody(
+        if (difficulty === "core")
+        {
+            return HttpResponseUtil.noBody(
+                BotController.getBotCoreDifficulty()
+            );
+        }
+
+        return HttpResponseUtil.noBody(
             BotController.getBotDifficulty(type, difficulty)
         );
     }
 
     static generateBots(url, info, sessionID)
     {
-        return HttpResponse.getBody(BotController.generate(info));
+        return HttpResponseUtil.getBody(
+            BotController.generate(sessionID, info)
+        );
     }
 
     static getBotCap()
     {
-        return HttpResponse.noBody(BotController.getBotCap());
+        return HttpResponseUtil.noBody(BotController.getBotCap());
     }
 }
 

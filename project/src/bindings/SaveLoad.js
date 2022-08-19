@@ -3,8 +3,8 @@
 require("../Lib.js");
 
 module.exports = {
-    "aki-health": HealthCallbacks.onLoad,
-    "aki-inraid": InraidCallbacks.onLoad,
-    "aki-insurance": InsuranceCallbacks.onLoad,
-    "aki-profile": ProfileCallbacks.onLoad,
+    "aki-health": HealthCallbacks.onSaveLoad,
+    "aki-inraid": InraidCallbacks.onSaveLoad,
+    "aki-insurance": InsuranceCallbacks.onSaveLoad,
+    "aki-profile": ProfileCallbacks.onSaveLoad,
 };

@@ -39,12 +39,14 @@ class QuestCallbacks
 
     static listQuests(url, info, sessionID)
     {
-        return HttpResponse.getBody(QuestController.getClientQuests(sessionID));
+        return HttpResponseUtil.getBody(
+            QuestController.getClientQuests(sessionID)
+        );
     }
 
     static activityPeriods(url, info, sessionID)
     {
-        return HttpResponse.getBody(
+        return HttpResponseUtil.getBody(
             RepeatableQuestController.getClientRepeatableQuests(info, sessionID)
         );
     }

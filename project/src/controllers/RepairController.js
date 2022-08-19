@@ -4,6 +4,13 @@ require("../Lib.js");
 
 class RepairController
 {
+    /**
+     * Repair with trader
+     * @param pmcData player profile
+     * @param body endpoint request data
+     * @param sessionID session id
+     * @returns item event router action
+     */
     static traderRepair(pmcData, body, sessionID)
     {
         let output = ItemEventRouter.getOutput(sessionID);
@@ -11,20 +18,41 @@ class RepairController
             body.tid,
             pmcData
         ).repair_price_coef;
-        const repairRate = coef === 0 ? 1 : coef / 100 + 1;
+        const quality = Number(
+            TraderHelper.getTrader(body.tid, sessionID).repair.quality
+        );
+        const repairRate = coef <= 0 ? 1 : coef / 100 + 1;
 
         // find the item to repair
         for (const repairItem of body.repairItems)
         {
-            const repairableItem = RepairController.updateItemDurability(
-                repairItem._id,
+            let itemToRepair = pmcData.Inventory.items.find(
+                x => x._id === repairItem._id
+            );
+            if (itemToRepair === undefined)
+            {
+                throw new Error(
+                    `Item ${repairItem._id} not found, unable to repair`
+                );
+            }
+
+            const itemToRepairDetails =
+                DatabaseServer.getTables().templates.items[itemToRepair._tpl];
+            const repairItemIsArmor =
+                !!itemToRepairDetails._props.ArmorMaterial;
+
+            itemToRepair = RepairHelper.updateItemDurability(
+                itemToRepair,
+                itemToRepairDetails,
+                repairItemIsArmor,
                 repairItem.count,
-                pmcData
+                false,
+                quality !== 0 && RepairConfig.applyRandomizeDurabilityLoss
             );
 
             // get repair price and pay the money
             const itemRepairCost =
-                DatabaseServer.tables.templates.items[repairableItem._tpl]
+                DatabaseServer.getTables().templates.items[itemToRepair._tpl]
                     ._props.RepairCost;
             const repairCost = Math.round(
                 itemRepairCost *
@@ -32,17 +60,13 @@ class RepairController
                     repairRate *
                     RepairConfig.priceMultiplier
             );
-            Logger.debug(
-                `item base repair cost: ${itemRepairCost}`,
-                false,
-                true
-            );
+
+            Logger.debug(`item base repair cost: ${itemRepairCost}`, true);
             Logger.debug(
                 `price multipler: ${RepairConfig.priceMultiplier}`,
-                false,
                 true
             );
-            Logger.debug(`repair cost: ${repairCost}`, false, true);
+            Logger.debug(`repair cost: ${repairCost}`, true);
 
             const options = {
                 scheme_items: [
@@ -70,13 +94,13 @@ class RepairController
                 return output;
             }
 
-            output.profileChanges[sessionID].items.change.push(repairableItem);
+            output.profileChanges[sessionID].items.change.push(itemToRepair);
 
             // add skill points for repairing weapons
-            if (RepairController.isWeaponTemplate(repairableItem._tpl))
+            if (RepairHelper.isWeaponTemplate(itemToRepair._tpl))
             {
                 const progress =
-                    DatabaseServer.tables.globals.config.SkillsSettings
+                    DatabaseServer.getTables().globals.config.SkillsSettings
                         .WeaponTreatment.SkillPointsPerRepair;
                 QuestHelper.rewardSkillPoints(
                     sessionID,
@@ -91,118 +115,52 @@ class RepairController
         return output;
     }
 
-    static updateItemDurability(
-        itemToRepairId,
-        amountToRepair,
-        pmcData,
-        useRepairKit = false
-    )
-    {
-        const itemToRepair = pmcData.Inventory.items.find(
-            x => x._id === itemToRepairId
-        );
-        if (itemToRepair === undefined)
-        {
-            return undefined;
-        }
-        const itemToRepairDetails =
-            DatabaseServer.tables.templates.items[itemToRepair._tpl];
-        const isArmor = !!itemToRepairDetails._props.ArmorMaterial;
-        const itemMaxDurability = JsonUtil.clone(itemToRepair.upd.Repairable.MaxDurability);
-        const itemCurrentDurability = JsonUtil.clone(itemToRepair.upd.Repairable.Durability);
-        const itemCurrentMaxDurability = JsonUtil.clone(itemToRepair.upd.Repairable.MaxDurability);
-        let newCurrentDurability = itemCurrentDurability + amountToRepair;
-        let newCurrentMaxDurability = itemCurrentMaxDurability + amountToRepair;
-        const randomisedWearAmount = (isArmor)
-            ? RepairController.getRandomisedArmorRepairDegredationValue(itemToRepairDetails._props.ArmorMaterial, useRepairKit, itemCurrentMaxDurability)
-            : RepairController.getRandomisedWeaponRepairDegredationValue(itemToRepairDetails._props, useRepairKit, itemCurrentMaxDurability);
-        // Ensure new max isnt above items max
-        if (newCurrentMaxDurability > itemMaxDurability)
-        {
-            newCurrentMaxDurability = itemMaxDurability;
-        }
-
-        // Ensure new current isnt above items max
-        if (newCurrentDurability > itemMaxDurability)
-        {
-            newCurrentDurability = itemMaxDurability;
-        }
-        // Construct object to return
-        itemToRepair.upd.Repairable = {
-            Durability: newCurrentDurability,
-            MaxDurability: newCurrentMaxDurability
-        };
-        // Apply wear to durability
-        itemToRepair.upd.Repairable.MaxDurability -= randomisedWearAmount;
-
-        // Ensure current durability matches our new max
-        itemToRepair.upd.Repairable.Durability = itemToRepair.upd.Repairable.MaxDurability;
-        // repair mask cracks
-        if (
-            itemToRepair.upd.FaceShield &&
-            itemToRepair.upd.FaceShield.Hits > 0
-        )
-        {
-            itemToRepair.upd.FaceShield.Hits = 0;
-        }
-        return itemToRepair;
-    }
-
-    static getRandomisedArmorRepairDegredationValue(armorMaterial, isRepairKit, armorMax)
-    {
-        const armorMaterialSettings =
-            DatabaseServer.tables.globals.config.ArmorMaterials[armorMaterial];
-        const minMultiplier = isRepairKit
-            ? armorMaterialSettings.MinRepairKitDegradation
-            : armorMaterialSettings.MinRepairDegradation;
-        const maxMultiplier = isRepairKit
-            ? armorMaterialSettings.MaxRepairKitDegradation
-            : armorMaterialSettings.MaxRepairDegradation;
-        const randomValue = RandomUtil.getFloat(minMultiplier, maxMultiplier);
-        return randomValue * armorMax;
-    }
-
-    static getRandomisedWeaponRepairDegredationValue(itemProps, isRepairKit, armorMax)
-    {
-        const minRepairDeg = (isRepairKit)
-            ? itemProps.MinRepairKitDegradation
-            : itemProps.MinRepairDegradation;
-        const maxRepairDeg = (isRepairKit)
-            ? itemProps.MinRepairKitDegradation
-            : itemProps.MaxRepairDegradation;
-        const randomValue = RandomUtil.getFloat(minRepairDeg, maxRepairDeg);
-        return randomValue * armorMax;
-    }
-
     /**
      * Repair with repair kit
      * @param pmcData player profile
-     * @param body endpoint response data
+     * @param body endpoint request data
      * @param sessionID session id
      * @returns item event router action
      */
-    static repair(pmcData, body, sessionID)
+    static repairWithKit(pmcData, body, sessionID)
     {
         const output = ItemEventRouter.getOutput(sessionID);
         const pmcInventory = pmcData.Inventory;
-        const itemToRepair = RepairController.updateItemDurability(
-            body.target,
-            body.repairKitsInfo[0].count,
-            pmcData,
-            trye
+
+        let itemToRepair = pmcData.Inventory.items.find(
+            x => x._id === body.target
         );
+        if (itemToRepair === undefined)
+        {
+            throw new Error(`Item ${body.target} not found, unable to repair`);
+        }
+
+        const itemToRepairDetails =
+            DatabaseServer.getTables().templates.items[itemToRepair._tpl];
+        const repairItemIsArmor = !!itemToRepairDetails._props.ArmorMaterial;
+
+        itemToRepair = RepairHelper.updateItemDurability(
+            itemToRepair,
+            itemToRepairDetails,
+            repairItemIsArmor,
+            body.repairKitsInfo[0].count,
+            true
+        );
+
         output.profileChanges[sessionID].items.change.push(itemToRepair);
+
         for (const repairKit of body.repairKitsInfo)
         {
             const repairKitInInventory = pmcInventory.items.find(
                 x => x._id === repairKit._id
             );
             const repairKitDetails =
-                DatabaseServer.tables.templates.items[
+                DatabaseServer.getTables().templates.items[
                     repairKitInInventory._tpl
                 ];
             const repairKitReductionAmount = repairKit.count;
-            //reduce repair kit resource
+
+            // Reduce repair kit resource
             const maxRepairAmount = repairKitDetails._props.MaxRepairResource;
             if (!repairKitInInventory.upd.RepairKit?.Resource)
             {
@@ -210,22 +168,28 @@ class RepairController
                     Resource: maxRepairAmount,
                 };
             }
+
             repairKitInInventory.upd.RepairKit.Resource -=
                 repairKitReductionAmount;
+
+            // Only increment skill when repairing weapons
+            if (!repairItemIsArmor)
+            {
+                QuestHelper.rewardSkillPoints(
+                    sessionID,
+                    pmcData,
+                    output,
+                    "WeaponTreatment",
+                    RepairConfig.weaponSkillRepairGain
+                );
+            }
+
             output.profileChanges[sessionID].items.change.push(
                 repairKitInInventory
             );
         }
-        return output;
-    }
 
-    static isWeaponTemplate(tpl)
-    {
-        const itemTemplates = DatabaseServer.tables.templates.items;
-        const baseItem = itemTemplates[tpl];
-        const baseNode = itemTemplates[baseItem._parent];
-        const parentNode = itemTemplates[baseNode._parent];
-        return parentNode._id === ItemHelper.BASECLASS.Weapon;
+        return output;
     }
 }
 

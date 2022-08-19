@@ -6,7 +6,7 @@ class CustomizationCallbacks
 {
     static getSuits(url, info, sessionID)
     {
-        return HttpResponse.getBody({
+        return HttpResponseUtil.getBody({
             _id: `pmc${sessionID}`,
             suites: SaveServer.getProfile(sessionID).suits,
         });
@@ -17,7 +17,7 @@ class CustomizationCallbacks
         const splittedUrl = url.split("/");
         const traderID = splittedUrl[splittedUrl.length - 2];
 
-        return HttpResponse.getBody(
+        return HttpResponseUtil.getBody(
             CustomizationController.getTraderSuits(traderID, sessionID)
         );
     }

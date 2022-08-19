@@ -68,24 +68,33 @@ class JsonUtil
         let savedHash = JsonUtil.fileHashes[filePath];
         if (!savedHash || savedHash !== generatedHash)
         {
-            const { data, changed } = fixJson(`${jsonString}`);
-            if (changed)
+            try
             {
-                // data invalid, return it
-                Logger.error(
-                    `${filePath} - Detected faulty json, please fix your json file using VSCodium`
-                );
-                return data;
+                const { data, changed } = fixJson(`${jsonString}`);
+                if (changed)
+                {
+                    // data invalid, return it
+                    Logger.error(
+                        `${filePath} - Detected faulty json, please fix your json file using VSCodium`
+                    );
+                    return data;
+                }
+                else
+                {
+                    // data valid, save hash and call function again
+                    JsonUtil.fileHashes[filePath] = generatedHash;
+                    VFS.writeFile(
+                        jsonCachePath,
+                        JsonUtil.serialize(JsonUtil.fileHashes, true)
+                    );
+                    savedHash = generatedHash;
+                }
             }
-            else
+            catch (error)
             {
-                // data valid, save hash and call function again
-                JsonUtil.fileHashes[filePath] = generatedHash;
-                VFS.writeFile(
-                    jsonCachePath,
-                    JsonUtil.serialize(JsonUtil.fileHashes, true)
-                );
-                savedHash = generatedHash;
+                const errorMessage = `Attempted to parse file: ${filePath}. Error: ${error.message}`;
+                Logger.error(errorMessage);
+                throw new Error(errorMessage);
             }
         }
 

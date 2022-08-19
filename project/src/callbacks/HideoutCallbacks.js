@@ -4,6 +4,17 @@ require("../Lib.js");
 
 class HideoutCallbacks
 {
+    static update(timeSinceLastRun)
+    {
+        if (timeSinceLastRun > HideoutConfig.runIntervalSeconds)
+        {
+            HideoutController.update();
+            return true;
+        }
+
+        return false;
+    }
+
     static upgrade(pmcData, body, sessionID)
     {
         return HideoutController.upgrade(pmcData, body, sessionID);
@@ -63,17 +74,6 @@ class HideoutCallbacks
     static takeProduction(pmcData, body, sessionID)
     {
         return HideoutController.takeProduction(pmcData, body, sessionID);
-    }
-
-    static update(timeSinceLastRun)
-    {
-        if (timeSinceLastRun > HideoutConfig.runIntervalSeconds)
-        {
-            HideoutController.update();
-            return true;
-        }
-
-        return false;
     }
 }
 

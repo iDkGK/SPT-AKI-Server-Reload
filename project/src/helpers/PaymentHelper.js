@@ -11,11 +11,9 @@ class PaymentHelper
      */
     static isMoneyTpl(tpl)
     {
-        return [
-            ItemHelper.MONEY.Dollars,
-            ItemHelper.MONEY.Euros,
-            ItemHelper.MONEY.Roubles,
-        ].includes(tpl);
+        return [Money.DOLLARS, Money.EUROS, Money.ROUBLES].some(
+            element => element === tpl
+        );
     }
 
     /**
@@ -28,11 +26,11 @@ class PaymentHelper
         switch (currency)
         {
             case "EUR":
-                return ItemHelper.MONEY.Euros;
+                return Money.EUROS;
             case "USD":
-                return ItemHelper.MONEY.Dollars;
+                return Money.DOLLARS;
             case "RUB":
-                return ItemHelper.MONEY.Roubles;
+                return Money.ROUBLES;
             default:
                 return "";
         }

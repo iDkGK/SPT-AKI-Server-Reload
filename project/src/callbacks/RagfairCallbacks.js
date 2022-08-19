@@ -9,21 +9,36 @@ class RagfairCallbacks
         RagfairServer.load();
     }
 
+    static update(timeSinceLastRun)
+    {
+        if (timeSinceLastRun > RagfairConfig.runIntervalSeconds)
+        {
+            // There is a flag inside this class that only makes it run once.
+            RagfairServer.addPlayerOffers();
+            RagfairServer.update();
+            // function below used to be split, merged
+            RagfairController.update();
+            return true;
+        }
+
+        return false;
+    }
+
     static search(url, info, sessionID)
     {
-        return HttpResponse.getBody(
+        return HttpResponseUtil.getBody(
             RagfairController.getOffers(sessionID, info)
         );
     }
 
     static getMarketPrice(url, info, sessionID)
     {
-        return HttpResponse.getBody(RagfairController.getItemPrice(info));
+        return HttpResponseUtil.getBody(RagfairController.getItemPrice(info));
     }
 
     static getItemPrices(url, info, sessionID)
     {
-        return HttpResponse.getBody(RagfairServer.getAllFleaPrices());
+        return HttpResponseUtil.getBody(RagfairController.getAllFleaPrices());
     }
 
     static addOffer(pmcData, info, sessionID)
@@ -42,27 +57,9 @@ class RagfairCallbacks
         return RagfairController.extendOffer(info, sessionID);
     }
 
-    static update(timeSinceLastRun)
+    static sendReport(url, info, sessionID)
     {
-        if (timeSinceLastRun > RagfairConfig.runIntervalSeconds)
-        {
-            RagfairServer.update();
-            return true;
-        }
-
-        return false;
-    }
-
-    /* todo: merge remains with main update function above */
-    static updatePlayer(timeSinceLastRun)
-    {
-        if (timeSinceLastRun > RagfairConfig.runIntervalSeconds)
-        {
-            RagfairController.update();
-            return true;
-        }
-
-        return false;
+        return HttpResponseUtil.nullResponse();
     }
 }
 

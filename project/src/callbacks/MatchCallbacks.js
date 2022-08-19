@@ -6,52 +6,52 @@ class MatchCallbacks
 {
     static updatePing(url, info, sessionID)
     {
-        return HttpResponse.nullResponse();
+        return HttpResponseUtil.nullResponse();
     }
 
     static exitMatch(url, info, sessionID)
     {
-        return HttpResponse.nullResponse();
+        return HttpResponseUtil.nullResponse();
     }
 
     static exitToMenu(url, info, sessionID)
     {
-        return HttpResponse.nullResponse();
+        return HttpResponseUtil.nullResponse();
     }
 
     static startGroupSearch(url, info, sessionID)
     {
-        return HttpResponse.nullResponse();
+        return HttpResponseUtil.nullResponse();
     }
 
     static stopGroupSearch(url, info, sessionID)
     {
-        return HttpResponse.nullResponse();
+        return HttpResponseUtil.nullResponse();
     }
 
     static sendGroupInvite(url, info, sessionID)
     {
-        return HttpResponse.nullResponse();
+        return HttpResponseUtil.nullResponse();
     }
 
     static acceptGroupInvite(url, info, sessionID)
     {
-        return HttpResponse.nullResponse();
+        return HttpResponseUtil.nullResponse();
     }
 
     static cancelGroupInvite(url, info, sessionID)
     {
-        return HttpResponse.nullResponse();
+        return HttpResponseUtil.nullResponse();
     }
 
     static putMetrics(url, info, sessionID)
     {
-        return HttpResponse.nullResponse();
+        return HttpResponseUtil.nullResponse();
     }
 
     static getProfile(url, info, sessionID)
     {
-        return HttpResponse.getBody(MatchController.getProfile(info));
+        return HttpResponseUtil.getBody(MatchController.getProfile(info));
     }
 
     static serverAvailable(url, info, sessionID)
@@ -60,36 +60,38 @@ class MatchCallbacks
 
         if (output === false)
         {
-            return HttpResponse.getBody(
+            return HttpResponseUtil.getBody(
                 null,
                 420,
                 "Please play as PMC and go through the offline settings screen before pressing ready."
             );
         }
 
-        return HttpResponse.getBody(output);
+        return HttpResponseUtil.getBody(output);
     }
 
     static joinMatch(url, info, sessionID)
     {
-        return HttpResponse.getBody(MatchController.joinMatch(info, sessionID));
+        return HttpResponseUtil.getBody(
+            MatchController.joinMatch(info, sessionID)
+        );
     }
 
     static getMetrics(url, info, sessionID)
     {
-        return HttpResponse.getBody(
-            JsonUtil.serialize(DatabaseServer.tables.match.metrics)
+        return HttpResponseUtil.getBody(
+            JsonUtil.serialize(DatabaseServer.getTables().match.metrics)
         );
     }
 
     static getGroupStatus(url, info, sessionID)
     {
-        return HttpResponse.getBody(MatchController.getGroupStatus(info));
+        return HttpResponseUtil.getBody(MatchController.getGroupStatus(info));
     }
 
     static createGroup(url, info, sessionID)
     {
-        return HttpResponse.getBody(
+        return HttpResponseUtil.getBody(
             MatchController.createGroup(sessionID, info)
         );
     }
@@ -97,18 +99,19 @@ class MatchCallbacks
     static deleteGroup(url, info, sessionID)
     {
         MatchController.deleteGroup(info);
-        return HttpResponse.nullResponse();
+        return HttpResponseUtil.nullResponse();
     }
 
     static startOfflineRaid(url, info, sessionID)
     {
-        return HttpResponse.nullResponse();
+        MatchController.startOfflineRaid(info, sessionID);
+        return HttpResponseUtil.nullResponse();
     }
 
     static endOfflineRaid(url, info, sessionID)
     {
         MatchController.endOfflineRaid(info, sessionID);
-        return HttpResponse.nullResponse();
+        return HttpResponseUtil.nullResponse();
     }
 }
 

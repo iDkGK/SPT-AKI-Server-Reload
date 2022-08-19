@@ -4,8 +4,6 @@ require("../Lib.js");
 
 class MatchController
 {
-    static locations = {};
-
     static getEnabled()
     {
         return MatchConfig.enabled;
@@ -30,13 +28,14 @@ class MatchController
         return null;
     }
 
-    static getMatch(location)
+    static createGroup(sessionID, info)
     {
-        return {
-            id: "TEST",
-            ip: "127.0.0.1",
-            port: 9909,
-        };
+        return MatchLocationService.createGroup(sessionID, info);
+    }
+
+    static deleteGroup(info)
+    {
+        MatchLocationService.deleteGroup(info);
     }
 
     static joinMatch(info, sessionID)
@@ -46,7 +45,7 @@ class MatchController
 
         // --- LOOP (DO THIS FOR EVERY PLAYER IN GROUP)
         // get player profile
-        const account = LauncherController.find(sessionID);
+        const account = SaveServer.getProfile(sessionID).info;
         const profileID = info.savage
             ? `scav${account.id}`
             : `pmc${account.id}`;
@@ -67,6 +66,15 @@ class MatchController
         return output;
     }
 
+    static getMatch(location)
+    {
+        return {
+            id: "TEST",
+            ip: "127.0.0.1",
+            port: 9909,
+        };
+    }
+
     static getGroupStatus(info)
     {
         return {
@@ -76,56 +84,13 @@ class MatchController
         };
     }
 
-    static createGroup(sessionID, info)
-    {
-        const groupID = "test";
-
-        MatchController.locations[info.location].groups[groupID] = {
-            _id: groupID,
-            owner: `pmc${sessionID}`,
-            location: info.location,
-            gameVersion: "live",
-            region: "EUR",
-            status: "wait",
-            isSavage: false,
-            timeShift: "CURR",
-            dt: TimeUtil.getTimestamp(),
-            players: [
-                {
-                    _id: `pmc${sessionID}`,
-                    region: "EUR",
-                    ip: "127.0.0.1",
-                    savageId: `scav${sessionID}`,
-                    accessKeyId: "",
-                },
-            ],
-            customDataCenter: [],
-        };
-
-        return MatchController.locations[info.location].groups[groupID];
-    }
-
-    static deleteGroup(info)
-    {
-        for (const locationID in MatchController.locations)
-        {
-            for (const groupID in MatchController.locations[locationID]
-                .groups)
-            {
-                if (groupID === info.groupId)
-                {
-                    delete MatchController.locations[locationID].groups[
-                        groupID
-                    ];
-                    return;
-                }
-            }
-        }
-    }
-
     static startOfflineRaid(info, sessionID)
     {
-        //TODO:
+        //TODO: add code to strip PMC of equipment now they've started the raid
+
+        // Store the profile as-is for later use on the post-raid exp screen
+        const currentProfile = SaveServer.getProfile(sessionID);
+        ProfileSnapshotService.storeProfileSnapshot(sessionID, currentProfile);
     }
 
     static endOfflineRaid(info, sessionID)
@@ -146,7 +111,7 @@ class MatchController
         pmcData.CarExtractCounts[extract] += 1;
         const extractCount = pmcData.CarExtractCounts[extract];
 
-        const fenceID = TraderHelper.TRADER.Fence;
+        const fenceID = Traders.FENCE;
         let fenceStanding = Number(pmcData.TradersInfo[fenceID].standing);
 
         // Not exact replica of Live behaviour
@@ -163,6 +128,9 @@ class MatchController
             pmcData.TradersInfo[fenceID].loyaltyLevel,
             1
         );
+
+        // clear bot loot cache
+        BotLootCacheService.clearCache();
     }
 }
 

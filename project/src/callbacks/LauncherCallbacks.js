@@ -6,17 +6,11 @@ class LauncherCallbacks
 {
     static connect()
     {
-        return HttpResponse.noBody({
-            backendUrl: HttpServer.getBackendUrl(),
-            name: "SPT-AKI Server",
-            editions: Object.keys(DatabaseServer.tables.templates.profiles),
-        });
+        return HttpResponseUtil.noBody(LauncherController.connect());
     }
 
     static login(url, info, sessionID)
     {
-        ProfileHelper.sessionId = sessionID;
-
         const output = LauncherController.login(info);
         return !output ? "FAILED" : output;
     }
@@ -30,7 +24,7 @@ class LauncherCallbacks
     static get(url, info, sessionID)
     {
         const output = LauncherController.find(LauncherController.login(info));
-        return HttpResponse.noBody(output);
+        return HttpResponseUtil.noBody(output);
     }
 
     static changeUsername(url, info, sessionID)
@@ -51,34 +45,25 @@ class LauncherCallbacks
         return !output ? "FAILED" : "OK";
     }
 
-    static getMiniProfile(url, info, sessionID)
-    {
-        return HttpResponse.noBody(ProfileController.getMiniProfile(sessionID));
-    }
-
-    static getAllMiniProfiles(url, info, sessionID)
-    {
-        return HttpResponse.noBody(LauncherController.getMiniProfiles());
-    }
-
     static getServerVersion()
     {
-        return HttpResponse.noBody(Watermark.getVersionTag());
+        const x = HttpResponseUtil.noBody(Watermark.getVersionTag());
+        return x;
     }
 
     static ping(url, info, sessionID)
     {
-        return HttpResponse.noBody("pong!");
+        return HttpResponseUtil.noBody("pong!");
     }
 
     static removeProfile(url, info, sessionID)
     {
-        return HttpResponse.noBody(SaveServer.removeProfile(sessionID));
+        return HttpResponseUtil.noBody(SaveServer.removeProfile(sessionID));
     }
 
     static getCompatibleTarkovVersion()
     {
-        return HttpResponse.noBody(
+        return HttpResponseUtil.noBody(
             LauncherController.getCompatibleTarkovVersion()
         );
     }

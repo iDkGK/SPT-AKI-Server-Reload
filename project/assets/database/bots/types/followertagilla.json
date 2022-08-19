@@ -2074,6 +2074,14 @@
                 "min": 0,
                 "max": 0
             },
+            "drugs": {
+                "max": 1,
+                "min": 0
+            },
+			"stims": {
+				"min": 0,
+				"max": 1
+			},
             "looseLoot": {
                 "min": 0,
                 "max": 0

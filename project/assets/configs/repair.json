@@ -1,3 +1,5 @@
 {
-    "priceMultiplier": 1
+    "priceMultiplier": 1,
+    "applyRandomizeDurabilityLoss": true,
+    "weaponSkillRepairGain": 4.06
 }

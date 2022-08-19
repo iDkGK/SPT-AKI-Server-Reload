@@ -4,11 +4,18 @@ require("../Lib.js");
 
 class ItemEventRouter
 {
-    static onEvent = require("../bindings/ItemEvents");
-    static output = {
-        warnings: [],
-        profileChanges: {},
-    };
+    static get onEvent()
+    {
+        return require("../bindings/ItemEvents");
+    }
+
+    static get output()
+    {
+        return {
+            warnings: [],
+            profileChanges: {},
+        };
+    }
 
     static handleEvents(info, sessionID)
     {
@@ -25,7 +32,7 @@ class ItemEventRouter
 
             if (ItemEventRouter.onEvent[body.Action])
             {
-                Logger.debug(`[${body.Action}] `, false, true);
+                Logger.debug(`[${body.Action}] `);
                 for (const callback in ItemEventRouter.onEvent[body.Action])
                 {
                     result = ItemEventRouter.onEvent[body.Action][callback](

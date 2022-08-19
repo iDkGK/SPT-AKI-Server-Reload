@@ -4,16 +4,18 @@ require("../Lib.js");
 
 class BundleInfo
 {
-    constructor(modpath, bundle)
+    modPath;
+    key;
+    path;
+    filepath;
+    dependencyKeys;
+
+    constructor(modpath, bundle, bundlePath, bundleFilepath)
     {
+        this.modPath = modpath;
         this.key = bundle.key;
-        this.path = `${HttpServer.getBackendUrl()}/files/bundle/${bundle.key}`;
-        this.filepath =
-            bundle.path ||
-            `${process.cwd()}/${modpath}bundles/${bundle.key}`.replace(
-                /\\/g,
-                "/"
-            );
+        this.path = bundlePath;
+        this.filepath = bundleFilepath;
         this.dependencyKeys = bundle.dependencyKeys || [];
     }
 }
@@ -55,7 +57,18 @@ class BundleLoader
 
         for (const bundle of manifest)
         {
-            BundleLoader.bundles[bundle.key] = new BundleInfo(modpath, bundle);
+            const bundlePath = `${HttpServerHelper.getBackendUrl()}/files/bundle/${
+                bundle.key
+            }`;
+            const bundleFilepath =
+                bundle.path ||
+                `${modpath}bundles/${bundle.key}`.replace(/\\/g, "/");
+            BundleLoader.bundles[bundle.key] = new BundleInfo(
+                modpath,
+                bundle,
+                bundlePath,
+                bundleFilepath
+            );
         }
     }
 }

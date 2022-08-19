@@ -4,7 +4,18 @@ require("../Lib.js");
 
 class LauncherController
 {
-    static find(sessionID)
+    static connect()
+    {
+        return {
+            backendUrl: HttpServerHelper.getBackendUrl(),
+            name: "SPT-AKI Server",
+            editions: Object.keys(
+                DatabaseServer.getTables().templates.profiles
+            ),
+        };
+    }
+
+    static find(sessionIdKey)
     {
         if (sessionIdKey in SaveServer.getProfiles())
         {
@@ -12,23 +23,6 @@ class LauncherController
         }
 
         return undefined;
-    }
-
-    static getMiniProfiles()
-    {
-        const miniProfiles = [];
-
-        for (const sessionIdKey in SaveServer.getProfiles())
-        {
-            miniProfiles.push(ProfileHelper.getMiniProfile(sessionIdKey));
-        }
-
-        return miniProfiles;
-    }
-
-    static isWiped(sessionID)
-    {
-        return SaveServer.getProfile(sessionID).info.wipe;
     }
 
     static login(info)
@@ -57,7 +51,7 @@ class LauncherController
             }
         }
 
-        return LauncherController.createAccount(info);
+        return createAccount(info);
     }
 
     static createAccount(info)
@@ -79,7 +73,7 @@ class LauncherController
 
     static changeUsername(info)
     {
-        const sessionID = LauncherController.login(info);
+        const sessionID = login(info);
 
         if (sessionID)
         {
@@ -91,7 +85,7 @@ class LauncherController
 
     static changePassword(info)
     {
-        const sessionID = LauncherController.login(info);
+        const sessionID = login(info);
 
         if (sessionID)
         {
@@ -103,7 +97,7 @@ class LauncherController
 
     static wipe(info)
     {
-        const sessionID = LauncherController.login(info);
+        const sessionID = login(info);
 
         if (sessionID)
         {
@@ -117,7 +111,7 @@ class LauncherController
 
     static getCompatibleTarkovVersion()
     {
-        return AkiConfig.compatibleTarkovVersion;
+        return CoreConfig.compatibleTarkovVersion;
     }
 }
 

@@ -4,7 +4,10 @@ require("../Lib.js");
 
 class ImageRouter
 {
-    static onRoute = {};
+    static addRoute(key, valueToAdd)
+    {
+        ImageRouteService.addRoute(key, valueToAdd);
+    }
 
     static sendImage(sessionID, req, resp, body)
     {
@@ -12,9 +15,9 @@ class ImageRouter
         const url = VFS.stripExtension(req.url);
 
         // send image
-        if (ImageRouter.onRoute[url])
+        if (ImageRouteService.existsByKey(url))
         {
-            HttpServer.sendFile(resp, ImageRouter.onRoute[url]);
+            HttpServer.sendFile(resp, ImageRouteService.getByKey(url));
         }
     }
 

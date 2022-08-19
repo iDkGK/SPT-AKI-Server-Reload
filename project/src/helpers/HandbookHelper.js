@@ -4,6 +4,9 @@ require("../Lib.js");
 
 class LookupItem
 {
+    byId;
+    byParent;
+
     constructor()
     {
         this.byId = {};
@@ -13,6 +16,9 @@ class LookupItem
 
 class LookupCollection
 {
+    items;
+    categories;
+
     constructor()
     {
         this.items = new LookupItem();
@@ -62,10 +68,7 @@ class HandbookHelper
      * @param {string} currencyFrom
      * @returns number
      */
-    static inRUB(
-        value,
-        currencyFrom // TODO: move to handbook helper
-    )
+    static inRUB(value, currencyFrom)
     {
         return Math.round(
             value * (HandbookHelper.getTemplatePrice(currencyFrom) || 0)
@@ -78,10 +81,7 @@ class HandbookHelper
      * @param {string} currencyTo
      * @returns number
      */
-    static fromRUB(
-        value,
-        currencyTo // TODO: move to handbook helper
-    )
+    static fromRUB(value, currencyTo)
     {
         const price = HandbookHelper.getTemplatePrice(currencyTo);
         return price ? Math.round(value / price) : 0;
