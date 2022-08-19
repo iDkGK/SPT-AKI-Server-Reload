@@ -138,7 +138,7 @@ class HttpServer
         if (!output)
         {
             Logger.error(`[UNHANDLED][${req.url}]`);
-            Logger.log(info);
+            Logger.info(info);
             output = HttpResponseUtil.getBody(
                 null,
                 404,

@@ -3,7 +3,6 @@
 require("../Lib.js");
 
 module.exports = {
-    "aki-config": ConfigServer.initialize,
     "aki-database": DatabaseImporter.load,
     "aki-handbook": HandbookCallbacks.load,
     "aki-http": HttpCallbacks.load,

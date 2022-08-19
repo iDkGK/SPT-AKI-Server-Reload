@@ -1,6 +1,6 @@
 const semver = require("semver");
 
-const version = "v14.15.3";
+const version = "v16.17.0";
 
 if (semver.satisfies(process.version, version)) {
     console.log("Your node version is correct.");

@@ -2,8 +2,6 @@
 
 require("../Lib.js");
 
-const oslocale = require("os-locale");
-
 class WatermarkLocale
 {
     static get locales()
@@ -48,7 +46,7 @@ class WatermarkLocale
 
     static getLocale()
     {
-        const locale = oslocale.sync();
+        const locale = Intl.DateTimeFormat().resolvedOptions().locale;
         return !WatermarkLocale.locales[locale] ? "en-US" : locale;
     }
 

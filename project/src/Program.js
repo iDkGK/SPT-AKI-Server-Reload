@@ -12,6 +12,9 @@ class Program
         process.stdout.setEncoding("utf8");
         process.title = "SPT-AKI Server";
 
+        // importing configs
+        ConfigServer.initialize();
+
         // enable exception logging
         Logger.initialize();
 
@@ -19,7 +22,7 @@ class Program
         Watermark.initialize();
         Watermark.setTitle();
         Watermark.resetCursor();
-        // Watermark.draw();
+        Watermark.draw();
 
         // load and execute all packages
         App.load();

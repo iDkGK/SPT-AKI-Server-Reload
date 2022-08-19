@@ -19,18 +19,12 @@
 					"run-script",
 					"test:debug"
 				],
-				"cwd": "${workspaceFolder}"
-			},
-			{
-				"type": "node",
-				"request": "launch",
-				"name": "Release",
-				"runtimeExecutable": "npm",
-				"runtimeArgs": [
-					"run-script",
-					"test:release"
+				"outFiles":[
+					"${workspaceFolder}/obj/**/*.js",
+					"!**/node_modules/**"
 				],
-				"cwd": "${workspaceFolder}"
+				"cwd": "${workspaceFolder}",
+				"outputCapture": "std"
 			}
 		]
 	}

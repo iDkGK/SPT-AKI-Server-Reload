@@ -1,63 +1,49 @@
 {
     "name": "aki-server",
-	"version": "3.2.1",
-    "main": "src/ide/ReleaseEntry.js",
+    "version": "3.2.1",
     "author": "SPT-AKI",
-    "contributors": [
-        "Merijn Hendriks (Senko-san, InNoHurryToCode)",
-        "Ginja",
-        "Terkoiz",
-        "Reider123",
-        "Erehkigal",
-        "PoloYolo",
-        "Craink",
-        "Emperor06"
-    ],
     "license": "NCSA",
+    "main": "obj/bundle.js",
     "repository": "https://dev.sp-tarkov.com/SPT-AKI/Server",
     "description": "Modding framework for Escape From Tarkov",
     "scripts": {
         "lint": "eslint --fix \"./src/**/*.js\"",
-        "lint:verify": "eslint \"./src/**/*.js\"",
+        "lint:fix": "eslint --fix --ext .js src/**",
         "test:debug": "node --trace-warnings src/ide/TestEntry.js",
-        "test:release": "node --trace-warnings src/ide/ReleaseEntry.js",
-        "test:bleeding": "node --trace-warnings src/ide/BleedingEdgeEntry.js",
-        "gen:types": "npx babel src --out-dir obj",
         "gen:bundle-release": "npx browserify --debug --node obj/ide/ReleaseEntry.js > obj/bundle.js",
-        "gen:bundle-debug": "npx browserify --debug --node obj/ide/DebugEntry.js > obj/bundle.js",
-        "gen:bundle-bleeding": "npx browserify --debug --node obj/ide/BleedingEdgeEntry.js > obj/bundle.js",
-        "gen:exe": "node src/ide/Compiler.js",
         "build:release": "npm run gen:types && npm run gen:bundle-release && npm run gen:exe",
+        "gen:bundle-debug": "npx browserify --debug --node obj/ide/DebugEntry.js > obj/bundle.js",
         "build:debug": "npm run gen:types && npm run gen:bundle-debug && npm run gen:exe",
-        "build:bleeding": "npm run gen:types && npm run gen:bundle-bleeding && npm run gen:exe"
+        "gen:bundle-bleeding": "npx browserify --debug --node obj/ide/BleedingEdgeEntry.js > obj/bundle.js",
+        "build:bleeding": "npm run gen:types && npm run gen:bundle-bleeding && npm run gen:exe",
+        "gen:exe": "node src/ide/Compiler.js",
+        "gen:types": "npx babel src --out-dir obj"
     },
     "dependencies": {
-        "atomically": "^1.7.0",
-        "json-fixer": "1.6.10",
-        "os-locale": "^5.0.0",
+        "json-fixer": "1.6.14",
         "proper-lockfile": "^4.1.2",
         "semver": "^7.3.7",
-        "source-map-support": "^0.5.0",
-        "winston": "^3.7.2",
+        "source-map-support": "^0.5.21",
+        "winston": "^3.8.1",
         "winston-daily-rotate-file": "^4.7.1",
-        "ws": "^7.4.6"
+        "ws": "^8.8.1"
     },
     "devDependencies": {
-        "@babel/cli": "^7.13.16",
-        "@babel/core": "7.14.2",
-        "@babel/eslint-parser": "^7.14.2",
-        "@babel/plugin-transform-runtime": "^7.16.0",
-        "@babel/plugin-proposal-class-properties": "^7.13.0",
-        "@babel/plugin-proposal-private-methods": "^7.13.0",
-        "@babel/preset-env": "^7.14.2",
-        "babel-plugin-source-map-support": "^2.1.0",
+        "@babel/cli": "^7.18.10",
+        "@babel/core": "7.18.10",
+        "@babel/eslint-parser": "^7.18.9",
+        "@babel/plugin-proposal-class-properties": "^7.18.6",
+        "@babel/plugin-proposal-private-methods": "^7.18.6",
+        "@babel/plugin-transform-runtime": "^7.18.10",
+        "@babel/preset-env": "^7.18.10",
+        "babel-plugin-source-map-support": "^2.2.0",
         "browserify": "^17.0.0",
-        "bufferutil": "^4.0.3",
-        "core-js": "^3.20.0",
-        "eslint": "^7.26.0",
-        "nexe": "^4.0.0-beta.19",
-        "rcedit": "^3.0.0",
-        "utf-8-validate": "^5.0.5"
+        "bufferutil": "^4.0.6",
+        "core-js": "^3.24.1",
+        "eslint": "^8.22.0",
+        "nexe": "^4.0.0-rc.1",
+        "rcedit": "^3.0.1",
+        "utf-8-validate": "^5.0.9"
     },
     "babel": {
         "presets": [
@@ -65,10 +51,10 @@
                 "@babel/env",
                 {
                     "targets": {
-                        "node": "14.15.3"
+                        "node": "16.17.0"
                     },
                     "useBuiltIns": "usage",
-                    "corejs": "3.20.0"
+                    "corejs": "3.24.1"
                 }
             ]
         ],

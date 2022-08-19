@@ -48,7 +48,7 @@ class ModLoader
             return;
         }
 
-        Logger.log("ModLoader: loading mods...");
+        Logger.info("ModLoader: loading mods...");
         const mods = VFS.getDirs(ModLoader.basepath);
 
         // Used to check all errors before stopping the load execution
@@ -356,11 +356,11 @@ class ModLoader
             Logger.error("Cyclic dependency detected");
 
             // additional info
-            Logger.log(`checking: ${mod}`);
-            Logger.log("checked:");
-            Logger.log(result);
-            Logger.log("visited:");
-            Logger.log(visited);
+            Logger.info(`checking: ${mod}`);
+            Logger.info("checked:");
+            Logger.info(result);
+            Logger.info("visited:");
+            Logger.info(visited);
 
             // wait for input
             process.exit(1);
